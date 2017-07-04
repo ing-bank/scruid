@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/ing-bank/scruid.svg?style=svg)](https://circleci.com/gh/ing-bank/scruid)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b7c4adf8ad447efa9c7ea8a9ffda6b2)](https://www.codacy.com/app/fokko/scruid?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ing-bank/scruid&amp;utm_campaign=Badge_Grade)
+
 # Scruid
 
 Scruid (Scala+Druid) is an open source library that allows you to compose queries easily in Scala. The library will take care of the translation of the query into json, parse the result in the case class that you define.

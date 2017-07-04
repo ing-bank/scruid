@@ -1,0 +1,30 @@
+machine:
+  services:
+    - docker
+  timezone: UTC
+  java:
+    version: oraclejdk8
+  environment:
+    SCALA_VERSION: 2.12.2
+    SCALA_BINARY_VERSION: 2.12
+
+dependencies:
+  # Cache the resolution-cache and build streams to speed things up
+  cache_directories:
+    - "~/.sbt"
+    - "target/resolution-cache"
+    - "target/streams"
+    - "project/target/resolution-cache"
+    - "project/target/streams"
+  # Compile all sources
+  override:
+    - sbt ++$SCALA_VERSION coverage test:compile
+
+test:
+  pre:
+    # Start the Druid container to do the tests
+    - docker run -d -p 8082:8082 fokkodriesprong/docker-druid
+    # Give some time to boot
+    - sleep 30
+  override:
+    - sbt ++$SCALA_VERSION coverage test coverageReport codacyCoverage
