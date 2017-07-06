@@ -22,14 +22,13 @@ import org.scalatest.{FunSuiteLike, Inside, OptionValues}
 
 case class TimeseriesCount(count: Int)
 
-case class GroupByIsAnonymous(isAnonymous: String, count: Int)
+case class GroupByIsAnonymous(isAnonymous: Boolean, count: Int)
 
 case class TopCountry(count: Int, countryName: String = null)
 
 class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
   val totalNumberOfEntries = 39244
-
 
   test("Do a Timeseries Query") {
 
@@ -142,21 +141,21 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
     //    "dataSource": "wikiticker"
     //  }
 
-val result = TopNQuery[TopCountry](
-  dimension = Dimension(
-    dimension = "countryName"
-  ),
-  threshold = 5,
-  metric = "count",
-  aggregations = List(
-    Aggregation(
-      kind = "count",
-      name = "count",
-      fieldName = "count"
-    )
-  ),
-  intervals = List("2011-06-01/2017-06-01")
-).execute
+    val result = TopNQuery[TopCountry](
+      dimension = Dimension(
+        dimension = "countryName"
+      ),
+      threshold = 5,
+      metric = "count",
+      aggregations = List(
+        Aggregation(
+          kind = "count",
+          name = "count",
+          fieldName = "count"
+        )
+      ),
+      intervals = List("2011-06-01/2017-06-01")
+    ).execute
 
     //  [{
     //    "timestamp": "2015-09-12T00:46:58.771Z",

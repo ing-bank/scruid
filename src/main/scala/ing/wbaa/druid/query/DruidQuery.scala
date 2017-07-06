@@ -18,7 +18,7 @@
 package ing.wbaa.druid.query
 
 import ing.wbaa.druid.common.DruidClient.doQuery
-import ing.wbaa.druid.common.json.IntSerializer
+import ing.wbaa.druid.common.json.{BoolSerializer, IntSerializer}
 import ing.wbaa.druid.common.{DruidClient, DruidConfig}
 import ing.wbaa.druid.definitions.{Aggregation, Dimension, Filter}
 import org.joda.time.DateTime
@@ -30,6 +30,7 @@ import org.json4s.{FieldSerializer, Formats, NoTypeHints}
 object DruidQuery {
   val formats: Formats = Serialization.formats(NoTypeHints) +
     new IntSerializer +
+    new BoolSerializer +
     FieldSerializer[DruidQuery[_]]() ++
     JodaTimeSerializers.all
 }
