@@ -40,6 +40,7 @@ sealed trait DruidQuery[T] {
   val dataSource: String = DruidConfig.datasource
   val granularity: String
   val aggregations: List[Aggregation]
+  val filter: Option[Filter]
   val intervals: List[String]
 
   def execute()(implicit x$1: Manifest[List[T]]): List[T]
@@ -49,6 +50,7 @@ case class GroupByQuery[T](queryType: String = "groupBy",
                            dimensions: List[Dimension] = List(),
                            granularity: String = "all",
                            aggregations: List[Aggregation],
+                           filter: Option[Filter] = None,
                            intervals: List[String]
                           ) extends DruidQuery[T] {
   override def execute()(implicit mf: Manifest[List[T]]): List[T] = {
@@ -64,8 +66,8 @@ case class TimeSeriesResult[T](timestamp: DateTime, result: T)
 case class TimeSeriesQuery[T](queryType: String = "timeseries",
                               granularity: String = "week",
                               descending: String = "true",
-                              filter: Option[Filter] = None,
                               aggregations: List[Aggregation],
+                              filter: Option[Filter] = None,
                               intervals: List[String]
                              ) extends DruidQuery[TimeSeriesResult[T]] {
 
@@ -81,10 +83,10 @@ case class TimeSeriesQuery[T](queryType: String = "timeseries",
 case class TopNQuery[T](queryType: String = "topN",
                         dimension: Dimension,
                         threshold: Int,
-                        filter: Option[Filter] = None,
                         metric: String,
                         granularity: String = "all",
                         aggregations: List[Aggregation],
+                        filter: Option[Filter] = None,
                         intervals: List[String]
                        ) extends DruidQuery[T] {
 
