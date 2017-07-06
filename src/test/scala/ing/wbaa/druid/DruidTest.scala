@@ -93,7 +93,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
           fieldName = "count"
         )
       ),
-      dimensions = List("isAnonymous"),
+      dimensions = List(Dimension(dimension = "isAnonymous")),
       intervals = List("2011-06-01/2017-06-01")
     ).execute()
 

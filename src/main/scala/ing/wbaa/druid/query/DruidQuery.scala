@@ -46,7 +46,7 @@ sealed trait DruidQuery[T] {
 }
 
 case class GroupByQuery[T](queryType: String = "groupBy",
-                           dimensions: List[String] = List(),
+                           dimensions: List[Dimension] = List(),
                            granularity: String = "all",
                            aggregations: List[Aggregation],
                            intervals: List[String]
