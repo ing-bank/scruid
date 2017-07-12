@@ -44,11 +44,12 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   scalacOptions in (c, console) --= unusedWarnings
 )
 
+
 lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "0.0.3",
+    version := "0.0.5",
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.3.1",
 

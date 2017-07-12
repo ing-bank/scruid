@@ -60,6 +60,8 @@ object DruidClient {
 
     val query = compact(render(res))
 
+    logger.debug(s"Druid query: $query")
+
     val response = httpClient.postData(query)
 
     logger.debug(s"Druid result: ${response.asString.body}")
