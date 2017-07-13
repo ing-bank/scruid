@@ -17,7 +17,6 @@
 
 package ing.wbaa.druid.query
 
-import ing.wbaa.druid.common.DruidClient.doQuery
 import ing.wbaa.druid.common.json.{BoolSerializer, IntSerializer}
 import ing.wbaa.druid.common.{DruidClient, DruidConfig}
 import ing.wbaa.druid.definitions.{Aggregation, Dimension, Filter}
@@ -46,18 +45,19 @@ sealed trait DruidQuery[T] {
   def execute()(implicit x$1: Manifest[List[T]]): List[T]
 }
 
+case class GroupByQueryResult[T](timestamp: DateTime, event: T)
+
 case class GroupByQuery[T](queryType: String = "groupBy",
                            dimensions: List[Dimension] = List(),
                            granularity: String = "all",
                            aggregations: List[Aggregation],
                            filter: Option[Filter] = None,
                            intervals: List[String]
-                          ) extends DruidQuery[T] {
-  override def execute()(implicit mf: Manifest[List[T]]): List[T] = {
-    val queryResult = doQuery(this)
-    val json = parse(queryResult)
+                          ) extends DruidQuery[GroupByQueryResult[T]] {
+  override def execute()(implicit mf: Manifest[List[GroupByQueryResult[T]]]): List[GroupByQueryResult[T]] = {
+    val queryResult = DruidClient.doQuery(this)
 
-    (json \ "event").extract[List[T]](formats = DruidQuery.formats, mf = mf)
+    parse(queryResult).extract[List[GroupByQueryResult[T]]](formats = DruidQuery.formats, mf = mf)
   }
 }
 

@@ -17,7 +17,7 @@
 package ing.wbaa.druid
 
 import ing.wbaa.druid.definitions._
-import ing.wbaa.druid.query.{GroupByQuery, TimeSeriesQuery, TopNQuery}
+import ing.wbaa.druid.query.{GroupByQuery, GroupByQueryResult, TimeSeriesQuery, TopNQuery}
 import org.scalatest.{FunSuiteLike, Inside, OptionValues}
 
 case class TimeseriesCount(count: Int)
@@ -114,7 +114,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
     //  }]
 
     // The number of entries in the data set
-    assert(result.map(_.count).sum == totalNumberOfEntries)
+    assert(result.map(_.event.count).sum == totalNumberOfEntries)
   }
 
 
