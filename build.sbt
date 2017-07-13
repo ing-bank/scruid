@@ -49,7 +49,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "0.0.5",
+    version := "0.0.6",
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.3.1",
 
