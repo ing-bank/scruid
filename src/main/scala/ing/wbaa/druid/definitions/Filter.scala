@@ -24,15 +24,28 @@ trait Filter {
 object FilterOperators {
 
   implicit class LogicalOperations(lhs: Filter) {
-    def &&(otherFilter: Filter*): Filter = FilterCompose("and", lhs :: otherFilter.toList)
+    private def buildFilter(predicate: String, args: List[Filter]): Filter = {
+      val newFilters = args.flatMap {
+        case FilterEmpty => None
+        case filter: Filter => Some(filter)
+      }
 
-    def ||(otherFilter: Filter*): Filter = FilterCompose("or", lhs :: otherFilter.toList)
+      if (newFilters.nonEmpty) {
+        FilterCompose(predicate, lhs :: newFilters)
+      }
+      else {
+        lhs
+      }
+    }
+
+    def &&(otherFilter: Filter*): Filter = buildFilter("and", otherFilter.toList)
+
+    def ||(otherFilter: Filter*): Filter = buildFilter("or", otherFilter.toList)
 
     def unary_!(): Filter = FilterNot(kind = "not", lhs)
   }
 
 }
-
 
 case class FilterSelect(kind: String = "selector", dimension: String, value: Any) extends Filter
 
@@ -41,3 +54,7 @@ case class FilterRegex(kind: String = "regex", dimension: String, pattern: Strin
 case class FilterCompose(kind: String, fields: List[Filter]) extends Filter
 
 case class FilterNot(kind: String = "not", field: Filter) extends Filter
+
+case object FilterEmpty extends Filter {
+  override val kind: String = "empty"
+}

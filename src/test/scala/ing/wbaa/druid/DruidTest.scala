@@ -16,8 +16,9 @@
  */
 package ing.wbaa.druid
 
-import ing.wbaa.druid.definitions._
-import ing.wbaa.druid.query.{GroupByQuery, GroupByQueryResult, TimeSeriesQuery, TopNQuery}
+import ing.wbaa.druid.definitions.FilterOperators._
+import ing.wbaa.druid.definitions.{Aggregation, _}
+import ing.wbaa.druid.query.{GroupByQuery, TimeSeriesQuery, TopNQuery}
 import org.scalatest.{FunSuiteLike, Inside, OptionValues}
 
 case class TimeseriesCount(count: Int)
@@ -141,11 +142,13 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
     //    "dataSource": "wikiticker"
     //  }
 
+    val threshold = 5
+
     val result = TopNQuery[TopCountry](
       dimension = Dimension(
         dimension = "countryName"
       ),
-      threshold = 5,
+      threshold = threshold,
       metric = "count",
       aggregations = List(
         Aggregation(
@@ -177,6 +180,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
     //  }]
     //  }]
 
+    assert(result.size == threshold)
     assert(result.head.count === 35445)
 
     assert(result(1).count === 528)
@@ -190,6 +194,76 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
     assert(result(4).count === 205)
     assert(result(4).countryName === "France")
+  }
+
+
+  test("Test filter") {
+
+    //  {
+    //  "queryType": "topN",
+    //  "dimension": {
+    //    "dimension": "countryName",
+    //    "outputName": null,
+    //    "outputType": null
+    //  },
+    //  "threshold": 5,
+    //  "metric": "count",
+    //  "granularity": "all",
+    //  "aggregations": [{
+    //  "type": "count",
+    //  "name": "count",
+    //  "fieldName": "count"
+    //  }],
+    //  "filter": {
+    //    "type": "or",
+    //    "fields": [{
+    //    "type": "selector",
+    //    "dimension": "countryName",
+    //    "value": "United States"
+    //  }, {
+    //    "type": "selector",
+    //    "dimension": "countryName",
+    //    "value": "Italy"
+    //  }]
+    //  },
+    //  "intervals": ["2011-06-01/2017-06-01"],
+    //  "dataSource": "wikiticker"
+    //  }
+
+    val filterUnitedStates = FilterSelect(dimension = "countryName", value = "United States")
+    val filterBoth = filterUnitedStates || FilterSelect(dimension = "countryName", value = "Italy") && FilterEmpty
+
+    val result = TopNQuery[TopCountry](
+      dimension = Dimension(
+        dimension = "countryName"
+      ),
+      filter = Some(filterBoth),
+      threshold = 5,
+      metric = "count",
+      aggregations = List(
+        Aggregation(
+          kind = "count",
+          name = "count",
+          fieldName = "count"
+        )
+      ),
+      intervals = List("2011-06-01/2017-06-01")
+    ).execute
+
+    //  [{
+    //    "count": 528,
+    //    "countryName": "United States"
+    //  }, {
+    //    "count": 256,
+    //    "countryName": "Italy"
+    //  }]
+    assert(result.size === 2)
+
+    assert(result.head.count === 528)
+    assert(result.head.countryName === "United States")
+
+    assert(result(1).count === 256)
+    assert(result(1).countryName === "Italy")
   }
 
 }
