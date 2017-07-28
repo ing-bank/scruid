@@ -187,7 +187,7 @@ This file is divided into 3 sections:
     ]]></customMessage>
     </check>
 
-    <check customId="awaitresult" level="error" class="org.scalastyle.file.RegexChecker" enabled="true">
+    <check customId="awaitresult" level="error" class="org.scalastyle.file.RegexChecker" enabled="false">
         <parameters>
             <parameter name="regex">Await\.result</parameter>
         </parameters>

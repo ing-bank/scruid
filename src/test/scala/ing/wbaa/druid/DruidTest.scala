@@ -21,6 +21,10 @@ import ing.wbaa.druid.definitions.{Aggregation, _}
 import ing.wbaa.druid.query.{GroupByQuery, TimeSeriesQuery, TopNQuery}
 import org.scalatest.{FunSuiteLike, Inside, OptionValues}
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 case class TimeseriesCount(count: Int)
 
 case class GroupByIsAnonymous(isAnonymous: Boolean, count: Int)
@@ -29,7 +33,8 @@ case class TopCountry(count: Int, countryName: String = null)
 
 class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
-  val totalNumberOfEntries = 39244
+  private val queryTimeout = 5 seconds
+  private val totalNumberOfEntries = 39244
 
   test("Do a Timeseries Query") {
 
@@ -47,7 +52,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
     //    "intervals": ["2016-06-01/2017-06-01"]
     //  }
 
-    val result = TimeSeriesQuery[TimeseriesCount](
+    val resultFuture = TimeSeriesQuery[TimeseriesCount](
       aggregations = List(
         Aggregation(
           kind = "count",
@@ -58,6 +63,8 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       granularity = "hour",
       intervals = List("2011-06-01/2017-06-01")
     ).execute
+
+    val result = Await.result(resultFuture, queryTimeout)
 
     //  [{
     //    "timestamp": "2015-09-07T00:00:00.000Z",
@@ -86,7 +93,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
     //    "dataSource": "wikiticker"
     //  }
 
-    val result = GroupByQuery[GroupByIsAnonymous](
+    val resultFuture = GroupByQuery[GroupByIsAnonymous](
       aggregations = List(
         Aggregation(
           kind = "count",
@@ -96,7 +103,9 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       ),
       dimensions = List(Dimension(dimension = "isAnonymous")),
       intervals = List("2011-06-01/2017-06-01")
-    ).execute()
+    ).execute
+
+    val result = Await.result(resultFuture, queryTimeout)
 
     //  [{
     //    "version": "v1",
@@ -144,7 +153,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
     val threshold = 5
 
-    val result = TopNQuery[TopCountry](
+    val resultFuture = TopNQuery[TopCountry](
       dimension = Dimension(
         dimension = "countryName"
       ),
@@ -159,6 +168,8 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       ),
       intervals = List("2011-06-01/2017-06-01")
     ).execute
+
+    val result = Await.result(resultFuture, queryTimeout).head.result
 
     //  [{
     //    "timestamp": "2015-09-12T00:46:58.771Z",
@@ -233,7 +244,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
     val filterUnitedStates = FilterSelect(dimension = "countryName", value = "United States")
     val filterBoth = filterUnitedStates || FilterSelect(dimension = "countryName", value = "Italy") && FilterEmpty
 
-    val result = TopNQuery[TopCountry](
+    val resultFuture = TopNQuery[TopCountry](
       dimension = Dimension(
         dimension = "countryName"
       ),
@@ -249,6 +260,8 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       ),
       intervals = List("2011-06-01/2017-06-01")
     ).execute
+
+    val result = Await.result(resultFuture, queryTimeout).head.result
 
     //  [{
     //    "count": 528,

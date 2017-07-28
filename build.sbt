@@ -34,7 +34,8 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
       s"git@github.com:${bintrayOrganization.value.get}/${name.value}.git"
     )
   ),
-  crossScalaVersions in ThisBuild := Seq("2.10.6", "2.11.8", "2.12.2"),
+  crossScalaVersions in ThisBuild := Seq("2.11.8", "2.12.3"),
+  scalaVersion in ThisBuild := "2.12.3",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= PartialFunction.condOpt(CrossVersion.partialVersion(scalaVersion.value)) {
     case Some((2, v)) if v >= 11 => unusedWarnings
@@ -49,14 +50,14 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "0.0.7",
+    version := "0.0.8",
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.3.1",
 
       "org.json4s" %% "json4s-jackson" % "3.5.2",
       "org.json4s" %% "json4s-ext" % "3.5.2",
 
-      "org.scalaj" %% "scalaj-http" % "2.3.0",
+      "com.typesafe.akka" %% "akka-http" % "10.0.9",
 
       "ch.qos.logback" % "logback-classic" % "1.1.3",
 

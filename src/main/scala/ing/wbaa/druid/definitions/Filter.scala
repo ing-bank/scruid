@@ -17,7 +17,7 @@
 
 package ing.wbaa.druid.definitions
 
-trait Filter {
+sealed trait Filter {
   val kind: String
 }
 
