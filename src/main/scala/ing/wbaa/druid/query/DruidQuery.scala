@@ -25,6 +25,10 @@ import org.json4s.ext.JodaTimeSerializers
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.jackson.Serialization
 import org.json4s.{FieldSerializer, Formats, NoTypeHints}
+import org.slf4j.LoggerFactory
+
+import scala.concurrent.{ExecutionContext, Future}
+
 
 object DruidQuery {
   val formats: Formats = Serialization.formats(NoTypeHints) +
@@ -42,7 +46,18 @@ sealed trait DruidQuery[T] {
   val filter: Option[Filter]
   val intervals: List[String]
 
-  def execute()(implicit x$1: Manifest[List[T]]): List[T]
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  def execute()(implicit mf: Manifest[List[T]]): Future[List[T]] =
+    DruidClient.doQuery(this).map(parseAndExtractJson)
+
+  protected def parseAndExtractJson(json: String)(implicit mf: Manifest[List[T]]): List[T] = {
+    logger.debug(s"Druid response: $json")
+
+    parse(json).extract[List[T]](formats = DruidQuery.formats, mf = mf)
+  }
 }
 
 case class GroupByQueryResult[T](timestamp: DateTime, event: T)
@@ -53,13 +68,7 @@ case class GroupByQuery[T](queryType: String = "groupBy",
                            aggregations: List[Aggregation],
                            filter: Option[Filter] = None,
                            intervals: List[String]
-                          ) extends DruidQuery[GroupByQueryResult[T]] {
-  override def execute()(implicit mf: Manifest[List[GroupByQueryResult[T]]]): List[GroupByQueryResult[T]] = {
-    val queryResult = DruidClient.doQuery(this)
-
-    parse(queryResult).extract[List[GroupByQueryResult[T]]](formats = DruidQuery.formats, mf = mf)
-  }
-}
+                          ) extends DruidQuery[GroupByQueryResult[T]]
 
 case class TimeSeriesResult[T](timestamp: DateTime, result: T)
 
@@ -69,16 +78,9 @@ case class TimeSeriesQuery[T](queryType: String = "timeseries",
                               aggregations: List[Aggregation],
                               filter: Option[Filter] = None,
                               intervals: List[String]
-                             ) extends DruidQuery[TimeSeriesResult[T]] {
+                             ) extends DruidQuery[TimeSeriesResult[T]]
 
-  override def execute()(implicit mf: Manifest[List[TimeSeriesResult[T]]]): List[TimeSeriesResult[T]] = {
-
-    val queryResult = DruidClient.doQuery(this)
-
-    parse(queryResult).extract[List[TimeSeriesResult[T]]](formats = DruidQuery.formats, mf = mf)
-  }
-}
-
+case class TopNResult[T](timestamp: DateTime, result: List[T])
 
 case class TopNQuery[T](queryType: String = "topN",
                         dimension: Dimension,
@@ -88,13 +90,4 @@ case class TopNQuery[T](queryType: String = "topN",
                         aggregations: List[Aggregation],
                         filter: Option[Filter] = None,
                         intervals: List[String]
-                       ) extends DruidQuery[T] {
-
-  override def execute()(implicit mf: Manifest[List[T]]): List[T] = {
-    val queryResult = DruidClient.doQuery(this)
-    val json = parse(queryResult)
-
-    (json \\ "result").extract[List[T]](formats = DruidQuery.formats, mf = mf)
-  }
-}
-
+                       ) extends DruidQuery[TopNResult[T]]

@@ -17,6 +17,11 @@
 
 package ing.wbaa.druid.common
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+import akka.util.ByteString
 import ing.wbaa.druid.definitions.{Aggregation, Filter}
 import ing.wbaa.druid.query.DruidQuery
 import org.json4s.FieldSerializer._
@@ -25,20 +30,15 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization
 import org.slf4j.LoggerFactory
 
-import scalaj.http.{Http, HttpOptions}
+import scala.concurrent.Future
 
 object DruidClient {
-
-  private lazy val httpClient = Http(DruidConfig.url)
-    .options(httpOptions)
-    .header("Content-Type", "application/json")
-
   private val logger = LoggerFactory.getLogger(getClass)
-  private val httpOptions = Seq(
-    HttpOptions.connTimeout(DruidConfig.connectionTimeout),
-    HttpOptions.readTimeout(DruidConfig.readTimeout),
-    HttpOptions.followRedirects(false)
-  )
+
+  implicit val system = ActorSystem()
+  implicit val materializer = ActorMaterializer()
+
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   implicit val formats: Formats = Serialization.formats(NoTypeHints).preservingEmptyValues +
     FieldSerializer[Aggregation](// Some renaming because type is a reserved keyword in Scala
@@ -55,18 +55,23 @@ object DruidClient {
     * @param q The query to be executed.
     * @return The response json
     */
-  def doQuery(q: DruidQuery[_]): String = {
-    val res = Extraction.decompose(q)
+  def doQuery(q: DruidQuery[_]): Future[String] = {
+    val queryClass = Extraction.decompose(q)
+    val queryString = compact(render(queryClass))
 
-    val query = compact(render(res))
+    logger.debug(s"Druid query: $queryString")
 
-    logger.debug(s"Druid query: $query")
+    val request = Http().singleRequest(
+      HttpRequest(HttpMethods.POST, uri = DruidConfig.url)
+        .withEntity(
+          HttpEntity(ContentTypes.`application/json`, queryString)
+        )
+    )
 
-    val response = httpClient.postData(query)
-
-    logger.debug(s"Druid result: ${response.asString.body}")
-
-    response.asString.body
+    for {
+      response <- request
+      rawBytes <- response.entity.dataBytes.runFold(ByteString(""))(_ ++ _)
+    } yield rawBytes.utf8String
   }
 }
 
