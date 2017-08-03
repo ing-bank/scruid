@@ -8,12 +8,8 @@
         </encoder>
     </appender>
 
-    <logger name="ing.wbaa.druid" level="debug" additivity="false">
+    <logger name="ing.wbaa.druid" level="warn" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-
-    <root level="warn">
-        <appender-ref ref="STDOUT"/>
-    </root>
 
 </configuration>
