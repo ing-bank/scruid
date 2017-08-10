@@ -25,16 +25,17 @@ object FilterOperators {
 
   implicit class LogicalOperations(lhs: Filter) {
     private def buildFilter(predicate: String, args: List[Filter]): Filter = {
-      val newFilters = args.flatMap {
+      val newFilters = (lhs :: args).flatMap {
         case FilterEmpty => None
         case filter: Filter => Some(filter)
       }
 
-      if (newFilters.nonEmpty) {
-        FilterCompose(predicate, lhs :: newFilters)
-      }
-      else {
-        lhs
+      if (newFilters.size > 1) {
+        FilterCompose(predicate, newFilters)
+      } else if (newFilters.nonEmpty) {
+        newFilters.head
+      } else {
+        FilterEmpty
       }
     }
 

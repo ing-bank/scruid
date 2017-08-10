@@ -277,6 +277,18 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
     assert(result(1).count === 256)
     assert(result(1).countryName === "Italy")
+
+
+    // Test the filter composition
+
+    val actualFilter = FilterSelect(dimension = "countryName", value = "United States")
+
+    assert((FilterEmpty && actualFilter) == actualFilter)
+    assert((actualFilter && FilterEmpty) == actualFilter)
+
+    // Should give an Empty filter
+    assert((FilterEmpty && FilterEmpty) == FilterEmpty)
+
   }
 
 }
