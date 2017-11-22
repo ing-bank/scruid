@@ -23,8 +23,7 @@ TopNQuery[TopCountry](
   threshold = 5,
   metric = "count",
   aggregations = List(
-    Aggregation(
-      kind = "count",
+    CountAggregation(
       name = "count",
       fieldName = "count"
     )
@@ -41,8 +40,7 @@ case class GroupByIsAnonymous(isAnonymous: Boolean, count: Int)
 
 val result = GroupByQuery[GroupByIsAnonymous](
   aggregations = List(
-    Aggregation(
-      kind = "count",
+    CountAggregation(
       name = "count",
       fieldName = "count"
     )
@@ -61,8 +59,7 @@ case class TimeseriesCount(count: Int)
 
 val result = TimeSeriesQuery[TimeseriesCount](
   aggregations = List(
-    Aggregation(
-      kind = "count",
+    CountAggregation(
       name = "count",
       fieldName = "count"
     )
@@ -72,11 +69,11 @@ val result = TimeSeriesQuery[TimeseriesCount](
 ).execute
 ```
 
-This will return a `List[TimeSeriesResult[TimeseriesCount]]`. Where the `TimeSeriesResult` contains the timestamp of the interval in joda time, and the `TimeseriesCount` class contains the actual result of the query as defined in the aggregation. 
+This will return a `List[TimeSeriesResult[TimeseriesCount]]`. Where the `TimeSeriesResult` contains the timestamp of the interval in joda time, and the `TimeseriesCount` class contains the actual result of the query as defined in the aggregation.
 
 ## Configuration
 
-The configuration is done by [Typesafe config](https://github.com/typesafehub/config). The configuration can be overriden by using environment variables, e.g. `DRUID_URL` and `DRUID_DATASOURCE`. Or by placing an application.conf in your own project and this will override the reference.conf of the scruid library. 
+The configuration is done by [Typesafe config](https://github.com/typesafehub/config). The configuration can be overriden by using environment variables, e.g. `DRUID_URL` and `DRUID_DATASOURCE`. Or by placing an application.conf in your own project and this will override the reference.conf of the scruid library.
 
 ```
 druid = {

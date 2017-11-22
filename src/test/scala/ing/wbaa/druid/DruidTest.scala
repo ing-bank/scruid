@@ -17,7 +17,7 @@
 package ing.wbaa.druid
 
 import ing.wbaa.druid.definitions.FilterOperators._
-import ing.wbaa.druid.definitions.{Aggregation, _}
+import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.query.{GroupByQuery, TimeSeriesQuery, TopNQuery}
 import org.scalatest.{FunSuiteLike, Inside, OptionValues}
 
@@ -54,8 +54,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
     val resultFuture = TimeSeriesQuery[TimeseriesCount](
       aggregations = List(
-        Aggregation(
-          kind = "count",
+        CountAggregation(
           name = "count",
           fieldName = "count"
         )
@@ -95,8 +94,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
     val resultFuture = GroupByQuery[GroupByIsAnonymous](
       aggregations = List(
-        Aggregation(
-          kind = "count",
+        CountAggregation(
           name = "count",
           fieldName = "count"
         )
@@ -160,8 +158,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       threshold = threshold,
       metric = "count",
       aggregations = List(
-        Aggregation(
-          kind = "count",
+        CountAggregation(
           name = "count",
           fieldName = "count"
         )
@@ -252,8 +249,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       threshold = 5,
       metric = "count",
       aggregations = List(
-        Aggregation(
-          kind = "count",
+        CountAggregation(
           name = "count",
           fieldName = "count"
         )
