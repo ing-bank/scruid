@@ -54,10 +54,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
     val resultFuture = TimeSeriesQuery[TimeseriesCount](
       aggregations = List(
-        CountAggregation(
-          name = "count",
-          fieldName = "count"
-        )
+        CountAggregation(name = "count")
       ),
       granularity = "hour",
       intervals = List("2011-06-01/2017-06-01")
@@ -94,10 +91,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
 
     val resultFuture = GroupByQuery[GroupByIsAnonymous](
       aggregations = List(
-        CountAggregation(
-          name = "count",
-          fieldName = "count"
-        )
+        CountAggregation(name = "count")
       ),
       dimensions = List(Dimension(dimension = "isAnonymous")),
       intervals = List("2011-06-01/2017-06-01")
@@ -158,10 +152,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       threshold = threshold,
       metric = "count",
       aggregations = List(
-        CountAggregation(
-          name = "count",
-          fieldName = "count"
-        )
+        CountAggregation(name = "count")
       ),
       intervals = List("2011-06-01/2017-06-01")
     ).execute
@@ -249,10 +240,7 @@ class DruidTest extends FunSuiteLike with Inside with OptionValues {
       threshold = 5,
       metric = "count",
       aggregations = List(
-        CountAggregation(
-          name = "count",
-          fieldName = "count"
-        )
+        CountAggregation(name = "count")
       ),
       intervals = List("2011-06-01/2017-06-01")
     ).execute
