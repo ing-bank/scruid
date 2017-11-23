@@ -41,13 +41,10 @@ object DruidClient {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   implicit val formats: Formats = Serialization.formats(NoTypeHints).preservingEmptyValues +
-    FieldSerializer[Aggregation](// Some renaming because type is a reserved keyword in Scala
-      renameTo("kind", "type"),
-      renameFrom("type", "kind")
-    ) + FieldSerializer[Filter](
+    FieldSerializer[Aggregation]() + FieldSerializer[Filter](
     renameTo("kind", "type"),
     renameFrom("type", "kind")
-  ) + FieldSerializer[DruidQuery[_]]()
+  ) + FieldSerializer[DruidQuery[_]]() + json.AggregationTypeSerializer
 
   /**
     * Execute the query by performing a POST request to the Druid broker
