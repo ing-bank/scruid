@@ -23,10 +23,7 @@ TopNQuery[TopCountry](
   threshold = 5,
   metric = "count",
   aggregations = List(
-    CountAggregation(
-      name = "count",
-      fieldName = "count"
-    )
+    CountAggregation(name = "count")
   ),
   intervals = List("2011-06-01/2017-06-01")
 ).execute
@@ -40,10 +37,7 @@ case class GroupByIsAnonymous(isAnonymous: Boolean, count: Int)
 
 val result = GroupByQuery[GroupByIsAnonymous](
   aggregations = List(
-    CountAggregation(
-      name = "count",
-      fieldName = "count"
-    )
+    CountAggregation(name = "count")
   ),
   dimensions = List("isAnonymous"),
   intervals = List("2011-06-01/2017-06-01")
@@ -59,10 +53,7 @@ case class TimeseriesCount(count: Int)
 
 val result = TimeSeriesQuery[TimeseriesCount](
   aggregations = List(
-    CountAggregation(
-      name = "count",
-      fieldName = "count"
-    )
+    CountAggregation(name = "count")
   ),
   granularity = "hour",
   intervals = List("2011-06-01/2017-06-01")
