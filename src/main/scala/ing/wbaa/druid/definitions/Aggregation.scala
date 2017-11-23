@@ -43,14 +43,14 @@ object AggregationType {
 
 trait Aggregation {
   val `type`: AggregationType
+  val name: String
 }
 
 trait SingleFieldAggregation extends Aggregation {
-  val name: String
   val fieldName: String
 }
 
-case class CountAggregation(name: String, fieldName: String) extends SingleFieldAggregation{ val `type` = AggregationType.Count }
+case class CountAggregation(name: String) extends Aggregation{ val `type` = AggregationType.Count }
 case class LongSumAggregation(name: String, fieldName: String) extends SingleFieldAggregation{ val `type` = AggregationType.LongSum }
 case class DoubleSumAggregation(name: String, fieldName: String) extends SingleFieldAggregation{ val `type` = AggregationType.DoubleSum }
 case class DoubleMaxAggregation(name: String, fieldName: String) extends SingleFieldAggregation{ val `type` = AggregationType.DoubleMax }
