@@ -23,10 +23,10 @@ resolvers += "Sbt plugins" at "https://dl.bintray.com/sbt/sbt-plugin-releases"
 
 resolvers += "Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
 
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0")
-
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
 
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.8")
 
 addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.0")
+
+addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.15")

@@ -16,7 +16,7 @@ Below the example queries supported by Scruid. For more information about how to
 ```scala
 case class TopCountry(count: Int, countryName: String = null)
 
-TopNQuery[TopCountry](
+TopNQuery(
   dimension = Dimension(
     dimension = "countryName"
   ),
@@ -28,7 +28,12 @@ TopNQuery[TopCountry](
   intervals = List("2011-06-01/2017-06-01")
 ).execute
 ```
-This will return a `List[TopCountry]`.
+
+
+This will return a `Future[DruidResponse]`. This response contains the Circe JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
+
+- `.list[T](implicit decoder: Decoder[T]): List[T]` : This decodes the JSON to a list with items of type `T`.
+- `.series[T](implicit decoder: Decoder[T]): Map[ZonedDateTime, T]` : This decodes the JSON to a timeseries map with the timestamp as key and `T` as value.
 
 ### GroupBy query
 
@@ -44,7 +49,7 @@ val result = GroupByQuery[GroupByIsAnonymous](
 ).execute()
 ```
 
-This will return `List[GroupByIsAnonymous]` where `isAnonymouse` is either `true or false`. Please keep in mind that Druid is only able to handle strings, and recently also numerics. So Druid will be returning a string, and the conversion from a string to a boolean is done by the json parser.
+The returned `Future[DruidResponse]` will contain json data where `isAnonymouse` is either `true or false`. Please keep in mind that Druid is only able to handle strings, and recently also numerics. So Druid will be returning a string, and the conversion from a string to a boolean is done by the json parser.
 
 ### TimeSeries query
 
@@ -60,7 +65,7 @@ val result = TimeSeriesQuery[TimeseriesCount](
 ).execute
 ```
 
-This will return a `List[TimeSeriesResult[TimeseriesCount]]`. Where the `TimeSeriesResult` contains the timestamp of the interval in joda time, and the `TimeseriesCount` class contains the actual result of the query as defined in the aggregation.
+To get the timeseries data from this `Future[DruidRespones]` you can run `val series = result.series[List[TimeseriesCount]]`.
 
 ## Configuration
 
