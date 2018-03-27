@@ -68,7 +68,7 @@ lazy val root = (project in file("."))
       "de.heikoseeberger" %% "akka-http-circe" % "1.20.0",
       "ca.mrvisser"       %% "sealerate"       % "0.0.5",
       "ch.qos.logback"    % "logback-classic"  % "1.1.11",
-      "org.scalactic"     %% "scalactic"       % "3.0.1",
+      "org.scalactic"     %% "scalactic"       % "3.0.5",
       "org.scalatest"     %% "scalatest"       % "3.0.1" % "test"
     ),
     resolvers += Resolver.sonatypeRepo("releases")
