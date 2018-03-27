@@ -18,9 +18,10 @@
 package ing.wbaa.druid
 package definitions
 
-import io.circe.syntax._
+import ca.mrvisser.sealerate
 import io.circe._
 import io.circe.generic.auto._
+import io.circe.syntax._
 
 sealed trait FilterType extends Enum with CamelCaseEnumStringEncoder
 
@@ -32,7 +33,7 @@ object FilterType extends EnumCodec[FilterType] {
   case object Regex            extends FilterType
   case object Not              extends FilterType
   case object Javascript       extends FilterType
-  val values = Set(And, Or, Selector, ColumnComparison, Regex, Not, Javascript)
+  val values: Set[FilterType] = sealerate.values[FilterType]
 }
 
 sealed trait Filter {

@@ -17,6 +17,8 @@
 
 package ing.wbaa.druid
 
+import ca.mrvisser.sealerate
+
 import ing.wbaa.druid.definitions.{ Aggregation, Dimension, Filter, Granularity, GranularityType }
 
 import io.circe.generic.auto._
@@ -30,7 +32,7 @@ object QueryType extends EnumCodec[QueryType] {
   case object TopN       extends QueryType
   case object GroupBy    extends QueryType
   case object Timeseries extends QueryType
-  val values = Set(TopN, GroupBy, Timeseries)
+  val values: Set[QueryType] = sealerate.values[QueryType]
 }
 
 sealed trait DruidQuery {

@@ -19,6 +19,7 @@ package ing.wbaa.druid
 package definitions
 
 import io.circe._
+import ca.mrvisser.sealerate
 
 sealed trait Granularity extends Enum with SnakeCaseEnumStringEncoder
 
@@ -42,16 +43,5 @@ object GranularityType extends EnumCodec[Granularity] {
   case object Month         extends Granularity
   case object Quarter       extends Granularity
   case object Year          extends Granularity
-  val values = Set(All,
-                   None,
-                   Second,
-                   Minute,
-                   FifteenMinute,
-                   ThirtyMinute,
-                   Hour,
-                   Day,
-                   Week,
-                   Month,
-                   Quarter,
-                   Year)
+  val values: Set[Granularity] = sealerate.values[Granularity]
 }
