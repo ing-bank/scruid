@@ -59,7 +59,7 @@ lazy val root = (project in file("."))
     name := "scruid",
     version := "1.0.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      "com.typesafe"      % "config"           % "1.3.2",
+      "com.typesafe"      % "config"           % "1.3.3",
       "io.circe"          %% "circe-core"      % circeVersion,
       "io.circe"          %% "circe-parser"    % circeVersion,
       "io.circe"          %% "circe-generic"   % circeVersion,
