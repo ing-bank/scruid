@@ -18,9 +18,10 @@
 package ing.wbaa.druid
 package definitions
 
+import ca.mrvisser.sealerate
+import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import io.circe._
 
 sealed trait AggregationType extends Enum with CamelCaseEnumStringEncoder
 object AggregationType extends EnumCodec[AggregationType] {
@@ -35,18 +36,9 @@ object AggregationType extends EnumCodec[AggregationType] {
   case object DoubleLast  extends AggregationType
   case object LongFirst   extends AggregationType
   case object LongLast    extends AggregationType
+  case object ThetaSketch extends AggregationType
 
-  val values = Set(Count,
-                   LongSum,
-                   DoubleSum,
-                   DoubleMax,
-                   DoubleMin,
-                   LongMin,
-                   LongMax,
-                   DoubleFirst,
-                   DoubleLast,
-                   LongFirst,
-                   LongLast)
+  val values: Set[AggregationType] = sealerate.values[AggregationType]
 }
 
 trait Aggregation {
@@ -81,6 +73,7 @@ object SingleFieldAggregation {
       case x: DoubleLastAggregation  => x.asJson
       case x: LongLastAggregation    => x.asJson
       case x: LongFirstAggregation   => x.asJson
+      case x: ThetaSketchAggregation => x.asJson
     }
   }
 }
@@ -115,4 +108,9 @@ case class LongFirstAggregation(name: String, fieldName: String) extends SingleF
 }
 case class LongLastAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
   val `type` = AggregationType.LongLast
+}
+case class ThetaSketchAggregation(name: String, fieldName: String, isInputThetaSketch: Boolean = false,
+                                  size: Long = 16384)
+    extends SingleFieldAggregation {
+  val `type` = AggregationType.ThetaSketch
 }

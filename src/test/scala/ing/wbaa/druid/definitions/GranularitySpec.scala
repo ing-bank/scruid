@@ -1,12 +1,11 @@
-package ing.wbaa.druid
+package ing.wbaa.druid.definitions
 
 import org.scalatest._
-import ing.wbaa.druid.definitions._
 
 import io.circe._
 import io.circe.syntax._
 
-class GranularitySoec extends WordSpec with Matchers {
+class GranularitySpec extends WordSpec with Matchers {
   "Granularities" should {
     "be able to encode to json" in {
       implicit val granularityEncoder: Encoder[Granularity] = GranularityType.encoder
