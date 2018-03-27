@@ -40,8 +40,8 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
       s"git@github.com:${bintrayOrganization.value.get}/${name.value}.git"
     )
   ),
-  crossScalaVersions in ThisBuild := Seq("2.11.8", "2.12.3"),
-  scalaVersion in ThisBuild := "2.12.3",
+  crossScalaVersions in ThisBuild := Seq("2.11.8", "2.12.5"),
+  scalaVersion in ThisBuild := "2.12.5",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= PartialFunction
     .condOpt(CrossVersion.partialVersion(scalaVersion.value)) {
@@ -59,17 +59,17 @@ lazy val root = (project in file("."))
     name := "scruid",
     version := "1.0.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      "com.typesafe"      % "config"           % "1.3.1",
+      "com.typesafe"      % "config"           % "1.3.3",
       "io.circe"          %% "circe-core"      % circeVersion,
       "io.circe"          %% "circe-parser"    % circeVersion,
       "io.circe"          %% "circe-generic"   % circeVersion,
       "io.circe"          %% "circe-java8"     % circeVersion,
-      "com.typesafe.akka" %% "akka-http"       % "10.0.11",
-      "de.heikoseeberger" %% "akka-http-circe" % "1.19.0",
+      "com.typesafe.akka" %% "akka-http"       % "10.1.0",
+      "de.heikoseeberger" %% "akka-http-circe" % "1.20.0",
       "ca.mrvisser"       %% "sealerate"       % "0.0.5",
-      "ch.qos.logback"    % "logback-classic"  % "1.1.3",
-      "org.scalactic"     %% "scalactic"       % "3.0.1",
-      "org.scalatest"     %% "scalatest"       % "3.0.1" % "test"
+      "ch.qos.logback"    % "logback-classic"  % "1.1.11",
+      "org.scalactic"     %% "scalactic"       % "3.0.5",
+      "org.scalatest"     %% "scalatest"       % "3.0.5" % "test"
     ),
     resolvers += Resolver.sonatypeRepo("releases")
   )
