@@ -30,3 +30,5 @@ addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.8")
 addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.0")
 
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.15")
+
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.4")
