@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-package ing.wbaa.druid.definitions
+package ing.wbaa.druid
+package definitions
 
 case class Dimension(dimension: String,
                      outputName: Option[String] = None,
