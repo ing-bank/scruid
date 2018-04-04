@@ -109,7 +109,9 @@ case class LongFirstAggregation(name: String, fieldName: String) extends SingleF
 case class LongLastAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
   val `type` = AggregationType.LongLast
 }
-case class ThetaSketchAggregation(name: String, fieldName: String, isInputThetaSketch: Boolean = false,
+case class ThetaSketchAggregation(name: String,
+                                  fieldName: String,
+                                  isInputThetaSketch: Boolean = false,
                                   size: Long = 16384)
     extends SingleFieldAggregation {
   val `type` = AggregationType.ThetaSketch

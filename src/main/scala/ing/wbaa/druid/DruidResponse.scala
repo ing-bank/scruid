@@ -22,6 +22,7 @@ import java.time._
 import io.circe._
 import io.circe.java8.time._
 import scala.collection.immutable.ListMap
+import cats.syntax.either._
 
 case class DruidResponse(results: List[DruidResult], queryType: QueryType) {
   private def decodeList[T](implicit decoder: Decoder[T]): List[T] = results.map {

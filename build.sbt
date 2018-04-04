@@ -40,7 +40,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
       s"git@github.com:${bintrayOrganization.value.get}/${name.value}.git"
     )
   ),
-  crossScalaVersions in ThisBuild := Seq("2.11.8", "2.12.5"),
+  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.5"),
   scalaVersion in ThisBuild := "2.12.5",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= PartialFunction
@@ -52,7 +52,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   publishArtifact in Test := false
 ) ++ Seq(Compile, Test).flatMap(c => scalacOptions in (c, console) --= unusedWarnings)
 
-val circeVersion = "0.9.2"
+val circeVersion = "0.9.3"
 lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
@@ -64,8 +64,8 @@ lazy val root = (project in file("."))
       "io.circe"          %% "circe-parser"    % circeVersion,
       "io.circe"          %% "circe-generic"   % circeVersion,
       "io.circe"          %% "circe-java8"     % circeVersion,
-      "com.typesafe.akka" %% "akka-http"       % "10.1.0",
-      "de.heikoseeberger" %% "akka-http-circe" % "1.20.0",
+      "com.typesafe.akka" %% "akka-http"       % "10.1.1",
+      "de.heikoseeberger" %% "akka-http-circe" % "1.20.1",
       "ca.mrvisser"       %% "sealerate"       % "0.0.5",
       "ch.qos.logback"    % "logback-classic"  % "1.1.11",
       "org.scalactic"     %% "scalactic"       % "3.0.5",
