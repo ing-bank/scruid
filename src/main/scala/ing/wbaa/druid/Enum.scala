@@ -19,6 +19,7 @@ package ing.wbaa.druid
 
 import io.circe._
 import io.circe.syntax._
+import cats.syntax.either._
 
 trait Enum {
   override lazy val toString: String = this.getClass.getSimpleName.split("\\$")(0)
@@ -62,7 +63,7 @@ trait UpperCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
 
 trait CamelCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
   private def decapitalize(input: String) = input.head.toLower + input.tail
-  def encode() = decapitalize(toString)
+  def encode()                            = decapitalize(toString)
 }
 
 trait LispCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
