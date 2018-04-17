@@ -40,11 +40,13 @@ case class DruidResponse(results: List[DruidResult], queryType: QueryType) {
     case _              => decodeList[T]
   }
 
-  def series[T](implicit decoder: Decoder[T]): ListMap[ZonedDateTime, T] =
-    ListMap(results.map {
-      case DruidResult(timestamp, result) =>
-        (timestamp -> decode(result)(decoder))
-    }: _*)
+  def series[T](implicit decoder: Decoder[T]): ListMap[ZonedDateTime, List[T]] =
+    results.foldLeft[ListMap[ZonedDateTime, List[T]]](ListMap.empty) {
+      case (acc, DruidResult(timestamp, result)) =>
+        acc ++ ListMap(
+          timestamp -> (acc.getOrElse(timestamp, List.empty[T]) :+ decode(result)(decoder))
+        )
+    }
 }
 
 case class DruidResult(timestamp: ZonedDateTime, result: Json)
