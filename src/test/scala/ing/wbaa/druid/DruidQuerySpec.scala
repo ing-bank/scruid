@@ -43,12 +43,10 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
       whenReady(request) { response =>
         response
           .series[TimeseriesCount]
-          .map { case (_, item) => item.count }
-          .toList
+          .flatMap { case (_, items) => items.map(_.count) }
           .sum shouldBe totalNumberOfEntries
       }
     }
-
   }
 
   "GroupByQuery" should {
@@ -59,6 +57,21 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
         ),
         dimensions = List(Dimension(dimension = "isAnonymous")),
         intervals = List("2011-06-01/2017-06-01")
+      ).execute
+
+      whenReady(request) { response =>
+        response.list[GroupByIsAnonymous].map(_.count).sum shouldBe totalNumberOfEntries
+      }
+    }
+
+    "successfully be interpreted by Druid when using lower granularity" in {
+      val request = GroupByQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        dimensions = List(Dimension(dimension = "isAnonymous")),
+        intervals = List("2011-06-01/2017-06-01"),
+        granularity = GranularityType.Hour
       ).execute
 
       whenReady(request) { response =>
@@ -121,6 +134,49 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
         topN(1) shouldBe TopCountry(count = 256, countryName = Some("Italy"))
       }
     }
+  }
 
+  "DruidResponse" should {
+    "successfully convert the series" in {
+      val request = GroupByQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        dimensions = List(Dimension(dimension = "isAnonymous")),
+        intervals = List("2011-06-01/2017-06-01"),
+        granularity = GranularityType.All
+      ).execute
+
+      whenReady(request) { response =>
+        response
+          .series[GroupByIsAnonymous]
+          .flatMap {
+            case (timestamp @ _, values) =>
+              values.map(_.count)
+          }
+          .sum shouldBe totalNumberOfEntries
+      }
+    }
+
+    "successfully convert the series when using lower granularity" in {
+      val request = GroupByQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        dimensions = List(Dimension(dimension = "isAnonymous")),
+        intervals = List("2011-06-01/2017-06-01"),
+        granularity = GranularityType.Hour
+      ).execute
+
+      whenReady(request) { response =>
+        response
+          .series[GroupByIsAnonymous]
+          .flatMap {
+            case (timestamp @ _, values) =>
+              values.map(_.count)
+          }
+          .sum shouldBe totalNumberOfEntries
+      }
+    }
   }
 }

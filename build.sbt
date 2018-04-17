@@ -32,7 +32,8 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   scalafmtOnCompile in ThisBuild := true,
   developers in ThisBuild := List(
     Developer("fokko", "Fokko Driesprong", "@fokkodriesprong", url("https://github.com/fokko")),
-    Developer("bjgbeelen", "Bas Beelen", "", url("https://github.com/bjgbeelen"))
+    Developer("bjgbeelen", "Bas Beelen", "", url("https://github.com/bjgbeelen")),
+    Developer("krisgeus", "Kris Geusebroek", "", url("https://github.com/krisgeus"))
   ),
   scmInfo in ThisBuild := Some(
     ScmInfo(
@@ -57,7 +58,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "1.0.0-SNAPSHOT",
+    version := "1.0.3-SNAPSHOT",
     libraryDependencies ++= Seq(
       "com.typesafe"      % "config"           % "1.3.3",
       "io.circe"          %% "circe-core"      % circeVersion,
