@@ -19,19 +19,16 @@ package ing.wbaa.druid
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.ContentTypes._
+import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl._
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import io.circe.java8.time._
+import io.circe.parser.decode
 import org.slf4j.LoggerFactory
 
-import scala.language.postfixOps
-import io.circe.parser.decode
-import io.circe.java8.time._
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
-
-import scala.concurrent.duration._
 import scala.concurrent.Future
 
 object DruidClient extends FailFastCirceSupport with TimeInstances {
@@ -50,7 +47,8 @@ object DruidClient extends FailFastCirceSupport with TimeInstances {
   private def handleResponse(
       queryType: QueryType
   )(response: HttpResponse): Future[DruidResponse] = {
-    val body = response.entity.toStrict(5 seconds).map(_.data.decodeString("UTF-8"))
+    val body =
+      response.entity.toStrict(DruidConfig.responseParsingTimeout).map(_.data.decodeString("UTF-8"))
     body.onComplete(b => logger.debug(s"Druid response: $b"))
 
     if (response.status != StatusCodes.OK) {

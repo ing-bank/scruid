@@ -93,8 +93,7 @@ druid = {
   datasource = "wikiticker"
   datasource = ${?DRUID_DATASOURCE}
 
-  connectionTimeout = 10000
-  readTimeout = 30000
+  response-parsing-timeout = 5 seconds
 }
 ```
 
