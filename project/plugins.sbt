@@ -27,7 +27,7 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
 
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.8")
 
-addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.0")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
 
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.15")
 
