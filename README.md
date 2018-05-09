@@ -94,6 +94,7 @@ druid = {
   datasource = ${?DRUID_DATASOURCE}
 
   response-parsing-timeout = 5 seconds
+  response-parsing-timeout = ${?DRUID_RESPONSE_PARSING_TIMEOUT}
 }
 ```
 
