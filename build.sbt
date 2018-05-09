@@ -58,7 +58,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "1.0.4",
+    version := "1.0.5-SNAPSHOT",
     libraryDependencies ++= Seq(
       "com.typesafe"      % "config"           % "1.3.3",
       "io.circe"          %% "circe-core"      % circeVersion,
