@@ -18,9 +18,7 @@
 package ing.wbaa.druid
 
 import ca.mrvisser.sealerate
-
-import ing.wbaa.druid.definitions.{ Aggregation, Dimension, Filter, Granularity, GranularityType }
-
+import ing.wbaa.druid.definitions._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe._
@@ -63,7 +61,8 @@ case class GroupByQuery(
     filter: Option[Filter] = None,
     dimensions: List[Dimension] = List(),
     granularity: Granularity = GranularityType.All,
-    dataSource: String = DruidConfig.datasource
+    dataSource: String = DruidConfig.datasource,
+    having: Option[Having] = None
 ) extends DruidQuery {
   val queryType = QueryType.GroupBy
 }
