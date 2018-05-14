@@ -32,3 +32,5 @@ addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.15")
 
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.4")
+
+addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "0.2.4")
