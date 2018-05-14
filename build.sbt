@@ -42,7 +42,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
     )
   ),
   crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.5"),
-  scalaVersion in ThisBuild := "2.12.5",
+  scalaVersion in ThisBuild := "2.11.12",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= PartialFunction
     .condOpt(CrossVersion.partialVersion(scalaVersion.value)) {

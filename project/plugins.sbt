@@ -23,9 +23,9 @@ resolvers += "Sbt plugins" at "https://dl.bintray.com/sbt/sbt-plugin-releases"
 
 resolvers += "Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.8")
+addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.12")
 
 addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
 
