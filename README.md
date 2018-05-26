@@ -8,8 +8,6 @@ Scruid (Scala+Druid) is an open source library that allows you to compose querie
 
 Currently the API is under heavy development, so changes might occur.
 
-
-
 ## Example queries:
 
 Scruid provides three query consructors: `TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` (see below for details). You can call the `execute` method ona query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
