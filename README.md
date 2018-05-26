@@ -1,5 +1,5 @@
 [![CircleCI](https://circleci.com/gh/ing-bank/scruid.svg?style=svg)](https://circleci.com/gh/ing-bank/scruid)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b7c4adf8ad447efa9c7ea8a9ffda6b2)](https://www.codacy.com/app/fokko/scruid?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ing-bank/scruid&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/9b7c4adf8ad447efa9c7ea8a9ffda6b2)](https://www.codacy.com/app/fokko/scruid?utm_source=github.com&utm_medium=referral&utm_content=ing-bank/scruid&utm_campaign=Badge_Coverage)
 [![Download](https://api.bintray.com/packages/ing-bank/maven-releases/scruid/images/download.svg)](https://bintray.com/ing-bank/maven-releases/scruid/_latestVersion)
 
 # Scruid

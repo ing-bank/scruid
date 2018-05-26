@@ -27,8 +27,9 @@ test:
     # Give some time to boot
     - sleep 30
   override:
-    - sbt ++$SCALA_VERSION coverage test coverageReport codacyCoverage
+    - sbt ++$SCALA_VERSION coverage test
+    - sbt coverageReport codacyCoverage || true
   post:
     - mkdir -p $CIRCLE_ARTIFACTS/scala-2.12
-    - mv target/scala-2.12/coverage-report  $CIRCLE_ARTIFACTS/scala-2.12/coverage-report
-    - mv target/scala-2.12/scoverage-report $CIRCLE_ARTIFACTS/scala-2.12/scoverage-report
+    - mv target/scala-2.12/coverage-report  $CIRCLE_ARTIFACTS/scala-2.12/coverage-report || true
+    - mv target/scala-2.12/scoverage-report $CIRCLE_ARTIFACTS/scala-2.12/scoverage-report || true
