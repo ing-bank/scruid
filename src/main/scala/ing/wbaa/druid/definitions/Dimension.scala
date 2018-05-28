@@ -18,6 +18,55 @@
 package ing.wbaa.druid
 package definitions
 
-case class Dimension(dimension: String,
-                     outputName: Option[String] = None,
-                     outputType: Option[String] = None)
+import ca.mrvisser.sealerate
+import io.circe.Encoder
+import io.circe.generic.auto._
+import io.circe.syntax._
+
+sealed trait DimensionType extends Enum with CamelCaseEnumStringEncoder
+object DimensionType extends EnumCodec[DimensionType] {
+
+  case object Default    extends DimensionType
+  case object Extraction extends DimensionType
+
+  val values: Set[DimensionType] = sealerate.values[DimensionType]
+}
+
+sealed trait Dimension {
+  val `type`: DimensionType
+}
+
+object Dimension {
+
+  def apply(
+      dimension: String,
+      outputName: Option[String] = None,
+      outputType: Option[String] = None
+  ): DefaultDimension =
+    DefaultDimension(dimension, outputName, outputType)
+
+  implicit val encoder: Encoder[Dimension] = new Encoder[Dimension] {
+    override def apply(dimension: Dimension) =
+      (dimension match {
+        case x: DefaultDimension    => x.asJsonObject
+        case x: ExtractionDimension => x.asJson.asObject.get
+      }).add("type", dimension.`type`.asJson).asJson
+  }
+}
+
+case class DefaultDimension(
+    dimension: String,
+    outputName: Option[String] = None,
+    outputType: Option[String] = None
+) extends Dimension {
+  override val `type` = DimensionType.Default
+}
+
+case class ExtractionDimension(
+    dimension: String,
+    outputName: Option[String] = None,
+    outputType: Option[String] = None,
+    extractionFn: ExtractionFn
+) extends Dimension {
+  override val `type` = DimensionType.Extraction
+}
