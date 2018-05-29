@@ -41,7 +41,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
       s"git@github.com:${bintrayOrganization.value.get}/${name.value}.git"
     )
   ),
-  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.6"),
+  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.5"),
   scalaVersion in ThisBuild := "2.11.12",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= PartialFunction
@@ -58,7 +58,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "1.1.1-SNAPSHOT",
+    version := "1.1.0",
     libraryDependencies ++= Seq(
       "com.typesafe"      % "config"           % "1.3.3",
       "io.circe"          %% "circe-core"      % circeVersion,
