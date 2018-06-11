@@ -29,6 +29,7 @@ object FilterType extends EnumCodec[FilterType] {
   case object And              extends FilterType
   case object Or               extends FilterType
   case object Selector         extends FilterType
+  case object In               extends FilterType
   case object ColumnComparison extends FilterType
   case object Regex            extends FilterType
   case object Not              extends FilterType
@@ -45,6 +46,7 @@ object Filter {
     final def apply(filter: Filter): Json =
       (filter match {
         case x: SelectFilter     => x.asJsonObject
+        case x: InFilter         => x.asJsonObject
         case x: NotFilter        => x.asJsonObject
         case x: RegexFilter      => x.asJsonObject
         case x: AndFilter        => x.asJsonObject
@@ -94,6 +96,9 @@ object SelectFilter {
 }
 case class RegexFilter(dimension: String, pattern: String) extends Filter {
   val `type` = FilterType.Regex
+}
+case class InFilter(dimension: String, values: Seq[String]) extends Filter {
+  val `type` = FilterType.In
 }
 case class AndFilter(fields: List[Filter]) extends Filter { val `type` = FilterType.And }
 case class OrFilter(fields: List[Filter])  extends Filter { val `type` = FilterType.Or  }

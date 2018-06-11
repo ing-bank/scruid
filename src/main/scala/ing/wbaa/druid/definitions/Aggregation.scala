@@ -23,6 +23,8 @@ import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
 
+import definitions.Filter.{ encoder => filterEncoder }
+
 sealed trait AggregationType extends Enum with CamelCaseEnumStringEncoder
 object AggregationType extends EnumCodec[AggregationType] {
   case object Count       extends AggregationType
@@ -37,6 +39,7 @@ object AggregationType extends EnumCodec[AggregationType] {
   case object LongFirst   extends AggregationType
   case object LongLast    extends AggregationType
   case object ThetaSketch extends AggregationType
+  case object Filtered    extends AggregationType
 
   val values: Set[AggregationType] = sealerate.values[AggregationType]
 }
@@ -52,6 +55,7 @@ object Aggregation {
       (agg match {
         case x: CountAggregation       => x.asJsonObject
         case x: SingleFieldAggregation => x.asJson.asObject.get
+        case x: FilteredAggregation    => x.asJson.asObject.get
       }).add("type", agg.`type`.asJson).asJson
   }
 }
@@ -116,3 +120,24 @@ case class ThetaSketchAggregation(name: String,
     extends SingleFieldAggregation {
   val `type` = AggregationType.ThetaSketch
 }
+
+trait FilteredAggregation extends Aggregation {
+  override val `type`: AggregationType = AggregationType.Filtered
+  val aggregator: Aggregation
+  val filter: Filter
+}
+
+object FilteredAggregation {
+  implicit val encoder: Encoder[FilteredAggregation] = new Encoder[FilteredAggregation] {
+    final def apply(agg: FilteredAggregation): Json =
+      (agg match {
+        case x: InFilteredAggregation       => x.asJsonObject
+        case x: SelectorFilteredAggregation => x.asJsonObject
+      }).add("filter", filterEncoder(agg.filter)).asJson
+  }
+}
+
+case class InFilteredAggregation(name: String, filter: InFilter, aggregator: Aggregation)
+    extends FilteredAggregation
+case class SelectorFilteredAggregation(name: String, filter: SelectFilter, aggregator: Aggregation)
+    extends FilteredAggregation
