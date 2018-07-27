@@ -86,7 +86,8 @@ case class TopNQuery(
     intervals: List[String],
     granularity: Granularity = GranularityType.All,
     filter: Option[Filter] = None,
-    dataSource: String = DruidConfig.datasource
+    dataSource: String = DruidConfig.datasource,
+    postAggregations: List[PostAggregation] = List()
 ) extends DruidQuery {
   val queryType = QueryType.TopN
 }
