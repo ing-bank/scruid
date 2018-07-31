@@ -44,7 +44,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
     )
   ),
   crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.6"),
-  scalaVersion in ThisBuild := "2.11.12",
+  scalaVersion in ThisBuild := "2.12.6",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= PartialFunction
     .condOpt(CrossVersion.partialVersion(scalaVersion.value)) {
@@ -67,7 +67,7 @@ lazy val root = (project in file("."))
       "io.circe"          %% "circe-parser"    % circeVersion,
       "io.circe"          %% "circe-generic"   % circeVersion,
       "io.circe"          %% "circe-java8"     % circeVersion,
-      "com.typesafe.akka" %% "akka-http"       % "10.1.1",
+      "com.typesafe.akka" %% "akka-http"       % "10.1.3",
       "de.heikoseeberger" %% "akka-http-circe" % "1.21.0",
       "ca.mrvisser"       %% "sealerate"       % "0.0.5",
       "ch.qos.logback"    % "logback-classic"  % "1.2.3",
