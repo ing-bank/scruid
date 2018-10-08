@@ -98,6 +98,12 @@ druid = {
 }
 ```
 
+To override default akka configuration add your properties with akka-config prefix.
+```
+akka-config = {
+  akka.daemonic = on
+}
+```
 ## Tests
 
 To run the tests, please make sure that you have the Druid instance running:
