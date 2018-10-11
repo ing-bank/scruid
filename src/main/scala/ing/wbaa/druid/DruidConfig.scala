@@ -30,7 +30,17 @@ class DruidConfig(val host: String,
                   val secure: Boolean,
                   val url: String,
                   val datasource: String,
-                  val responseParsingTimeout: FiniteDuration)
+                  val responseParsingTimeout: FiniteDuration) {
+  def copy(
+      host: String = this.host,
+      port: Int = this.port,
+      secure: Boolean = this.secure,
+      url: String = this.url,
+      datasource: String = this.datasource,
+      responseParsingTimeout: FiniteDuration = this.responseParsingTimeout
+  ): DruidConfig =
+    new DruidConfig(host, port, secure, url, datasource, responseParsingTimeout)
+}
 
 object DruidConfig {
 

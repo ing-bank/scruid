@@ -39,8 +39,8 @@ object AggregationType extends EnumCodec[AggregationType] {
   case object LongFirst   extends AggregationType
   case object LongLast    extends AggregationType
   case object ThetaSketch extends AggregationType
+  case object HyperUnique extends AggregationType
   case object Filtered    extends AggregationType
-
   val values: Set[AggregationType] = sealerate.values[AggregationType]
 }
 
@@ -78,6 +78,7 @@ object SingleFieldAggregation {
       case x: LongLastAggregation    => x.asJson
       case x: LongFirstAggregation   => x.asJson
       case x: ThetaSketchAggregation => x.asJson
+      case x: HyperUniqueAggregation => x.asJson
     }
   }
 }
@@ -119,6 +120,15 @@ case class ThetaSketchAggregation(name: String,
                                   size: Long = 16384)
     extends SingleFieldAggregation {
   val `type` = AggregationType.ThetaSketch
+}
+
+case class HyperUniqueAggregation(
+    name: String,
+    fieldName: String,
+    isInputHyperUnique: Boolean = false,
+    round: Boolean = false
+) extends SingleFieldAggregation {
+  val `type` = AggregationType.HyperUnique
 }
 
 trait FilteredAggregation extends Aggregation {

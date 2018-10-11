@@ -34,6 +34,10 @@ object FilterType extends EnumCodec[FilterType] {
   case object Regex            extends FilterType
   case object Not              extends FilterType
   case object Javascript       extends FilterType
+  case object Like             extends FilterType
+  case object Bound            extends FilterType
+  case object Search           extends FilterType
+  case object Interval         extends FilterType
   val values: Set[FilterType] = sealerate.values[FilterType]
 }
 
@@ -45,13 +49,18 @@ object Filter {
   implicit val encoder: Encoder[Filter] = new Encoder[Filter] {
     final def apply(filter: Filter): Json =
       (filter match {
-        case x: SelectFilter     => x.asJsonObject
-        case x: InFilter         => x.asJsonObject
-        case x: NotFilter        => x.asJsonObject
-        case x: RegexFilter      => x.asJsonObject
-        case x: AndFilter        => x.asJsonObject
-        case x: OrFilter         => x.asJsonObject
-        case x: JavascriptFilter => x.asJsonObject
+        case x: SelectFilter           => x.asJsonObject
+        case x: InFilter               => x.asJsonObject
+        case x: NotFilter              => x.asJsonObject
+        case x: RegexFilter            => x.asJsonObject
+        case x: AndFilter              => x.asJsonObject
+        case x: OrFilter               => x.asJsonObject
+        case x: JavascriptFilter       => x.asJsonObject
+        case x: LikeFilter             => x.asJsonObject
+        case x: BoundFilter            => x.asJsonObject
+        case x: SearchFilter           => x.asJsonObject
+        case x: ColumnComparisonFilter => x.asJsonObject
+        case x: IntervalFilter         => x.asJsonObject
       }).add("type", filter.`type`.asJson).asJson
   }
 }
@@ -87,17 +96,33 @@ object FilterOperators {
   }
 }
 
-case class SelectFilter(dimension: String, value: Option[String]) extends Filter {
+case class SelectFilter(dimension: String,
+                        value: Option[String],
+                        extractionFn: Option[ExtractionFn] = None)
+    extends Filter {
+
   val `type` = FilterType.Selector
 }
 object SelectFilter {
   def apply(dimension: String, value: String): SelectFilter =
     SelectFilter(dimension = dimension, value = Some(value))
 }
-case class RegexFilter(dimension: String, pattern: String) extends Filter {
+case class RegexFilter(dimension: String,
+                       pattern: String,
+                       extractionFn: Option[ExtractionFn] = None)
+    extends Filter {
   val `type` = FilterType.Regex
 }
-case class InFilter(dimension: String, values: Seq[String]) extends Filter {
+
+case class LikeFilter(dimension: String, pattern: String, extractionFn: Option[ExtractionFn] = None)
+    extends Filter {
+  val `type` = FilterType.Like
+}
+
+case class InFilter(dimension: String,
+                    values: Seq[String],
+                    extractionFn: Option[ExtractionFn] = None)
+    extends Filter {
   val `type` = FilterType.In
 }
 case class AndFilter(fields: List[Filter]) extends Filter { val `type` = FilterType.And }
@@ -105,4 +130,74 @@ case class OrFilter(fields: List[Filter])  extends Filter { val `type` = FilterT
 case class NotFilter(field: Filter)        extends Filter { val `type` = FilterType.Not }
 case class JavascriptFilter(dimension: String, function: String) extends Filter {
   val `type` = FilterType.Javascript
+}
+
+case class BoundFilter(
+    dimension: String,
+    lower: Option[String] = None,
+    upper: Option[String] = None,
+    lowerStrict: Option[Boolean] = None,
+    upperStrict: Option[Boolean] = None,
+    ordering: Option[DimensionOrderType] = None,
+    extractionFn: Option[ExtractionFn] = None
+) extends Filter {
+  val `type` = FilterType.Bound
+}
+
+case class ColumnComparisonFilter(dimensions: List[Dimension]) extends Filter {
+  val `type` = FilterType.ColumnComparison
+}
+
+case class IntervalFilter(dimension: String,
+                          intervals: List[String],
+                          extractionFn: Option[ExtractionFn] = None)
+    extends Filter {
+  val `type` = FilterType.Interval
+}
+
+case class SearchFilter(dimension: String,
+                        query: SearchQuerySpec,
+                        extractionFn: Option[ExtractionFn] = None)
+    extends Filter {
+
+  val `type` = FilterType.Search
+}
+
+sealed trait SearchQuerySpecType extends Enum with CamelCaseEnumStringEncoder
+
+object SearchQuerySpecType extends EnumCodec[SearchQuerySpecType] {
+  case object Contains            extends SearchQuerySpecType
+  case object InsensitiveContains extends SearchQuerySpecType
+  case object Fragment            extends SearchQuerySpecType
+
+  val values: Set[SearchQuerySpecType] = sealerate.values[SearchQuerySpecType]
+}
+
+sealed trait SearchQuerySpec {
+  val `type`: SearchQuerySpecType
+}
+
+object SearchQuerySpec {
+  implicit val encoder: Encoder[SearchQuerySpec] = new Encoder[SearchQuerySpec] {
+    final def apply(contains: SearchQuerySpec): Json =
+      (contains match {
+        case x: ContainsCaseSensitive => x.asJsonObject
+        case x: ContainsInsensitive   => x.asJsonObject
+        case x: Fragment              => x.asJsonObject
+      }).add("type", contains.`type`.asJson).asJson
+  }
+}
+
+case class ContainsCaseSensitive(value: String, caseSensitive: Option[Boolean] = None)
+    extends SearchQuerySpec {
+  val `type` = SearchQuerySpecType.Contains
+}
+
+case class ContainsInsensitive(value: String) extends SearchQuerySpec {
+  val `type` = SearchQuerySpecType.InsensitiveContains
+}
+
+case class Fragment(values: List[String], caseSensitive: Option[Boolean] = None)
+    extends SearchQuerySpec {
+  val `type` = SearchQuerySpecType.Fragment
 }

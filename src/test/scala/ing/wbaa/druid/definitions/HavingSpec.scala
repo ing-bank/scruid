@@ -29,7 +29,7 @@ class HavingSpec extends Matchers with WordSpecLike with ScalaFutures {
       "be encoded properly" in {
         val having: Having = FilterHaving(SelectFilter("dim", "value"))
         having.asJson.noSpaces shouldBe
-        """{"filter":{"dimension":"dim","value":"value","type":"selector"},"type":"filter"}"""
+        """{"filter":{"dimension":"dim","value":"value","extractionFn":null,"type":"selector"},"type":"filter"}"""
       }
 
       "should behave the same as usual filter" in new TestContext {
