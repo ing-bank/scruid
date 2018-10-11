@@ -12,7 +12,7 @@ Currently the API is under heavy development, so changes might occur.
 
 ## Example queries:
 
-Scruid provides three query consructors: `TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` (see below for details). You can call the `execute` method ona query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
+Scruid provides three query constructors: `TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` (see below for details). You can call the `execute` method ona query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
 
 - `.list[T](implicit decoder: Decoder[T]): List[T]` : This decodes the JSON to a list with items of type `T`.
 - `.series[T](implicit decoder: Decoder[T]): Map[ZonedDateTime, T]` : This decodes the JSON to a timeseries map with the timestamp as key and `T` as value.
@@ -77,7 +77,7 @@ To get the timeseries data from this `Future[DruidRespones]` you can run `val se
 
 ## Configuration
 
-The configuration is done by [Typesafe config](https://github.com/typesafehub/config). The configuration can be overriden by using environment variables, e.g. `DRUID_HOST`, `DRUID_PORT` and `DRUID_DATASOURCE`. Or by placing an application.conf in your own project and this will override the reference.conf of the scruid library.
+The configuration is done by [Typesafe config](https://github.com/typesafehub/config). The configuration can be overridden by using environment variables, e.g. `DRUID_HOST`, `DRUID_PORT` and `DRUID_DATASOURCE`. Or by placing an application.conf in your own project and this will override the reference.conf of the scruid library.
 
 ```
 druid = {
@@ -97,6 +97,38 @@ druid = {
   response-parsing-timeout = ${?DRUID_RESPONSE_PARSING_TIMEOUT}
 }
 ```
+
+Alternatively it can be programmatically overridden by defining an implicit instance of `ing.wbaa.druid.DruidConfig`:
+
+```scala
+import java.time.ZonedDateTime
+import ing.wbaa.druid._
+import ing.wbaa.druid.definitions._
+import scala.concurrent.duration._
+
+
+implicit val druidConf = DruidConfig(
+  host = "localhost",
+  port = 8082,
+  datasource = "wikiticker",
+  responseParsingTimeout = 10.seconds
+)
+    
+    
+case class TimeseriesCount(count: Int)
+
+val response = TimeSeriesQuery(
+  aggregations = List(
+    CountAggregation(name = "count")
+  ),
+  granularity = GranularityType.Week,
+  intervals = List("2011-06-01/2017-06-01")
+).execute
+
+val series: Map[ZonedDateTime, TimeseriesCount] = response.series[TimeseriesCount]    
+``` 
+
+All parameters of `DruidConfig` are optional, and in case that some parameter is missing then the default behaviour is to use the value that is defined in the configuration file.
 
 ## Tests
 

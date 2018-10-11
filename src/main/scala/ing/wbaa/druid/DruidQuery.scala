@@ -41,7 +41,8 @@ sealed trait DruidQuery {
   val filter: Option[Filter]
   val intervals: List[String]
 
-  def execute(): Future[DruidResponse] = DruidClient.doQuery(this)
+  def execute()(implicit config: DruidConfig = DruidConfig.DefaultConfig): Future[DruidResponse] =
+    DruidClient.doQuery(this)
 }
 
 object DruidQuery {
@@ -51,7 +52,9 @@ object DruidQuery {
         case x: GroupByQuery    => x.asJsonObject
         case x: TimeSeriesQuery => x.asJsonObject
         case x: TopNQuery       => x.asJsonObject
-      }).add("queryType", query.queryType.asJson).asJson
+      }).add("queryType", query.queryType.asJson)
+        .add("dataSource", query.dataSource.asJson)
+        .asJson
   }
 }
 
@@ -61,11 +64,14 @@ case class GroupByQuery(
     filter: Option[Filter] = None,
     dimensions: List[Dimension] = List(),
     granularity: Granularity = GranularityType.All,
-    dataSource: String = DruidConfig.datasource,
     having: Option[Having] = None,
     postAggregations: List[PostAggregation] = Nil
-) extends DruidQuery {
+)(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
+    extends DruidQuery {
+
   val queryType = QueryType.GroupBy
+
+  val dataSource: String = config.datasource
 }
 
 case class TimeSeriesQuery(
@@ -73,10 +79,11 @@ case class TimeSeriesQuery(
     intervals: List[String],
     filter: Option[Filter] = None,
     granularity: Granularity = GranularityType.Week,
-    descending: String = "true",
-    dataSource: String = DruidConfig.datasource
-) extends DruidQuery {
-  val queryType = QueryType.Timeseries
+    descending: String = "true"
+)(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
+    extends DruidQuery {
+  val queryType          = QueryType.Timeseries
+  val dataSource: String = config.datasource
 }
 
 case class TopNQuery(
@@ -87,8 +94,10 @@ case class TopNQuery(
     intervals: List[String],
     granularity: Granularity = GranularityType.All,
     filter: Option[Filter] = None,
-    dataSource: String = DruidConfig.datasource,
     postAggregations: List[PostAggregation] = Nil
-) extends DruidQuery {
-  val queryType = QueryType.TopN
+)(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
+    extends DruidQuery {
+  val queryType          = QueryType.TopN
+  val dataSource: String = config.datasource
+
 }
