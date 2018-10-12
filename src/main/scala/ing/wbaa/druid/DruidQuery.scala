@@ -62,7 +62,8 @@ case class GroupByQuery(
     dimensions: List[Dimension] = List(),
     granularity: Granularity = GranularityType.All,
     dataSource: String = DruidConfig.datasource,
-    having: Option[Having] = None
+    having: Option[Having] = None,
+    postAggregations: List[PostAggregation] = Nil
 ) extends DruidQuery {
   val queryType = QueryType.GroupBy
 }
@@ -87,7 +88,7 @@ case class TopNQuery(
     granularity: Granularity = GranularityType.All,
     filter: Option[Filter] = None,
     dataSource: String = DruidConfig.datasource,
-    postAggregations: List[PostAggregation] = List()
+    postAggregations: List[PostAggregation] = Nil
 ) extends DruidQuery {
   val queryType = QueryType.TopN
 }

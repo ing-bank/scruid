@@ -17,12 +17,13 @@
 
 package ing.wbaa.druid
 
+import ing.wbaa.druid.definitions.ArithmeticFunctions._
+import ing.wbaa.druid.definitions.FilterOperators._
+import ing.wbaa.druid.definitions._
+import io.circe.generic.auto._
 import org.scalatest._
 import org.scalatest.concurrent._
 import org.scalatest.time._
-import ing.wbaa.druid.definitions._
-import io.circe.generic.auto._
-import ing.wbaa.druid.definitions.FilterOperators._
 
 class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
   implicit override val patienceConfig =
@@ -233,13 +234,8 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
           LongSumAggregation(name = "count", fieldName = "count")
         ),
         postAggregations = List(
-          ArithmeticPostAggregation(name = "halfCount",
-                                    fn = "/",
-                                    fields = (
-                                      FieldAccessPostAggregator(name = "count",
-                                                                fieldName = "count"),
-                                      ConstantPostAggregator(name = "two", value = 2)
-                                    ))
+          (FieldAccessPostAggregation("count") / ConstantPostAggregation(2))
+            .withName("halfCount")
         ),
         intervals = List("2011-06-01/2017-06-01")
       ).execute
