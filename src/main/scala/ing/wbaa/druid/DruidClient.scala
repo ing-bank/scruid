@@ -34,7 +34,7 @@ import scala.concurrent.Future
 object DruidClient extends FailFastCirceSupport with TimeInstances {
   private val logger = LoggerFactory.getLogger(getClass)
 
-  implicit val system       = ActorSystem()
+  implicit val system       = ActorSystem("scruid", AkkaConfig.config)
   implicit val materializer = ActorMaterializer()
 
   implicit val ec = system.dispatcher
