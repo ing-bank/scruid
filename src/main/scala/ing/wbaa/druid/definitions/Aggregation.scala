@@ -44,7 +44,7 @@ object AggregationType extends EnumCodec[AggregationType] {
   val values: Set[AggregationType] = sealerate.values[AggregationType]
 }
 
-trait Aggregation {
+sealed trait Aggregation {
   val `type`: AggregationType
   val name: String
 }
