@@ -39,16 +39,20 @@ object DruidClient extends FailFastCirceSupport with TimeInstances {
 
   implicit val ec = system.dispatcher
 
-  val connectionFlow: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] =
-    if (DruidConfig.secure)
-      Http().outgoingConnectionHttps(host = DruidConfig.host, port = DruidConfig.port)
-    else Http().outgoingConnection(host = DruidConfig.host, port = DruidConfig.port)
+  def connectionFlow(
+      implicit druidConfig: DruidConfig
+  ): Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] =
+    if (druidConfig.secure)
+      Http().outgoingConnectionHttps(host = druidConfig.host, port = druidConfig.port)
+    else Http().outgoingConnection(host = druidConfig.host, port = druidConfig.port)
 
   private def handleResponse(
       queryType: QueryType
-  )(response: HttpResponse): Future[DruidResponse] = {
+  )(response: HttpResponse)(implicit druidConfig: DruidConfig): Future[DruidResponse] = {
     val body =
-      response.entity.toStrict(DruidConfig.responseParsingTimeout).map(_.data.decodeString("UTF-8"))
+      response.entity
+        .toStrict(druidConfig.responseParsingTimeout)
+        .map(_.data.decodeString("UTF-8"))
     body.onComplete(b => logger.debug(s"Druid response: $b"))
 
     if (response.status != StatusCodes.OK) {
@@ -67,7 +71,7 @@ object DruidClient extends FailFastCirceSupport with TimeInstances {
 
   private def executeRequest(
       queryType: QueryType
-  )(request: HttpRequest): Future[DruidResponse] = {
+  )(request: HttpRequest)(implicit druidConfig: DruidConfig): Future[DruidResponse] = {
     logger.debug(
       s"Executing api ${request.method} request to ${request.uri} with entity: ${request.entity}"
     )
@@ -79,11 +83,11 @@ object DruidClient extends FailFastCirceSupport with TimeInstances {
       .flatMap(handleResponse(queryType))
   }
 
-  def doQuery(q: DruidQuery): Future[DruidResponse] =
+  def doQuery(q: DruidQuery)(implicit druidConfig: DruidConfig): Future[DruidResponse] =
     Marshal(q)
       .to[RequestEntity]
       .map { entity =>
-        HttpRequest(HttpMethods.POST, uri = DruidConfig.url)
+        HttpRequest(HttpMethods.POST, uri = druidConfig.url)
           .withEntity(entity.withContentType(`application/json`))
       }
       .flatMap(executeRequest(q.queryType))
