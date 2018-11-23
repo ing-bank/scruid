@@ -75,6 +75,28 @@ val series: Map[ZonedDateTime, TimeseriesCount] = response.series[TimeseriesCoun
 
 To get the timeseries data from this `Future[DruidRespones]` you can run `val series = result.series[TimeseriesCount]`.
 
+## Druid query language (DQL)
+
+Scruid also provides a rich Scala API for building queries using the fluent pattern.
+
+```
+case class GroupByIsAnonymous(isAnonymous: String, country: String, count: Int)
+
+val query: GroupByQuery = DQL
+    .granularity(GranularityType.Day)
+    .interval("2011-06-01/2017-06-01")
+    .agg(count as "count")
+    .where('countryName.isNotNull)
+    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
+    .having('count > 100 and 'count < 200)
+    .limit(10, 'count.desc(DimensionOrderType.Numeric))
+    .build()
+      
+val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
+```
+ 
+For details and examples see the [DQL documentation](docs/dql.md). 
+
 ## Configuration
 
 The configuration is done by [Typesafe config](https://github.com/typesafehub/config). The configuration can be overridden by using environment variables, e.g. `DRUID_HOST`, `DRUID_PORT` and `DRUID_DATASOURCE`. Or by placing an application.conf in your own project and this will override the reference.conf of the scruid library.

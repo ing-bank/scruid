@@ -153,19 +153,25 @@ case class JavascriptPostAggregation(
   override val `type` = PostAggregationType.Javascript
 }
 
+case class HyperUniqueCardinalityPostAggregation(name: String, fieldName: String)
+    extends PostAggregation {
+  override val `type` = PostAggregationType.HyperUniqueCardinality
+}
+
 object PostAggregation {
   implicit val encoder: Encoder[PostAggregation] = new Encoder[PostAggregation] {
     override def apply(pa: PostAggregation) =
       (pa match {
-        case x: ArithmeticPostAggregation            => x.asJsonObject
-        case x: FieldAccessPostAggregation           => x.asJsonObject
-        case x: FinalizingFieldAccessPostAggregation => x.asJsonObject
-        case x: ConstantPostAggregation              => x.asJsonObject
-        case x: DoubleGreatestPostAggregation        => x.asJsonObject
-        case x: LongGreatestPostAggregation          => x.asJsonObject
-        case x: DoubleLeastPostAggregation           => x.asJsonObject
-        case x: LongLeastPostAggregation             => x.asJsonObject
-        case x: JavascriptPostAggregation            => x.asJsonObject
+        case x: ArithmeticPostAggregation             => x.asJsonObject
+        case x: FieldAccessPostAggregation            => x.asJsonObject
+        case x: FinalizingFieldAccessPostAggregation  => x.asJsonObject
+        case x: ConstantPostAggregation               => x.asJsonObject
+        case x: DoubleGreatestPostAggregation         => x.asJsonObject
+        case x: LongGreatestPostAggregation           => x.asJsonObject
+        case x: DoubleLeastPostAggregation            => x.asJsonObject
+        case x: LongLeastPostAggregation              => x.asJsonObject
+        case x: JavascriptPostAggregation             => x.asJsonObject
+        case x: HyperUniqueCardinalityPostAggregation => x.asJsonObject
       }).add("type", pa.`type`.asJson).asJson
   }
 }

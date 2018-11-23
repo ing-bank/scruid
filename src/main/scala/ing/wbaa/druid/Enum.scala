@@ -61,6 +61,10 @@ trait UpperCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
   def encode() = toString
 }
 
+trait LowerCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
+  def encode() = toString.toLowerCase
+}
+
 trait CamelCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
   private def decapitalize(input: String) = input.head.toLower + input.tail
   def encode()                            = decapitalize(toString)

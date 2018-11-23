@@ -65,13 +65,46 @@ case class GroupByQuery(
     dimensions: List[Dimension] = List(),
     granularity: Granularity = GranularityType.All,
     having: Option[Having] = None,
-    postAggregations: List[PostAggregation] = Nil
+    limitSpec: Option[LimitSpec] = None,
+    postAggregations: List[PostAggregation] = List()
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
     extends DruidQuery {
-
-  val queryType = QueryType.GroupBy
-
+  val queryType          = QueryType.GroupBy
   val dataSource: String = config.datasource
+}
+
+case class LimitSpec(limit: Int, columns: Seq[OrderByColumnSpec]) {
+  val `type` = "default"
+}
+
+object LimitSpec {
+  implicit val encoder: Encoder[LimitSpec] = new Encoder[LimitSpec] {
+    override def apply(a: LimitSpec): Json = a.asJsonObject.add("type", a.`type`.asJson).asJson
+  }
+}
+
+case class OrderByColumnSpec(
+    dimension: String,
+    direction: Direction = Direction.Ascending,
+    dimensionOrder: DimensionOrder = DimensionOrder()
+)
+case class DimensionOrder(`type`: DimensionOrderType = DimensionOrderType.Lexicographic)
+
+sealed trait Direction extends Enum with LowerCaseEnumStringEncoder
+object Direction extends EnumCodec[Direction] {
+  case object Ascending  extends Direction
+  case object Descending extends Direction
+  val values: Set[Direction] = sealerate.values[Direction]
+}
+
+sealed trait DimensionOrderType extends Enum with LowerCaseEnumStringEncoder
+object DimensionOrderType extends EnumCodec[DimensionOrderType] {
+  case object Lexicographic extends DimensionOrderType
+  case object Alphanumeric  extends DimensionOrderType
+  case object Strlen        extends DimensionOrderType
+  case object Numeric       extends DimensionOrderType
+  val values: Set[DimensionOrderType] = sealerate.values[DimensionOrderType]
+
 }
 
 case class TimeSeriesQuery(
@@ -79,7 +112,8 @@ case class TimeSeriesQuery(
     intervals: List[String],
     filter: Option[Filter] = None,
     granularity: Granularity = GranularityType.Week,
-    descending: String = "true"
+    descending: String = "true",
+    postAggregations: List[PostAggregation] = List()
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
     extends DruidQuery {
   val queryType          = QueryType.Timeseries
