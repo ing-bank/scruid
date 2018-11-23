@@ -35,7 +35,7 @@ val response = TopNQuery(
   intervals = List("2011-06-01/2017-06-01")
 ).execute
 
-val result: Map[ZonedDateTime, List[TopCountry]] = response.series[List[TopCountry]]
+val result: Future[Map[ZonedDateTime, List[TopCountry]]] = response.map(_.series[List[TopCountry]])
 ```
 
 
@@ -52,7 +52,7 @@ val response = GroupByQuery(
   intervals = List("2011-06-01/2017-06-01")
 ).execute()
 
-val result: List[GroupByIsAnonymous] = response.list[GroupByIsAnonymous]
+val result: Future[List[GroupByIsAnonymous]] = response.map(_.list[GroupByIsAnonymous])
 ```
 
 The returned `Future[DruidResponse]` will contain json data where `isAnonymouse` is either `true or false`. Please keep in mind that Druid is only able to handle strings, and recently also numerics. So Druid will be returning a string, and the conversion from a string to a boolean is done by the json parser.
@@ -70,7 +70,7 @@ val response = TimeSeriesQuery(
   intervals = List("2011-06-01/2017-06-01")
 ).execute
 
-val series: Map[ZonedDateTime, TimeseriesCount] = response.series[TimeseriesCount]
+val series: Future[Map[ZonedDateTime, TimeseriesCount]] = response.map(_.series[TimeseriesCount])
 ```
 
 To get the timeseries data from this `Future[DruidRespones]` you can run `val series = result.series[TimeseriesCount]`.
@@ -79,7 +79,7 @@ To get the timeseries data from this `Future[DruidRespones]` you can run `val se
 
 Scruid also provides a rich Scala API for building queries using the fluent pattern.
 
-```
+```scala
 case class GroupByIsAnonymous(isAnonymous: String, country: String, count: Int)
 
 val query: GroupByQuery = DQL
@@ -91,11 +91,11 @@ val query: GroupByQuery = DQL
     .having('count > 100 and 'count < 200)
     .limit(10, 'count.desc(DimensionOrderType.Numeric))
     .build()
-      
+
 val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
 ```
- 
-For details and examples see the [DQL documentation](docs/dql.md). 
+
+For details and examples see the [DQL documentation](docs/dql.md).
 
 ## Configuration
 
@@ -135,8 +135,8 @@ implicit val druidConf = DruidConfig(
   datasource = "wikiticker",
   responseParsingTimeout = 10.seconds
 )
-    
-    
+
+
 case class TimeseriesCount(count: Int)
 
 val response = TimeSeriesQuery(
@@ -147,8 +147,8 @@ val response = TimeSeriesQuery(
   intervals = List("2011-06-01/2017-06-01")
 ).execute
 
-val series: Map[ZonedDateTime, TimeseriesCount] = response.series[TimeseriesCount]    
-``` 
+val series: Map[ZonedDateTime, TimeseriesCount] = response.series[TimeseriesCount]
+```
 
 All parameters of `DruidConfig` are optional, and in case that some parameter is missing then the default behaviour is to use the value that is defined in the configuration file.
 
