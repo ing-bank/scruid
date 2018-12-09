@@ -292,6 +292,29 @@ To define a negation of an operator, you can use the operator `not`:
 not('dim1 between (10, 100))
 ```
 
+#### Operators for geographic queries
+
+Druid supports filtering spatially indexed dimensions based on an origin and a bound. For defining spatially indexed 
+dimensions, see official the [Druid documentation for Geographic Queries](http://druid.io/docs/latest/development/geo.html).
+
+DQL supports geographic queries on spatially indexed dimensions with the `within` operator.
+
+You can filter spatially indexed dimensions by specifying the bounds of minimum and maximum coordinates.
+Assume, for example, that the dimension named as `geodim` is spatially indexed in some datasource in Druid. 
+You can perform a geographic query by specifying the minimum and maximum coordinates as below: 
+
+```scala
+'geodim within (minCoords = Seq(37.970540, 23.724153), maxCoords = Seq(37.972166, 23.727828))
+```
+
+Alternatively, you can filter spatially indexed columns by specifying the origin coordinates and a distance either
+in kilometers, miles or directly in degrees:
+```scala
+import ing.wbaa.druid.dql.expressions.Distance.DistanceUnit
+
+'geodim within (coords = Seq(37.971515, 23.726717), distance = 4.0, unit = DistanceUnit.KM)
+```
+
 ## Aggregations
 
 Aggregations are functions that summarize data. To add one or more aggregation functions in a DQL query you can

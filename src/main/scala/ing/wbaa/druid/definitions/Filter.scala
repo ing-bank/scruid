@@ -38,6 +38,7 @@ object FilterType extends EnumCodec[FilterType] {
   case object Bound            extends FilterType
   case object Search           extends FilterType
   case object Interval         extends FilterType
+  case object Spatial          extends FilterType
   val values: Set[FilterType] = sealerate.values[FilterType]
 }
 
@@ -61,6 +62,7 @@ object Filter {
         case x: SearchFilter           => x.asJsonObject
         case x: ColumnComparisonFilter => x.asJsonObject
         case x: IntervalFilter         => x.asJsonObject
+        case x: SpatialFilter          => x.asJsonObject
       }).add("type", filter.`type`.asJson).asJson
   }
 }
@@ -200,4 +202,40 @@ case class ContainsInsensitive(value: String) extends SearchQuerySpec {
 case class Fragment(values: List[String], caseSensitive: Option[Boolean] = None)
     extends SearchQuerySpec {
   val `type` = SearchQuerySpecType.Fragment
+}
+
+case class SpatialFilter(dimension: String, bound: SpatialBound) extends Filter {
+  val `type` = FilterType.Spatial
+}
+
+sealed trait SpatialBoundType extends Enum with CamelCaseEnumStringEncoder
+
+object SpatialBoundType extends EnumCodec[SpatialBoundType] {
+  case object Rectangular extends SpatialBoundType
+  case object Radius      extends SpatialBoundType
+
+  val values: Set[SpatialBoundType] = sealerate.values[SpatialBoundType]
+}
+
+sealed trait SpatialBound {
+  val `type`: SpatialBoundType
+}
+
+object SpatialBound {
+  implicit val encoder: Encoder[SpatialBound] = new Encoder[SpatialBound] {
+    final def apply(contains: SpatialBound): Json =
+      (contains match {
+        case x: RectangularBound => x.asJsonObject
+        case x: RadiusBound      => x.asJsonObject
+      }).add("type", contains.`type`.asJson).asJson
+  }
+}
+
+case class RectangularBound(minCoords: Iterable[Double], maxCoords: Iterable[Double])
+    extends SpatialBound {
+  override val `type`: SpatialBoundType = SpatialBoundType.Rectangular
+}
+
+case class RadiusBound(coords: Iterable[Double], radius: Double) extends SpatialBound {
+  override val `type`: SpatialBoundType = SpatialBoundType.Radius
 }
