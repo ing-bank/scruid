@@ -61,11 +61,29 @@ trait AggregationOps {
 
   def inFiltered(dimName: String,
                  aggregator: AggregationExpression,
-                 values: String*): InFilteredAgg =
-    InFilteredAgg(dimName, values, aggregator.build())
+                 values: Iterable[String]): InFilteredAgg =
+    InFilteredAgg(dimName, values.toSeq, aggregator.build())
 
-  def inFiltered(dim: Dim, aggregator: AggregationExpression, values: String*): InFilteredAgg =
-    inFiltered(dim.name, aggregator, values: _*)
+  def inFiltered(dim: Dim,
+                 aggregator: AggregationExpression,
+                 values: Iterable[String]): InFilteredAgg =
+    inFiltered(dim.name, aggregator, values.toSeq)
+
+  def inFiltered(dimName: String,
+                 aggregator: AggregationExpression,
+                 first: String,
+                 rest: String*): InFilteredAgg = {
+    val values = first +: rest
+    inFiltered(dimName, aggregator, values)
+  }
+
+  def inFiltered(dim: Dim,
+                 aggregator: AggregationExpression,
+                 first: String,
+                 rest: String*): InFilteredAgg = {
+    val values = first +: rest
+    inFiltered(dim.name, aggregator, values)
+  }
 
   def selectorFiltered(dimName: String,
                        aggregator: AggregationExpression,
