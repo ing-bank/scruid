@@ -111,9 +111,9 @@ trait FilteringExpressionOps {
     case _        => new Not(op)
   }
 
-  def disjunction(others: FilteringExpression*): FilteringExpression = new Or(others.toList)
+  def disjunction(others: FilteringExpression*): FilteringExpression = new Or(others)
 
-  def conjunction(others: FilteringExpression*): FilteringExpression = new And(others.toList)
+  def conjunction(others: FilteringExpression*): FilteringExpression = new And(others)
 
   def filter(value: FilteringExpression): FilteringExpression = new FilterOnlyOperator {
     override protected[dql] def createFilter: Filter = value.createFilter

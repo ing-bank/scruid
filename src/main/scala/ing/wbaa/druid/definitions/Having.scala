@@ -61,16 +61,16 @@ object Having {
 object HavingSpecOperators {
   def &&(havingA: Having, havingB: Having): AndHaving = (havingA, havingB) match {
     case (AndHaving(fields), AndHaving(otherFields)) => AndHaving(fields ++ otherFields)
-    case (AndHaving(fields), other)                  => AndHaving(fields :+ other)
-    case (other, AndHaving(fields))                  => AndHaving(fields :+ other)
-    case _                                           => AndHaving(List(havingA, havingB))
+    case (AndHaving(fields), other)                  => AndHaving(fields.toSeq :+ other)
+    case (other, AndHaving(fields))                  => AndHaving(fields.toSeq :+ other)
+    case _                                           => AndHaving(Seq(havingA, havingB))
   }
 
   def ||(havingA: Having, havingB: Having): OrHaving = (havingA, havingB) match {
     case (OrHaving(fields), OrHaving(otherFields)) => OrHaving(fields ++ otherFields)
-    case (OrHaving(fields), other)                 => OrHaving(fields :+ other)
-    case (other, OrHaving(fields))                 => OrHaving(fields :+ other)
-    case _                                         => OrHaving(List(havingA, havingB))
+    case (OrHaving(fields), other)                 => OrHaving(fields.toSeq :+ other)
+    case (other, OrHaving(fields))                 => OrHaving(fields.toSeq :+ other)
+    case _                                         => OrHaving(Seq(havingA, havingB))
   }
 
   implicit class HavingSpecOps(having: Having) {
@@ -100,11 +100,11 @@ case class DimSelectorHaving(dimension: String, value: String) extends Having {
   override val `type` = HavingType.DimSelector
 }
 
-case class AndHaving(havingSpecs: List[Having]) extends Having {
+case class AndHaving(havingSpecs: Iterable[Having]) extends Having {
   override val `type` = HavingType.And
 }
 
-case class OrHaving(havingSpecs: List[Having]) extends Having {
+case class OrHaving(havingSpecs: Iterable[Having]) extends Having {
   override val `type` = HavingType.Or
 }
 

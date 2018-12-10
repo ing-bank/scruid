@@ -37,9 +37,9 @@ sealed trait DruidQuery {
   val queryType: QueryType
   val dataSource: String
   val granularity: Granularity
-  val aggregations: List[Aggregation]
+  val aggregations: Iterable[Aggregation]
   val filter: Option[Filter]
-  val intervals: List[String]
+  val intervals: Iterable[String]
 
   def execute()(implicit config: DruidConfig = DruidConfig.DefaultConfig): Future[DruidResponse] =
     DruidClient.doQuery(this)
@@ -59,14 +59,14 @@ object DruidQuery {
 }
 
 case class GroupByQuery(
-    aggregations: List[Aggregation],
-    intervals: List[String],
+    aggregations: Iterable[Aggregation],
+    intervals: Iterable[String],
     filter: Option[Filter] = None,
-    dimensions: List[Dimension] = List(),
+    dimensions: Iterable[Dimension] = Iterable.empty,
     granularity: Granularity = GranularityType.All,
     having: Option[Having] = None,
     limitSpec: Option[LimitSpec] = None,
-    postAggregations: List[PostAggregation] = List()
+    postAggregations: Iterable[PostAggregation] = Iterable.empty
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
     extends DruidQuery {
   val queryType          = QueryType.GroupBy
@@ -108,12 +108,12 @@ object DimensionOrderType extends EnumCodec[DimensionOrderType] {
 }
 
 case class TimeSeriesQuery(
-    aggregations: List[Aggregation],
-    intervals: List[String],
+    aggregations: Iterable[Aggregation],
+    intervals: Iterable[String],
     filter: Option[Filter] = None,
     granularity: Granularity = GranularityType.Week,
     descending: String = "true",
-    postAggregations: List[PostAggregation] = List()
+    postAggregations: Iterable[PostAggregation] = Iterable.empty
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
     extends DruidQuery {
   val queryType          = QueryType.Timeseries
@@ -124,11 +124,11 @@ case class TopNQuery(
     dimension: Dimension,
     threshold: Int,
     metric: String,
-    aggregations: List[Aggregation],
-    intervals: List[String],
+    aggregations: Iterable[Aggregation],
+    intervals: Iterable[String],
     granularity: Granularity = GranularityType.All,
     filter: Option[Filter] = None,
-    postAggregations: List[PostAggregation] = Nil
+    postAggregations: Iterable[PostAggregation] = Iterable.empty
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
     extends DruidQuery {
   val queryType          = QueryType.TopN

@@ -247,11 +247,11 @@ with the boundaries specified as ISO 8601 time intervals.
 ```scala
 'dim interval "2011-06-01/2012-06-01"
 
-'dim interval("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
+'dim intervals("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
 
 '__time interval "2011-06-01/2012-06-01"
 
-'__time interval("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
+'__time intervals("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
 ```
 
 #### Logical operators
