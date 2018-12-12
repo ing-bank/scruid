@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 
-object DruidClient extends FailFastCirceSupport with TimeInstances {
+object DruidClient extends FailFastCirceSupport with JavaTimeDecoders {
   private val logger = LoggerFactory.getLogger(getClass)
 
   implicit val system       = ActorSystem()

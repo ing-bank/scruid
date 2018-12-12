@@ -51,7 +51,7 @@ case class DruidResponse(results: List[DruidResult], queryType: QueryType) {
 
 case class DruidResult(timestamp: ZonedDateTime, result: Json)
 
-object DruidResult extends TimeInstances {
+object DruidResult extends JavaTimeDecoders {
   private def extractResultField(c: HCursor): ACursor = {
     val result = c.downField("result")
     val event  = c.downField("event")
