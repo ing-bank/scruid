@@ -150,11 +150,16 @@ case class Dim private[dql] (name: String,
     */
   def in(value: String, values: String*): FilteringExpression = new In(this, value :: values.toList)
 
+  def in(values: Iterable[String]) = new In(this, values.toList)
+
   /**
     * @return negated in-filter of this dimension for the specified values
     */
   def notIn(value: String, values: String*): FilteringExpression =
     FilteringExpressionOps.not(new In(this, value :: values.toList))
+
+  def notIn(values: Iterable[String]): FilteringExpression =
+    FilteringExpressionOps.not(new In(this, values.toList))
 
   /**
     * @return like-filter of this dimension for the specified LIKE pattern
@@ -337,6 +342,9 @@ case class Dim private[dql] (name: String,
   def intervals(first: String, second: String, rest: String*): FilteringExpression =
     new Interval(this, first :: second :: rest.toList)
 
+  def intervals(values: Iterable[String]): FilteringExpression =
+    new Interval(this, values.toList)
+
   /**
     * Filter on partial string matches
     *
@@ -495,10 +503,17 @@ case class Dim private[dql] (name: String,
     * for which the given dimension filter matches, by using the in filter.
     *
     * @param aggregator the aggregator to wrap
-    * @param values the values to filter
+    * @param first the value to filter
+    * @param rest the rest values to filter (when are more than one values to filter)
     */
-  def inFiltered(aggregator: AggregationExpression, values: String*): AggregationExpression =
-    AggregationOps.inFiltered(this, aggregator, values: _*)
+  def inFiltered(aggregator: AggregationExpression,
+                 first: String,
+                 rest: String*): AggregationExpression =
+    AggregationOps.inFiltered(this, aggregator, first, rest: _*)
+
+  def inFiltered(aggregator: AggregationExpression,
+                 values: Iterable[String]): AggregationExpression =
+    AggregationOps.inFiltered(this.name, aggregator, values)
 
   /**
     * Wraps any given aggregator
