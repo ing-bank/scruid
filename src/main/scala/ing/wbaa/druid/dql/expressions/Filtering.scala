@@ -216,3 +216,19 @@ class InsensitiveContains(dim: Dim, value: String)
   override protected[dql] def createFilter: Filter =
     SearchFilter(dim.name, query = definitions.ContainsInsensitive(value), dim.extractionFnOpt)
 }
+
+class GeoRectangular(dim: Dim, minCoords: Iterable[Double], maxCoords: Iterable[Double])
+    extends FilteringExpression
+    with FilterOnlyOperator {
+
+  override protected[dql] def createFilter: Filter =
+    SpatialFilter(dimension = dim.name, bound = RectangularBound(minCoords, maxCoords))
+}
+
+class GeoRadius(dim: Dim, coords: Iterable[Double], radius: Double)
+    extends FilteringExpression
+    with FilterOnlyOperator {
+
+  override protected[dql] def createFilter: Filter =
+    SpatialFilter(dimension = dim.name, bound = RadiusBound(coords, radius))
+}

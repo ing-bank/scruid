@@ -364,6 +364,31 @@ case class Dim private[dql] (name: String,
   def containsInsensitive(value: String): FilteringExpression =
     new InsensitiveContains(this, value)
 
+  /**
+    * Filter spatially indexed columns by specifying the bounds of minimum and maximum coordinates
+    *
+    * @param minCoords a list of minimum dimension coordinates for coordinates [x, y, z, ...]
+    * @param maxCoords a list of maximum dimension coordinates for coordinates [x, y, z, ...]
+    *
+    * @return the resulting spatial filtering expression
+    */
+  def within(minCoords: Iterable[Double], maxCoords: Iterable[Double]): FilteringExpression =
+    new GeoRectangular(this, minCoords, maxCoords)
+
+  /**
+    * Filter spatially indexed columns by specifying the origin coordinates and a distance
+    *
+    * @param coords a list of origin coordinates in the form [x, y, z, ...]
+    * @param distance the distance from origin coordinates.
+    *                 It can be specified in kilometers, miles or radius degrees (default)
+    *
+    * @return the resulting spatial filtering expression
+    */
+  def within(coords: Iterable[Double],
+             distance: Double,
+             unit: Distance.Unit = Distance.DistanceUnit.DEGREES): FilteringExpression =
+    new GeoRadius(this, coords, Distance.toDegrees(distance, unit))
+
   // --------------------------------------------------------------------------
   // --- Functions for creating OrderByColumnSpec
   // --------------------------------------------------------------------------
