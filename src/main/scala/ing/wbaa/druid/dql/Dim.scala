@@ -148,7 +148,7 @@ case class Dim private[dql] (name: String,
   /**
     * @return in-filter of this dimension for the specified values
     */
-  def in(value: String, values: String*): FilteringExpression = new In(this, value :: values.toList)
+  def in(value: String, values: String*): FilteringExpression = new In(this, value +: values)
 
   def in(values: Iterable[String]) = new In(this, values.toList)
 
@@ -156,7 +156,7 @@ case class Dim private[dql] (name: String,
     * @return negated in-filter of this dimension for the specified values
     */
   def notIn(value: String, values: String*): FilteringExpression =
-    FilteringExpressionOps.not(new In(this, value :: values.toList))
+    FilteringExpressionOps.not(new In(this, value +: values))
 
   def notIn(values: Iterable[String]): FilteringExpression =
     FilteringExpressionOps.not(new In(this, values.toList))
@@ -340,7 +340,7 @@ case class Dim private[dql] (name: String,
     * @return the interval filtering expression
     */
   def intervals(first: String, second: String, rest: String*): FilteringExpression =
-    new Interval(this, first :: second :: rest.toList)
+    new Interval(this, Seq(first, second) ++: rest)
 
   def intervals(values: Iterable[String]): FilteringExpression =
     new Interval(this, values.toList)

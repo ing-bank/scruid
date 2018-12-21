@@ -70,15 +70,15 @@ object Filter {
 object FilterOperators {
   def &&(filterA: Filter, filterB: Filter): AndFilter = (filterA, filterB) match {
     case (AndFilter(fields), AndFilter(otherFields)) => AndFilter(fields = fields ++ otherFields)
-    case (AndFilter(fields), other)                  => AndFilter(fields = fields :+ other)
-    case (other, AndFilter(fields))                  => AndFilter(fields = fields :+ other)
-    case _                                           => AndFilter(fields = List(filterA, filterB))
+    case (AndFilter(fields), other)                  => AndFilter(fields = fields.toSeq :+ other)
+    case (other, AndFilter(fields))                  => AndFilter(fields = fields.toSeq :+ other)
+    case _                                           => AndFilter(fields = Seq(filterA, filterB))
   }
   def ||(filterA: Filter, filterB: Filter): OrFilter = (filterA, filterB) match {
     case (OrFilter(fields), OrFilter(otherFields)) => OrFilter(fields = fields ++ otherFields)
-    case (OrFilter(fields), other)                 => OrFilter(fields = fields :+ other)
-    case (other, OrFilter(fields))                 => OrFilter(fields = fields :+ other)
-    case _                                         => OrFilter(fields = List(filterA, filterB))
+    case (OrFilter(fields), other)                 => OrFilter(fields = fields.toSeq :+ other)
+    case (other, OrFilter(fields))                 => OrFilter(fields = fields.toSeq :+ other)
+    case _                                         => OrFilter(fields = Seq(filterA, filterB))
   }
 
   implicit class OptionalFilterExtension(filter: Option[Filter]) {
@@ -122,14 +122,14 @@ case class LikeFilter(dimension: String, pattern: String, extractionFn: Option[E
 }
 
 case class InFilter(dimension: String,
-                    values: Seq[String],
+                    values: Iterable[String],
                     extractionFn: Option[ExtractionFn] = None)
     extends Filter {
   val `type` = FilterType.In
 }
-case class AndFilter(fields: List[Filter]) extends Filter { val `type` = FilterType.And }
-case class OrFilter(fields: List[Filter])  extends Filter { val `type` = FilterType.Or  }
-case class NotFilter(field: Filter)        extends Filter { val `type` = FilterType.Not }
+case class AndFilter(fields: Iterable[Filter]) extends Filter { val `type` = FilterType.And }
+case class OrFilter(fields: Iterable[Filter])  extends Filter { val `type` = FilterType.Or  }
+case class NotFilter(field: Filter)            extends Filter { val `type` = FilterType.Not }
 case class JavascriptFilter(dimension: String, function: String) extends Filter {
   val `type` = FilterType.Javascript
 }
@@ -146,12 +146,12 @@ case class BoundFilter(
   val `type` = FilterType.Bound
 }
 
-case class ColumnComparisonFilter(dimensions: List[Dimension]) extends Filter {
+case class ColumnComparisonFilter(dimensions: Iterable[Dimension]) extends Filter {
   val `type` = FilterType.ColumnComparison
 }
 
 case class IntervalFilter(dimension: String,
-                          intervals: List[String],
+                          intervals: Iterable[String],
                           extractionFn: Option[ExtractionFn] = None)
     extends Filter {
   val `type` = FilterType.Interval
@@ -199,7 +199,7 @@ case class ContainsInsensitive(value: String) extends SearchQuerySpec {
   val `type` = SearchQuerySpecType.InsensitiveContains
 }
 
-case class Fragment(values: List[String], caseSensitive: Option[Boolean] = None)
+case class Fragment(values: Iterable[String], caseSensitive: Option[Boolean] = None)
     extends SearchQuerySpec {
   val `type` = SearchQuerySpecType.Fragment
 }

@@ -306,7 +306,7 @@ final class GroupByQueryBuilder private[dql] (dimensions: Seq[Dim]) extends Quer
     // when excludeNullsOpt is Some(true)
     // then set not null filtering for all dimensions
     if (excludeNullsOpt.contains(true)) {
-      val excludeNullsExpressions = dimensions.map(dim => new Not(new NullDim(dim))).toList
+      val excludeNullsExpressions = dimensions.map(dim => new Not(new NullDim(dim)))
 
       this.where(new And(excludeNullsExpressions))
     }
@@ -319,7 +319,7 @@ final class GroupByQueryBuilder private[dql] (dimensions: Seq[Dim]) extends Quer
       aggregations = this.aggregations,
       intervals = this.intervals,
       filter = this.getFilters,
-      dimensions = this.dimensions.map(_.build()).toList,
+      dimensions = this.dimensions.map(_.build()),
       granularity = this.granularityOpt.getOrElse(GranularityType.All),
       having = havingOpt,
       limitSpec = limitSpecOpt,

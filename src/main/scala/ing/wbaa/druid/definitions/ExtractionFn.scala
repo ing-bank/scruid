@@ -119,7 +119,7 @@ case class JavascriptExtractionFn(
 }
 
 case class CascadeExtractionFn(
-    extractionFns: Seq[ExtractionFn]
+    extractionFns: Iterable[ExtractionFn]
 ) extends ExtractionFn {
   override val `type` = ExtractionFnType.Cascade
 }

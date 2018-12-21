@@ -34,17 +34,17 @@ sealed trait FilteringExpression {
     case _                     => createHaving
   }
 
-  def or(others: FilteringExpression*): FilteringExpression = new Or(this :: others.toList)
+  def or(others: FilteringExpression*): FilteringExpression = new Or(others :+ this)
 
-  def and(others: FilteringExpression*): FilteringExpression = new And(this :: others.toList)
+  def and(others: FilteringExpression*): FilteringExpression = new And(others :+ this)
 }
 
-class And(expressions: List[FilteringExpression]) extends FilteringExpression {
+class And(expressions: Iterable[FilteringExpression]) extends FilteringExpression {
   override protected[dql] def createFilter: Filter = AndFilter(expressions.map(_.createFilter))
   override protected[dql] def createHaving: Having = AndHaving(expressions.map(_.createHaving))
 }
 
-class Or(expressions: List[FilteringExpression]) extends FilteringExpression {
+class Or(expressions: Iterable[FilteringExpression]) extends FilteringExpression {
   override protected[dql] def createFilter: Filter = OrFilter(expressions.map(_.createFilter))
   override protected[dql] def createHaving: Having = OrHaving(expressions.map(_.createHaving))
 }
@@ -79,7 +79,7 @@ trait FilterOnlyOperator extends FilteringExpression {
   override protected[dql] def createHaving: Having = FilterHaving(this.createFilter)
 }
 
-class In(dim: Dim, values: List[String]) extends FilteringExpression with FilterOnlyOperator {
+class In(dim: Dim, values: Iterable[String]) extends FilteringExpression with FilterOnlyOperator {
   override protected[dql] def createFilter: Filter = InFilter(dim.name, values)
 }
 
@@ -176,7 +176,9 @@ case class Bound(dimension: String,
 
 }
 
-class ColumnComparison(dimensions: List[Dim]) extends FilteringExpression with FilterOnlyOperator {
+class ColumnComparison(dimensions: Iterable[Dim])
+    extends FilteringExpression
+    with FilterOnlyOperator {
   override protected[dql] def createFilter: Filter = {
 
     val dimSpecs = dimensions.map { dim =>
@@ -196,7 +198,9 @@ class ColumnComparison(dimensions: List[Dim]) extends FilteringExpression with F
   }
 }
 
-class Interval(dim: Dim, values: List[String]) extends FilteringExpression with FilterOnlyOperator {
+class Interval(dim: Dim, values: Iterable[String])
+    extends FilteringExpression
+    with FilterOnlyOperator {
   override protected[dql] def createFilter: Filter =
     IntervalFilter(dim.name, values, dim.extractionFnOpt)
 }
