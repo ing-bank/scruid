@@ -17,6 +17,10 @@
 
 package ing.wbaa.druid
 
+import java.time.ZonedDateTime
+
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import ca.mrvisser.sealerate
 import ing.wbaa.druid.definitions._
 import io.circe.generic.auto._
@@ -43,6 +47,38 @@ sealed trait DruidQuery {
 
   def execute()(implicit config: DruidConfig = DruidConfig.DefaultConfig): Future[DruidResponse] =
     DruidClient.doQuery(this)
+
+  def stream()(
+      implicit config: DruidConfig = DruidConfig.DefaultConfig
+  ): Source[DruidResult, NotUsed] =
+    DruidClient.doQueryAsStream(this)
+
+  def streamAs[T]()(
+      implicit config: DruidConfig = DruidConfig.DefaultConfig,
+      decoder: Decoder[T]
+  ): Source[T, NotUsed] = {
+
+    val source = this.stream()
+
+    queryType match {
+      case QueryType.TopN => source.mapConcat(result => result.as[List[T]])
+      case _              => source.map(result => result.as[T])
+    }
+  }
+
+  def streamSeriesAs[T]()(
+      implicit config: DruidConfig = DruidConfig.DefaultConfig,
+      decoder: Decoder[T]
+  ): Source[(ZonedDateTime, T), NotUsed] = {
+
+    val source = this.stream()
+
+    queryType match {
+      case QueryType.TopN =>
+        source.mapConcat(result => result.as[List[T]].map(entry => (result.timestamp, entry)))
+      case _ => source.map(result => (result.timestamp, result.as[T]))
+    }
+  }
 }
 
 object DruidQuery {

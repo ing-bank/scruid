@@ -62,17 +62,21 @@ lazy val root = (project in file("."))
     name := "scruid",
     version := "2.0.1-SNAPSHOT",
     libraryDependencies ++= Seq(
-      "com.typesafe"      % "config"           % "1.3.3",
-      "io.circe"          %% "circe-core"      % circeVersion,
-      "io.circe"          %% "circe-parser"    % circeVersion,
-      "io.circe"          %% "circe-generic"   % circeVersion,
-      "io.circe"          %% "circe-java8"     % circeVersion,
-      "com.typesafe.akka" %% "akka-http"       % "10.1.5",
-      "de.heikoseeberger" %% "akka-http-circe" % "1.22.0",
-      "ca.mrvisser"       %% "sealerate"       % "0.0.5",
-      "ch.qos.logback"    % "logback-classic"  % "1.2.3",
-      "org.scalactic"     %% "scalactic"       % "3.0.5",
-      "org.scalatest"     %% "scalatest"       % "3.0.5" % "test"
+      "com.typesafe"      % "config"             % "1.3.3",
+      "io.circe"          %% "circe-core"        % circeVersion,
+      "io.circe"          %% "circe-parser"      % circeVersion,
+      "io.circe"          %% "circe-generic"     % circeVersion,
+      "io.circe"          %% "circe-java8"       % circeVersion,
+      "org.mdedetrich"    %% "akka-stream-json"  % "0.2.0",
+      "org.mdedetrich"    %% "akka-http-json"    % "0.2.0",
+      "org.mdedetrich"    %% "akka-stream-circe" % "0.2.0",
+      "org.mdedetrich"    %% "akka-http-circe"   % "0.2.0",
+      "com.typesafe.akka" %% "akka-http"         % "10.1.5",
+      //"de.heikoseeberger" %% "akka-http-circe"   % "1.22.0",
+      "ca.mrvisser"    %% "sealerate"      % "0.0.5",
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
+      "org.scalactic"  %% "scalactic"      % "3.0.5",
+      "org.scalatest"  %% "scalatest"      % "3.0.5" % "test"
     ),
     resolvers += Resolver.sonatypeRepo("releases")
   )
