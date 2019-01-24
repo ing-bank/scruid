@@ -17,6 +17,7 @@
 
 package ing.wbaa.druid
 
+import akka.stream.scaladsl.Sink
 import ing.wbaa.druid.definitions.ArithmeticFunctions._
 import ing.wbaa.druid.definitions.FilterOperators._
 import ing.wbaa.druid.definitions._
@@ -25,10 +26,13 @@ import org.scalatest._
 import org.scalatest.concurrent._
 import org.scalatest.time._
 
+import scala.concurrent.Future
+
 class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
   implicit override val patienceConfig =
-    PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
+    PatienceConfig(timeout = Span(20, Seconds), interval = Span(5, Millis))
   private val totalNumberOfEntries = 39244
+  implicit val mat                 = DruidClient.materializer
 
   case class TimeseriesCount(count: Int)
   case class GroupByIsAnonymous(isAnonymous: String, count: Int)
@@ -69,6 +73,38 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
     }
   }
 
+  "TimeSeriesQuery (streaming)" should {
+    val query = TimeSeriesQuery(
+      aggregations = List(
+        CountAggregation(name = "count")
+      ),
+      granularity = GranularityType.Hour,
+      intervals = List("2011-06-01/2017-06-01")
+    )
+
+    "successfully be interpreted by Druid" in {
+      val request: Future[Int] = query
+        .streamAs[TimeseriesCount]
+        .map(_.count)
+        .runWith(Sink.fold(0)(_ + _))
+
+      whenReady(request) { response =>
+        response shouldBe totalNumberOfEntries
+      }
+    }
+
+    "extract the data and return a map with the timestamps as keys" in {
+      val request = query
+        .streamSeriesAs[TimeseriesCount]
+        .map { case (_, entry) => entry.count }
+        .runWith(Sink.fold(0)(_ + _))
+
+      whenReady(request) { response =>
+        response shouldBe totalNumberOfEntries
+      }
+    }
+  }
+
   "GroupByQuery" should {
     "successfully be interpreted by Druid" in {
       val request = GroupByQuery(
@@ -96,6 +132,124 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
 
       whenReady(request) { response =>
         response.list[GroupByIsAnonymous].map(_.count).sum shouldBe totalNumberOfEntries
+      }
+    }
+  }
+
+  "GroupByQuery (streaming)" should {
+
+    "successfully be interpreted by Druid" in {
+      val query = GroupByQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        dimensions = List(Dimension(dimension = "isAnonymous")),
+        intervals = List("2011-06-01/2017-06-01")
+      )
+
+      val request = query
+        .streamAs[GroupByIsAnonymous]
+        .map(_.count)
+        .runWith(Sink.fold(0)(_ + _))
+
+      whenReady(request) { response =>
+        response shouldBe totalNumberOfEntries
+      }
+    }
+
+    "successfully be interpreted by Druid when using lower granularity" in {
+      val query = GroupByQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        dimensions = List(Dimension(dimension = "isAnonymous")),
+        intervals = List("2011-06-01/2017-06-01"),
+        granularity = GranularityType.Hour
+      )
+
+      val request = query
+        .streamAs[GroupByIsAnonymous]
+        .map(_.count)
+        .runWith(Sink.fold(0)(_ + _))
+
+      whenReady(request) { response =>
+        response shouldBe totalNumberOfEntries
+      }
+    }
+
+    "extract the data and return a map with the timestamps as keys, lower granularity" in {
+      val query = GroupByQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        dimensions = List(Dimension(dimension = "isAnonymous")),
+        intervals = List("2011-06-01/2017-06-01"),
+        granularity = GranularityType.Hour
+      )
+
+      val request = query
+        .streamSeriesAs[GroupByIsAnonymous]
+        .map { case (_, entry) => entry.count }
+        .runWith(Sink.fold(0)(_ + _))
+
+      whenReady(request) { response =>
+        response shouldBe totalNumberOfEntries
+      }
+    }
+
+    "large query" in {
+      val totalRecords = 37903
+      val dimNames =
+        List(
+          "channel",
+          "cityName",
+          "countryIsoCode",
+          "countryName",
+          "isAnonymous",
+          "isMinor",
+          "isNew",
+          "isRobot",
+          "isUnpatrolled",
+          "metroCode",
+          "namespace",
+          "page",
+          "regionIsoCode",
+          "regionName",
+          "user"
+        )
+
+      case class GroupByRecord(channel: Option[String],
+                               cityName: Option[String],
+                               countryIsoCode: Option[String],
+                               countryName: Option[String],
+                               isMinor: Option[String],
+                               isNew: Option[String],
+                               isRobot: Option[String],
+                               isUnpatrolled: Option[String],
+                               metroCode: Option[String],
+                               namespace: Option[String],
+                               page: Option[String],
+                               regionIsoCode: Option[String],
+                               regionName: Option[String],
+                               user: Option[String],
+                               count: Int)
+
+      val query = GroupByQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        dimensions = dimNames.map(name => Dimension(name)),
+        intervals = List("2011-06-01/2017-06-01"),
+        granularity = GranularityType.Hour
+      )
+
+      val request = query
+        .streamAs[GroupByRecord]
+        .map(_ => 1)
+        .runWith(Sink.fold(0)(_ + _))
+
+      whenReady(request) { response =>
+        response shouldBe totalRecords
       }
     }
   }
@@ -152,6 +306,36 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
         topN.size shouldBe 2
         topN.head shouldBe TopCountry(count = 528, countryName = Some("United States"))
         topN(1) shouldBe TopCountry(count = 256, countryName = Some("Italy"))
+      }
+    }
+  }
+
+  "TopNQuery (streaming)" should {
+    "successfully be interpreted by Druid" in {
+      val threshold = 5
+
+      val query = TopNQuery(
+        dimension = Dimension(
+          dimension = "countryName"
+        ),
+        threshold = threshold,
+        metric = "count",
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        intervals = List("2011-06-01/2017-06-01")
+      )
+
+      val request = query.streamAs[TopCountry].runWith(Sink.seq[TopCountry])
+
+      whenReady(request) { topN =>
+        topN.size shouldBe threshold
+
+        topN.head shouldBe TopCountry(count = 35445, countryName = None)
+        topN(1) shouldBe TopCountry(count = 528, countryName = Some("United States"))
+        topN(2) shouldBe TopCountry(count = 256, countryName = Some("Italy"))
+        topN(3) shouldBe TopCountry(count = 234, countryName = Some("United Kingdom"))
+        topN(4) shouldBe TopCountry(count = 205, countryName = Some("France"))
       }
     }
   }

@@ -17,6 +17,7 @@
 
 package ing.wbaa.druid
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
@@ -24,14 +25,15 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import org.mdedetrich.akka.http.support.CirceHttpSupport
+import org.mdedetrich.akka.stream.support.CirceStreamSupport
 import io.circe.java8.time._
 import io.circe.parser.decode
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 
-object DruidClient extends FailFastCirceSupport with JavaTimeDecoders {
+object DruidClient extends CirceHttpSupport with JavaTimeDecoders {
   private val logger = LoggerFactory.getLogger(getClass)
 
   implicit val system       = ActorSystem()
@@ -69,9 +71,18 @@ object DruidClient extends FailFastCirceSupport with JavaTimeDecoders {
     }
   }
 
+  private def handleResponseAsStream(
+      response: HttpResponse
+  )(implicit druidConfig: DruidConfig): Source[DruidResult, NotUsed] =
+    response.entity
+      .withoutSizeLimit()
+      .dataBytes
+      .via(CirceStreamSupport.decode[DruidResult](jawn.AsyncParser.UnwrapArray))
+      .mapMaterializedValue(_ => NotUsed)
+
   private def executeRequest(
-      queryType: QueryType
-  )(request: HttpRequest)(implicit druidConfig: DruidConfig): Future[DruidResponse] = {
+      request: HttpRequest
+  )(implicit druidConfig: DruidConfig): Future[HttpResponse] = {
     logger.debug(
       s"Executing api ${request.method} request to ${request.uri} with entity: ${request.entity}"
     )
@@ -80,15 +91,30 @@ object DruidClient extends FailFastCirceSupport with JavaTimeDecoders {
       .single(request)
       .via(connectionFlow)
       .runWith(Sink.head)
-      .flatMap(handleResponse(queryType))
   }
 
-  def doQuery(q: DruidQuery)(implicit druidConfig: DruidConfig): Future[DruidResponse] =
+  private def createHttpRequest(
+      q: DruidQuery
+  )(implicit druidConfig: DruidConfig): Future[HttpRequest] =
     Marshal(q)
       .to[RequestEntity]
       .map { entity =>
         HttpRequest(HttpMethods.POST, uri = druidConfig.url)
           .withEntity(entity.withContentType(`application/json`))
       }
-      .flatMap(executeRequest(q.queryType))
+
+  def doQuery(q: DruidQuery)(implicit druidConfig: DruidConfig): Future[DruidResponse] =
+    createHttpRequest(q)
+      .flatMap { request =>
+        executeRequest(request).flatMap(handleResponse(q.queryType))
+      }
+
+  def doQueryAsStream(
+      q: DruidQuery
+  )(implicit druidConfig: DruidConfig): Source[DruidResult, NotUsed] =
+    Source
+      .fromFuture(createHttpRequest(q))
+      .via(connectionFlow)
+      .flatMapConcat(handleResponseAsStream)
+
 }

@@ -66,7 +66,7 @@ val response = TimeSeriesQuery(
   aggregations = List(
     CountAggregation(name = "count")
   ),
-  granularity = "hour",
+  granularity = GranularityType.Hour,
   intervals = List("2011-06-01/2017-06-01")
 ).execute
 
@@ -96,6 +96,40 @@ val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[Grou
 ```
 
 For details and examples see the [DQL documentation](docs/dql.md).
+
+## Handling large payloads with Akka Streams
+
+For queries with large payload of results (e.g., half a million of records), Scruid can transform the corresponding response into an [Akka Stream](https://doc.akka.io/docs/akka/2.5/stream/) Source. 
+The results can be processed, filtered and transformed using [Flows](https://doc.akka.io/docs/akka/2.5/stream/stream-flows-and-basics.html) and/or output to Sinks, as a continuous stream, without collecting the entire payload first.
+To process the results with Akka Stream, you can call one of the following methods:
+
+- `.stream`: gives a Source of `DruidResult`.
+- `.streamAs[T](implicit decoder: Decoder[T])`: gives a Source where each JSON record is being decoded to the type of `T`.
+- `.streamSeriesAs[T](implicit decoder: Decoder[T])`: gives a Source where each JSON record is being decoded to the type of `T` and it is accompanied by its corresponding timestamp.
+
+All the methods above can be applied to any timeseries, group-by or top-N query created either directly by using query constructors or by DQL.
+
+### Example
+
+```scala
+implicit val mat = DruidClient.materializer
+
+case class TimeseriesCount(count: Int)
+
+val query = TimeSeriesQuery(
+  aggregations = List(
+    CountAggregation(name = "count")
+  ),
+  granularity = GranularityType.Hour,
+  intervals = List("2011-06-01/2017-06-01")
+)
+
+// Decode each record into the type of `TimeseriesCount` and sum all `count` results
+val result: Future[Int] = query
+        .streamAs[TimeseriesCount]
+        .map(_.count)
+        .runWith(Sink.fold(0)(_ + _))
+```
 
 ## Configuration
 

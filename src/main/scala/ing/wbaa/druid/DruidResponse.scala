@@ -25,8 +25,8 @@ import scala.collection.immutable.ListMap
 import cats.syntax.either._
 
 case class DruidResponse(results: List[DruidResult], queryType: QueryType) {
-  private def decodeList[T](implicit decoder: Decoder[T]): List[T] = results.map {
-    case DruidResult(_, result) => decode(result)(decoder)
+  private def decodeList[T](implicit decoder: Decoder[T]): List[T] = results.map { result =>
+    result.as[T](decoder)
   }
 
   private def decode[T](result: Json)(implicit decoder: Decoder[T]): T =
@@ -49,7 +49,13 @@ case class DruidResponse(results: List[DruidResult], queryType: QueryType) {
     }
 }
 
-case class DruidResult(timestamp: ZonedDateTime, result: Json)
+case class DruidResult(timestamp: ZonedDateTime, result: Json) {
+
+  def as[T](implicit decoder: Decoder[T]): T = decoder.decodeJson(this.result) match {
+    case Left(e)      => throw e
+    case Right(value) => value
+  }
+}
 
 object DruidResult extends JavaTimeDecoders {
   private def extractResultField(c: HCursor): ACursor = {
