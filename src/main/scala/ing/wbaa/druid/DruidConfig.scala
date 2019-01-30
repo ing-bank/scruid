@@ -44,8 +44,11 @@ class DruidConfig(val host: String,
 
 object DruidConfig {
 
-  private val config      = ConfigFactory.load()
+  private val config = ConfigFactory.load()
+
   private val druidConfig = config.getConfig("druid")
+
+  val HealthEndpoint = "/status/health"
 
   implicit def asFiniteDuration(d: java.time.Duration): FiniteDuration =
     scala.concurrent.duration.Duration.fromNanos(d.toNanos)

@@ -41,6 +41,16 @@ object DruidClient extends CirceHttpSupport with JavaTimeDecoders {
 
   implicit val ec = system.dispatcher
 
+  def isHealthy(): Future[Boolean] = {
+    val request = HttpRequest(HttpMethods.GET, uri = DruidConfig.HealthEndpoint)
+    Source
+      .single(request)
+      .via(connectionFlow)
+      .runWith(Sink.head)
+      .map(_.status == StatusCodes.OK)
+      .recover { case _ => false }
+  }
+
   def connectionFlow(
       implicit druidConfig: DruidConfig
   ): Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] =
@@ -73,7 +83,7 @@ object DruidClient extends CirceHttpSupport with JavaTimeDecoders {
 
   private def handleResponseAsStream(
       response: HttpResponse
-  )(implicit druidConfig: DruidConfig): Source[DruidResult, NotUsed] =
+  ): Source[DruidResult, NotUsed] =
     response.entity
       .withoutSizeLimit()
       .dataBytes
