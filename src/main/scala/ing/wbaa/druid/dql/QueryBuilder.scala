@@ -170,12 +170,15 @@ final class QueryBuilder private[dql] () extends QueryBuilderCommons {
 
   /**
     * Define that the query will be a group-by query
+    *
     * @param dimensions the dimensions to perform a group-by query
     * @return the builder for group-by queries
     */
   def groupBy(dimensions: Dim*): GroupByQueryBuilder =
     copyTo(new GroupByQueryBuilder(dimensions))
 
+  def groupBy(dimensions: Iterable[Dim]): GroupByQueryBuilder =
+    copyTo(new GroupByQueryBuilder(dimensions))
 }
 
 /**
@@ -229,10 +232,11 @@ final class TopNQueryBuilder private[dql] (dimension: Dim, metric: String, n: In
   *
   * @param dimensions the dimensions to perform a group-by query
   */
-final class GroupByQueryBuilder private[dql] (dimensions: Seq[Dim]) extends QueryBuilderCommons {
+final class GroupByQueryBuilder private[dql] (dimensions: Iterable[Dim])
+    extends QueryBuilderCommons {
 
   protected var limitOpt                        = Option.empty[Int]
-  protected var limitCols                       = Seq.empty[OrderByColumnSpec]
+  protected var limitCols                       = Iterable.empty[OrderByColumnSpec]
   protected var havingExpressions: List[Having] = Nil
 
   protected var excludeNullsOpt = Option.empty[Boolean]

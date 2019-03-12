@@ -109,7 +109,7 @@ case class GroupByQuery(
   val dataSource: String = config.datasource
 }
 
-case class LimitSpec(limit: Int, columns: Seq[OrderByColumnSpec]) {
+case class LimitSpec(limit: Int, columns: Iterable[OrderByColumnSpec]) {
   val `type` = "default"
 }
 
