@@ -191,5 +191,5 @@ All parameters of `DruidConfig` are optional, and in case that some parameter is
 To run the tests, please make sure that you have the Druid instance running:
 
 ```
-docker run --rm -i -p 8082:8082 -p 8081:8081 fokkodriesprong/docker-druid
+docker run --rm -i -p 8082:8082 -p 8081:8081 mmartina/docker-druid
 ```
