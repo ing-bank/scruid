@@ -30,6 +30,7 @@ import org.mdedetrich.akka.stream.support.CirceStreamSupport
 import io.circe.java8.time._
 import io.circe.parser.decode
 import org.slf4j.LoggerFactory
+import org.typelevel.jawn.AsyncParser
 
 import scala.concurrent.Future
 
@@ -87,7 +88,7 @@ object DruidClient extends CirceHttpSupport with JavaTimeDecoders {
     response.entity
       .withoutSizeLimit()
       .dataBytes
-      .via(CirceStreamSupport.decode[DruidResult](jawn.AsyncParser.UnwrapArray))
+      .via(CirceStreamSupport.decode[DruidResult](AsyncParser.UnwrapArray))
       .mapMaterializedValue(_ => NotUsed)
 
   private def executeRequest(
