@@ -19,6 +19,7 @@ package ing.wbaa.druid
 
 import io.circe._
 import io.circe.syntax._
+import cats.syntax.either._ // DO NOT REMOVE: required for scala 2.11
 
 trait Enum {
   override lazy val toString: String = this.getClass.getSimpleName.split("\\$")(0)
