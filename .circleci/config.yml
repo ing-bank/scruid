@@ -16,6 +16,7 @@ jobs:
       - restore_cache:
           key: ivy2-{{ checksum "/tmp/build.sbt" }}
       - run: wget localhost:8082/status
+      - run: sbt +compile
       - run: sbt coverage test coverageReport
       - store_artifacts:
           path: target/scala-2.12/scoverage-report
