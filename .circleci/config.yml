@@ -1,0 +1,26 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: ~/scruid
+
+    docker:
+      - image: mmartina/docker-druid
+
+    environment:
+      _JAVA_OPTIONS: -Xms512m -Xmx1g
+      TERM: dumb
+
+    steps:
+      - checkout
+      - run: cp build.sbt /tmp/build.sbt
+      - restore_cache:
+          key: ivy2-{{ checksum "/tmp/build.sbt" }}
+      - run: wget localhost:8082/status
+      - run: sbt +compile
+      - run: sbt coverage test coverageReport
+      - store_artifacts:
+          path: target/scala-2.12/scoverage-report
+      - save_cache:
+          key: ivy2-{{ checksum "/tmp/build.sbt" }}
+          paths:
+            - ~/.ivy2
