@@ -55,28 +55,30 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   publishArtifact in Test := false
 ) ++ Seq(Compile, Test).flatMap(c => scalacOptions in (c, console) --= unusedWarnings)
 
-val circeVersion = "0.10.1"
+val circeVersion = "0.11.1"
+
+val mdedetrichVersion = "0.3.0"
+
 lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "2.1.0",
+    version := "2.1.1",
     libraryDependencies ++= Seq(
       "com.typesafe"      % "config"             % "1.3.3",
       "io.circe"          %% "circe-core"        % circeVersion,
       "io.circe"          %% "circe-parser"      % circeVersion,
       "io.circe"          %% "circe-generic"     % circeVersion,
       "io.circe"          %% "circe-java8"       % circeVersion,
-      "org.mdedetrich"    %% "akka-stream-json"  % "0.2.0",
-      "org.mdedetrich"    %% "akka-http-json"    % "0.2.0",
-      "org.mdedetrich"    %% "akka-stream-circe" % "0.2.0",
-      "org.mdedetrich"    %% "akka-http-circe"   % "0.2.0",
+      "org.mdedetrich"    %% "akka-stream-json"  % mdedetrichVersion,
+      "org.mdedetrich"    %% "akka-http-json"    % mdedetrichVersion,
+      "org.mdedetrich"    %% "akka-stream-circe" % mdedetrichVersion,
+      "org.mdedetrich"    %% "akka-http-circe"   % mdedetrichVersion,
       "com.typesafe.akka" %% "akka-http"         % "10.1.5",
-      //"de.heikoseeberger" %% "akka-http-circe"   % "1.22.0",
-      "ca.mrvisser"    %% "sealerate"      % "0.0.5",
-      "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "org.scalactic"  %% "scalactic"      % "3.0.5",
-      "org.scalatest"  %% "scalatest"      % "3.0.5" % "test"
+      "ca.mrvisser"       %% "sealerate"         % "0.0.5",
+      "ch.qos.logback"    % "logback-classic"    % "1.2.3",
+      "org.scalactic"     %% "scalactic"         % "3.0.5",
+      "org.scalatest"     %% "scalatest"         % "3.0.5" % "test"
     ),
     resolvers += Resolver.sonatypeRepo("releases")
   )
