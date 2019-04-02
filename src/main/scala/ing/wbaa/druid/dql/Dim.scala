@@ -109,7 +109,10 @@ case class Dim private[dql] (name: String,
   private def eqVal(value: String): FilteringExpression = new EqString(this, value)
 
   @inline
-  private def eqNum(value: Double): FilteringExpression = new EqDouble(this, value)
+  private def eqNumDouble(value: Double): FilteringExpression = new EqDouble(this, value)
+
+  @inline
+  private def eqNumLong(value: Long): FilteringExpression = new EqLong(this, value)
 
   @inline
   private def compareWith(other: Dim): FilteringExpression =
@@ -128,7 +131,9 @@ case class Dim private[dql] (name: String,
   /**
     * @return a filtering expression of value equals (numeric)
     */
-  def ===(value: Double): FilteringExpression = eqNum(value)
+  def ===(value: Double): FilteringExpression = eqNumDouble(value)
+
+  def ===(value: Long): FilteringExpression = eqNumLong(value)
 
   /**
     * @return negated column-comparison filtering expression between this and the specified dimensions.
@@ -143,23 +148,39 @@ case class Dim private[dql] (name: String,
   /**
     * @return a filtering expression of not equals (numeric)
     */
-  def =!=(value: Double): FilteringExpression = FilteringExpressionOps.not(eqNum(value))
+  def =!=(value: Double): FilteringExpression = FilteringExpressionOps.not(eqNumDouble(value))
+
+  def =!=(value: Long): FilteringExpression = FilteringExpressionOps.not(eqNumLong(value))
 
   /**
     * @return in-filter of this dimension for the specified values
     */
-  def in(value: String, values: String*): FilteringExpression = new In(this, value +: values)
+  def in(value: String, values: String*): FilteringExpression =
+    new In(this, value +: values)
 
-  def in(values: Iterable[String]) = new In(this, values.toList)
+  def in(values: Iterable[String]) =
+    new In(this, values)
+
+  def in[T: Numeric](value: T, values: T*): FilteringExpression =
+    new InNumeric(this, value +: values)
+
+  def in[T: Numeric](values: Iterable[T]) =
+    new InNumeric(this, values)
 
   /**
     * @return negated in-filter of this dimension for the specified values
     */
   def notIn(value: String, values: String*): FilteringExpression =
-    FilteringExpressionOps.not(new In(this, value +: values))
+    FilteringExpressionOps.not(in(value +: values))
 
   def notIn(values: Iterable[String]): FilteringExpression =
-    FilteringExpressionOps.not(new In(this, values.toList))
+    FilteringExpressionOps.not(in(values))
+
+  def notIn[T: Numeric](value: T, values: T*): FilteringExpression =
+    FilteringExpressionOps.not(in(value +: values))
+
+  def notIn[T: Numeric](values: Iterable[T]): FilteringExpression =
+    FilteringExpressionOps.not(in(values))
 
   /**
     * @return like-filter of this dimension for the specified LIKE pattern

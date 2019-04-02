@@ -75,12 +75,26 @@ class EqDouble(dim: Dim, value: Double) extends FilteringExpression {
     else EqualToHaving(dim.name, value)
 }
 
+class EqLong(dim: Dim, value: Long) extends FilteringExpression {
+  override protected[dql] def createFilter: Filter =
+    SelectFilter(dim.name, Option(value.toString), dim.extractionFnOpt)
+  override protected[dql] def createHaving: Having =
+    if (dim.extractionFnOpt.isDefined) FilterHaving(this.createFilter)
+    else EqualToHaving(dim.name, value)
+}
+
 trait FilterOnlyOperator extends FilteringExpression {
   override protected[dql] def createHaving: Having = FilterHaving(this.createFilter)
 }
 
 class In(dim: Dim, values: Iterable[String]) extends FilteringExpression with FilterOnlyOperator {
   override protected[dql] def createFilter: Filter = InFilter(dim.name, values)
+}
+
+class InNumeric[T: Numeric](dim: Dim, values: Iterable[T])
+    extends FilteringExpression
+    with FilterOnlyOperator {
+  override protected[dql] def createFilter: Filter = InFilter(dim.name, values.map(_.toString))
 }
 
 class Like(dim: Dim, pattern: String) extends FilteringExpression with FilterOnlyOperator {
