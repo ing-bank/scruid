@@ -12,7 +12,7 @@ import scala.language.postfixOps
 
 class ExtractionFnSpec extends Matchers with WordSpecLike with ScalaFutures {
 
-  override implicit def patienceConfig: PatienceConfig = PatienceConfig(5 seconds, 50 millis)
+  override implicit def patienceConfig: PatienceConfig = PatienceConfig(10 seconds, 100 millis)
 
   // countyName is optional, because some extractions functions work with nulls and
   // not every fetched item has countryName.
@@ -60,7 +60,7 @@ class ExtractionFnSpec extends Matchers with WordSpecLike with ScalaFutures {
     }
 
     "using Partial" should {
-      "be encoded propely" in {
+      "be encoded properly" in {
         val fn: ExtractionFn = PartialExtractionFn("ca$")
         fn.asJson.noSpaces shouldBe """{"expr":"ca$","type":"partial"}"""
       }
@@ -84,7 +84,7 @@ class ExtractionFnSpec extends Matchers with WordSpecLike with ScalaFutures {
     }
 
     "using Strlen" should {
-      "be encoded propely" in {
+      "be encoded properly" in {
         val fn: ExtractionFn = StrlenExtractionFn
         fn.asJson.noSpaces shouldBe """{"type":"strlen"}"""
       }
@@ -108,7 +108,7 @@ class ExtractionFnSpec extends Matchers with WordSpecLike with ScalaFutures {
     }
 
     "using Substring" should {
-      "be encoded propely" in {
+      "be encoded properly" in {
         val fn1: ExtractionFn = SubstringExtractionFn(1)
         fn1.asJson.noSpaces shouldBe """{"index":1,"length":null,"type":"substring"}"""
 
@@ -135,7 +135,7 @@ class ExtractionFnSpec extends Matchers with WordSpecLike with ScalaFutures {
     }
 
     "using TimeFormat" should {
-      "be encoded propely" in {
+      "be encoded properly" in {
         val fn1: ExtractionFn = TimeFormatExtractionFn()
         fn1.asJson.noSpaces shouldBe
         """{"format":null,"timeZone":"utc","locale":null,"granularity":"none","asMillis":false,"type":"timeFormat"}"""

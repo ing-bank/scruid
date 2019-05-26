@@ -8,8 +8,6 @@ Scruid (Scala+Druid) is an open source library that allows you to compose querie
 
 Currently the API is under heavy development, so changes might occur.
 
-
-
 ## Example queries:
 
 Scruid provides three query constructors: `TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` (see below for details). You can call the `execute` method ona query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
@@ -137,15 +135,17 @@ The configuration is done by [Typesafe config](https://github.com/typesafehub/co
 
 ```
 druid = {
-  host = "localhost"
-  host = ${?DRUID_HOST}
-  port = 8082
-  port = ${?DRUID_PORT}
+  hosts = "localhost:8082"
+  hosts = ${?DRUID_HOSTS}
   secure = false
   secure = ${?DRUID_USE_SECURE_CONNECTION}
   url = "/druid/v2/"
   url = ${?DRUID_URL}
-
+  health-endpoint = "/status/health"
+  health-endpoint = ${?DRUID_HEALTH_ENDPOINT}
+  client-backend = "ing.wbaa.druid.client.DruidHttpClient"
+  client-backend = ${?DRUID_CLIENT_BACKEND
+  
   datasource = "wikiticker"
   datasource = ${?DRUID_DATASOURCE}
 
@@ -164,12 +164,10 @@ import scala.concurrent.duration._
 
 
 implicit val druidConf = DruidConfig(
-  host = "localhost",
-  port = 8082,
+  hosts = Seq("localhost:8082"),
   datasource = "wikiticker",
   responseParsingTimeout = 10.seconds
 )
-
 
 case class TimeseriesCount(count: Int)
 
@@ -186,10 +184,17 @@ val series: Map[ZonedDateTime, TimeseriesCount] = response.series[TimeseriesCoun
 
 All parameters of `DruidConfig` are optional, and in case that some parameter is missing then the default behaviour is to use the value that is defined in the configuration file.
 
+## Druid Clients
+
+Scruid provides two client implementations, one for simple requests over a single Druid query host (default) and
+an advanced one with queue, cached pool connections and a load balancer when multiple Druid query hosts are provided. 
+Depending on your use case, it is also possible to create a custom client. For details regarding clients, their
+configuration, as well the creation of a custom one see the [Scruid Clients](docs/scruid_clients.md) documentation.
+
 ## Tests
 
 To run the tests, please make sure that you have the Druid instance running:
 
 ```
-docker run --rm -i -p 8082:8082 -p 8081:8081 mmartina/docker-druid
+docker-compose run --rm wait_for_druid && docker-compose up -d chaos_proxies
 ```

@@ -17,19 +17,47 @@
 
 package ing.wbaa.druid
 
+import ing.wbaa.druid.client.DruidHttpClient
 import org.scalatest._
 import org.scalatest.concurrent._
-import org.scalatest.time._
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
-  implicit override val patienceConfig =
-    PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
+
+  override implicit def patienceConfig: PatienceConfig = PatienceConfig(10 seconds, 100 millis)
 
   "DruidClient" should {
-    "indicate that Druid is healthy" in {
-      whenReady(DruidClient.isHealthy()) { result =>
+
+    "indicate when Druid is healthy" in {
+      val config = DruidConfig(clientBackend = classOf[DruidHttpClient])
+      val client = config.client
+
+      whenReady(client.isHealthy()) { result =>
         result shouldBe true
       }
+    }
+
+    "indicate when Druid is not healthy" in {
+      val config = DruidConfig(clientBackend = classOf[DruidHttpClient],
+                               hosts = Seq(QueryHost("localhost", 8087)))
+      val client = config.client
+
+      whenReady(client.isHealthy()) { result =>
+        result shouldBe false
+      }
+    }
+
+    "fail to load when having multiple query nodes" in {
+      val config = DruidConfig(clientBackend = classOf[DruidHttpClient],
+                               hosts =
+                                 Seq(QueryHost("localhost", 8082), QueryHost("localhost", 8083)))
+
+      assertThrows[IllegalStateException] {
+        config.client
+      }
+
     }
   }
 }

@@ -21,14 +21,16 @@ import ing.wbaa.druid.{ GroupByQuery, TimeSeriesQuery, TopNQuery }
 import ing.wbaa.druid.definitions._
 import org.scalatest.{ Matchers, WordSpec }
 import org.scalatest.concurrent._
-import org.scalatest.time.{ Millis, Seconds, Span }
 import ing.wbaa.druid.dql.DSL._
 import io.circe.generic.auto._
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
-  implicit override val patienceConfig =
-    PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
+  override implicit def patienceConfig: PatienceConfig = PatienceConfig(1 minute, 100 millis)
+
   private val totalNumberOfEntries = 39244
 
   case class TimeseriesCount(count: Int)

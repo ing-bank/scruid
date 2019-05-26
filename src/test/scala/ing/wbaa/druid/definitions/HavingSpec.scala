@@ -11,7 +11,7 @@ import scala.language.postfixOps
 
 class HavingSpec extends Matchers with WordSpecLike with ScalaFutures {
 
-  override implicit def patienceConfig: PatienceConfig = PatienceConfig(5 seconds, 50 millis)
+  override implicit def patienceConfig: PatienceConfig = PatienceConfig(10 seconds, 100 millis)
 
   case class GroupByIsAnonymous(isAnonymous: String, count: Int)
 
