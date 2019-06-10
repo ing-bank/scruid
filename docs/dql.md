@@ -196,10 +196,10 @@ When numbers are given to bound operators, then the ordering is numeric:
 'dim between(0.0, 10.0)
 
 // 0.0 <= dim <= 10.0
-'dim between(0.0, 10.0, lowerStrict = true, upperStrict = true)
+'dim between(0.0, 10.0, lowerStrict = false, upperStrict = false)
 
 // 0.0 <= dim < 10.0
-'dim between(0.0, 10.0, lowerStrict = true, upperStrict = false)
+'dim between(0.0, 10.0, lowerStrict = false, upperStrict = true)
 ```
 
 When strings are given to bound operators, then the ordering is lexicographic:
@@ -214,10 +214,10 @@ When strings are given to bound operators, then the ordering is lexicographic:
 'dim between("0.0", "10.0")
 
 // "0.0" <= dim <= "10.0"
-'dim between("0.0", "10.0", lowerStrict = true, upperStrict = true)
+'dim between("0.0", "10.0", lowerStrict = false, upperStrict = false)
 
 // "0.0" <= dim < "10.0"
-'dim between("0.0", "10.0", lowerStrict = true, upperStrict = false)
+'dim between("0.0", "10.0", lowerStrict = false, upperStrict = true)
 ```
 
 Furthermore, you can specify any other ordering (e.g. Alphanumeric) or define some extraction function:

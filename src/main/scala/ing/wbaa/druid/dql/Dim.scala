@@ -203,7 +203,7 @@ case class Dim private[dql] (name: String,
   def isNotNull: FilteringExpression = FilteringExpressionOps.not(this.isNull)
 
   /**
-    * Filter based on a lower bound of dimension values, using numeric ordering.
+    * Filter based on a strict lower bound of dimension values, using numeric ordering.
     *
     * @return a bound filtering expression, with numeric ordering, specifying that the value of
     *         the dimension should be greater than the given number.
@@ -211,7 +211,7 @@ case class Dim private[dql] (name: String,
   def >(value: Double): FilteringExpression = new Gt(this, value)
 
   /**
-    * Filter based on a strict lower bound of dimension values, using numeric ordering.
+    * Filter based on a lower bound of dimension values, using numeric ordering.
     *
     * @return a bound filtering expression, with numeric ordering, specifying that the value of
     *         the dimension should be greater than, or equal to the given number.
@@ -219,7 +219,7 @@ case class Dim private[dql] (name: String,
   def >=(value: Double): FilteringExpression = new GtEq(this, value)
 
   /**
-    * Filter based on a upper bound of dimension values, using numeric ordering.
+    * Filter based on a strict upper bound of dimension values, using numeric ordering.
     *
     * @return a bound filtering expression, with numeric ordering, specifying that the value of
     *         the dimension should be less than the given number.
@@ -227,12 +227,12 @@ case class Dim private[dql] (name: String,
   def <(value: Double): FilteringExpression = new Lt(this, value)
 
   /**
-    * Filter based on a strict upper bound of dimension values, using numeric ordering.
+    * Filter based on an upper bound of dimension values, using numeric ordering.
     *
     * @return a bound filtering expression, with numeric ordering, specifying that the value of
     *         the dimension should be less than, or equal to the given number.
     */
-  def =<(value: Double): FilteringExpression = new LtEq(this, value)
+  def <=(value: Double): FilteringExpression = new LtEq(this, value)
 
   /**
     * Filter on ranges of dimension values, using numeric ordering.
