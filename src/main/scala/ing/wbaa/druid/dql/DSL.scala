@@ -83,9 +83,9 @@ object DSL
     def ===(s: Dim): FilteringExpression = s === value
     def =!=(s: Dim): FilteringExpression = s =!= value
     def >(s: Dim): FilteringExpression   = s < value
-    def >=(s: Dim): FilteringExpression  = s =< value
+    def >=(s: Dim): FilteringExpression  = s <= value
     def <(s: Dim): FilteringExpression   = s > value
-    def =<(s: Dim): FilteringExpression  = s >= value
+    def <=(s: Dim): FilteringExpression  = s >= value
 
     def +(s: Symbol): PostAggregationExpression = arithmeticPostAgg(s, ArithmeticFunction.PLUS)
     def -(s: Symbol): PostAggregationExpression = arithmeticPostAgg(s, ArithmeticFunction.MINUS)

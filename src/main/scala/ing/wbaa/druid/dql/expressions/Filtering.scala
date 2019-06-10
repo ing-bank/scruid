@@ -114,7 +114,7 @@ class Gt(dim: Dim, value: Double) extends FilteringExpression {
     BoundFilter(
       dimension = dim.name,
       lower = Option(value.toString),
-      lowerStrict = Some(false),
+      lowerStrict = Some(true),
       ordering = Option(DimensionOrderType.Numeric),
       extractionFn = dim.extractionFnOpt
     )
@@ -129,7 +129,7 @@ class GtEq(dim: Dim, value: Double) extends FilteringExpression {
     BoundFilter(
       dimension = dim.name,
       lower = Option(value.toString),
-      lowerStrict = Some(true),
+      lowerStrict = Some(false),
       ordering = Option(DimensionOrderType.Numeric),
       extractionFn = dim.extractionFnOpt
     )
@@ -144,7 +144,7 @@ class Lt(dim: Dim, value: Double) extends FilteringExpression {
     BoundFilter(
       dimension = dim.name,
       upper = Option(value.toString),
-      upperStrict = Some(false),
+      upperStrict = Some(true),
       ordering = Option(DimensionOrderType.Numeric),
       extractionFn = dim.extractionFnOpt
     )
@@ -160,7 +160,7 @@ class LtEq(dim: Dim, value: Double) extends FilteringExpression {
     BoundFilter(
       dimension = dim.name,
       upper = Option(value.toString),
-      upperStrict = Some(true),
+      upperStrict = Some(false),
       ordering = Option(DimensionOrderType.Numeric),
       extractionFn = dim.extractionFnOpt
     )
