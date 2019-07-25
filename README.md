@@ -196,5 +196,5 @@ configuration, as well the creation of a custom one see the [Scruid Clients](doc
 To run the tests, please make sure that you have the Druid instance running:
 
 ```
-docker-compose run --rm wait_for_druid && docker-compose up -d chaos_proxies
+./services.sh start
 ```

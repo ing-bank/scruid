@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - checkout
-      - run: docker-compose run --rm wait_for_druid && docker-compose up -d chaos_proxies
+      - run: ./services.sh start
       - run: cp build.sbt /tmp/build.sbt
       - restore_cache:
           key: ivy2-{{ checksum "/tmp/build.sbt" }}

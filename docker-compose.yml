@@ -1,7 +1,7 @@
 version: "2.0"
 
 services:
-
+  
   scruid_druid:
     image: mmartina/docker-druid:latest
     container_name: scruid_druid
@@ -10,13 +10,6 @@ services:
       - "8082:8082"
       - "8083:8082"
       - "8084:8082"
-
-  wait_for_druid:
-    image: dadarek/wait-for-dependencies:latest
-    container_name: wait_for_druid
-    depends_on:
-      - scruid_druid
-    command: scruid_druid:8081 scruid_druid:8082
 
   delay_response:
     image: andymacdonald/clusterf-chaos-proxy:latest
@@ -41,9 +34,3 @@ services:
       JAVA_OPTS: "-Dserver.port=8090 -Dchaos.strategy=INTERNAL_SERVER_ERROR -Ddestination.hostProtocolAndPort=http://scruid_druid:8082"
     ports:
       - "8086:8090"
-
-  chaos_proxies:
-    image: rwgrim/docker-noop
-    depends_on:
-      - always_fail_500
-      - delay_response
