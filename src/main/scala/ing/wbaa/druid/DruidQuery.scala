@@ -46,12 +46,12 @@ sealed trait DruidQuery {
   val intervals: Iterable[String]
 
   def execute()(implicit config: DruidConfig = DruidConfig.DefaultConfig): Future[DruidResponse] =
-    DruidClient.doQuery(this)
+    config.client.doQuery(this)
 
   def stream()(
       implicit config: DruidConfig = DruidConfig.DefaultConfig
   ): Source[DruidResult, NotUsed] =
-    DruidClient.doQueryAsStream(this)
+    config.client.doQueryAsStream(this)
 
   def streamAs[T]()(
       implicit config: DruidConfig = DruidConfig.DefaultConfig,

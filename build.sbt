@@ -52,7 +52,8 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
     }
     .toList
     .flatten,
-  publishArtifact in Test := false
+  publishArtifact in Test := false,
+  Test / parallelExecution := false
 ) ++ Seq(Compile, Test).flatMap(c => scalacOptions in (c, console) --= unusedWarnings)
 
 val circeVersion = "0.11.1"
