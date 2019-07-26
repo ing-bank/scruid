@@ -18,11 +18,6 @@ wait_for_port() {
   done
 }
 
-foo(){
-  docker-compose up -d scruid_druid && \
-    wait_for_port "druid" ${DRUID_HOST} ${DRUID_PORT} && \
-    docker-compose up -d chaos_proxies
-}
 
 usage() {
   echo "Usage $(basename ${0}) <command>"

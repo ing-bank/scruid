@@ -111,7 +111,7 @@ class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutur
 
       val client = config.client
 
-      // since localhost:8087 is always failing the health status should be false
+      // since localhost:8086 is always failing the health status should be false
       whenReady(client.isHealthy()) { result =>
         result shouldBe false
       }
