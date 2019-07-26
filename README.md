@@ -144,7 +144,7 @@ druid = {
   health-endpoint = "/status/health"
   health-endpoint = ${?DRUID_HEALTH_ENDPOINT}
   client-backend = "ing.wbaa.druid.client.DruidHttpClient"
-  client-backend = ${?DRUID_CLIENT_BACKEND
+  client-backend = ${?DRUID_CLIENT_BACKEND}
   
   datasource = "wikiticker"
   datasource = ${?DRUID_DATASOURCE}
