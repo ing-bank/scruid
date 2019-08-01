@@ -131,11 +131,15 @@ val result: Future[Int] = query
 
 ## Configuration
 
-The configuration is done by [Typesafe config](https://github.com/typesafehub/config). The configuration can be overridden by using environment variables, e.g. `DRUID_HOST`, `DRUID_PORT` and `DRUID_DATASOURCE`. Or by placing an application.conf in your own project and this will override the reference.conf of the scruid library.
+The configuration is done by [Typesafe config](https://github.com/typesafehub/config). The configuration can be overridden by using environment variables, e.g. `DRUID_HOSTS` (`DRUID_HOST` and `DRUID_PORT` are still supported for backward compatibility) and `DRUID_DATASOURCE`. Or by placing an application.conf in your own project and this will override the reference.conf of the scruid library.
 
 ```
 druid = {
-  hosts = "localhost:8082"
+  host = "localhost"
+  host = ${?DRUID_HOST}
+  port = 8082
+  port = ${?DRUID_PORT}
+  hosts = ${druid.host}":"${druid.port}
   hosts = ${?DRUID_HOSTS}
   secure = false
   secure = ${?DRUID_USE_SECURE_CONNECTION}
