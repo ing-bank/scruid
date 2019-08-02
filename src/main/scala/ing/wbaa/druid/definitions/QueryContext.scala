@@ -23,20 +23,24 @@ object QueryContext {
   type QueryContextValue = String
 
   // the following apply only to all queries
-  final val Timeout                      = "timeout"
-  final val Priority                     = "priority"
-  final val QueryId                      = "queryId"
-  final val UseCache                     = "useCache"
-  final val PopulateCache                = "populateCache"
-  final val UseResultLevelCache          = "useResultLevelCache"
-  final val PopulateResultLevelCache     = "populateResultLevelCache"
-  final val BySegment                    = "bySegment"
-  final val Finalize                     = "finalize"
+  final val Timeout                  = "timeout"
+  final val Priority                 = "priority"
+  final val QueryId                  = "queryId"
+  final val UseCache                 = "useCache"
+  final val PopulateCache            = "populateCache"
+  final val UseResultLevelCache      = "useResultLevelCache"
+  final val PopulateResultLevelCache = "populateResultLevelCache"
+  final val BySegment                = "bySegment"
+  final val Finalize                 = "finalize"
+  @deprecated("deprecated context parameter in Druid")
   final val ChunkPeriod                  = "chunkPeriod"
   final val MaxScatterGatherBytes        = "maxScatterGatherBytes"
   final val MaxQueuedBytes               = "maxQueuedBytes"
   final val SerializeDateTimeAsLong      = "serializeDateTimeAsLong"
   final val SerializeDateTimeAsLongInner = "serializeDateTimeAsLongInner"
+
+  final val Vectorize  = "vectorize"
+  final val VectorSize = "vectorizeSize"
 
   // the following apply only to time-series queries
   final val SkipEmptyBuckets = "skipEmptyBuckets"
