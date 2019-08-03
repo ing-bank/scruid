@@ -132,17 +132,17 @@ trait DruidResponseHandler {
     val body =
       response.entity
         .toStrict(responseParsingTimeout)
-        .map(_.data.decodeString("UTF-8"))
     body.onComplete(b => logger.debug(s"Druid response: $b"))
 
     if (response.status != StatusCodes.OK) {
       body.flatMap { b =>
         Future.failed(
-          new Exception(s"Got unexpected response (with status ${response.status}) from Druid: $b")
+          new HttpStatusException(response.status, Some(b))
         )
       }
     } else {
       body
+        .map(e => e.data.decodeString("UTF-8"))
         .map(decode[List[DruidResult]])
         .map {
           case Left(error)  => throw new Exception(s"Unable to parse json response: $error")

@@ -17,7 +17,9 @@
 
 package ing.wbaa.druid
 
-import ing.wbaa.druid.client.DruidHttpClient
+import akka.http.scaladsl.model.StatusCode
+import ing.wbaa.druid.client.{ DruidHttpClient, HttpStatusException }
+import ing.wbaa.druid.definitions.{ CountAggregation, GranularityType }
 import org.scalatest._
 import org.scalatest.concurrent._
 
@@ -57,7 +59,34 @@ class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
       assertThrows[IllegalStateException] {
         config.client
       }
-
     }
+
+    "throw HttpStatusException for non-200 status codes" in {
+      val config = DruidConfig(clientBackend = classOf[DruidHttpClient],
+                               hosts = Seq(QueryHost("localhost", 8086))) // yields HTTP 500
+      val client = config.client
+      val responseFuture = client.doQuery(
+        TimeSeriesQuery(
+          aggregations = List(
+            CountAggregation(name = "count")
+          ),
+          granularity = GranularityType.Hour,
+          intervals = List("2011-06-01/2017-06-01")
+        )
+      )
+
+      whenReady(responseFuture.failed) {
+        case exception: HttpStatusException =>
+          exception.status shouldBe StatusCode.int2StatusCode(500)
+          exception.entity match {
+            case Some(entity) => entity.isKnownEmpty() shouldBe true
+            case _            => fail("expected empty entity, got empty option")
+          }
+        case response => fail(s"expected HttpStatusException, got $response")
+      }
+
+      client.shutdown().futureValue
+    }
+
   }
 }

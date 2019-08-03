@@ -271,7 +271,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
   override val supportsMultipleBrokers: Boolean = true
 
   override def apply(druidConfig: DruidConfig): DruidClient = {
-    implicit val system: ActorSystem = druidConfig.system
+    implicit val system: ActorSystem        = druidConfig.system
+    implicit val materializer: Materializer = ActorMaterializer()
 
     val clientConfig = druidConfig.clientConfig
       .getConfig(Parameters.DruidAdvancedHttpClient)
@@ -283,7 +284,10 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     val retryDelay =
       FiniteDuration(clientConfig.getDuration(Parameters.QueryRetryDelay).getNano, NANOSECONDS)
 
-    val brokerFlows = createConnectionFlows(druidConfig.hosts, druidConfig.secure, poolConfig)
+    val brokerFlows = createConnectionFlows(druidConfig.hosts,
+                                            druidConfig.secure,
+                                            druidConfig.responseParsingTimeout,
+                                            poolConfig)
 
     val connectionFlow =
       if (brokerFlows.size > 1) balancer(brokerFlows) else brokerFlows.values.head
@@ -382,8 +386,9 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
   private def createConnectionFlows(
       brokers: Seq[QueryHost],
       secureConnection: Boolean,
+      responseParsingTimeout: FiniteDuration,
       connectionPoolConfig: Config
-  )(implicit system: ActorSystem): Map[QueryHost, ConnectionFlow] = {
+  )(implicit system: ActorSystem, materializer: Materializer): Map[QueryHost, ConnectionFlow] = {
 
     require(brokers.nonEmpty)
 
@@ -414,14 +419,14 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
           // consider any response with HTTP Code different from StatusCodes.OK as a failure
           case (triedResponse, responsePromise) =>
             triedResponse match {
-              case Success(value) if value.status != StatusCodes.OK =>
+              case Success(response) if response.status != StatusCodes.OK =>
                 val failure =
                   Failure(
-                    new IllegalStateException(
-                      s"Received response with HTTP status code ${value.status}"
+                    new HttpStatusException(
+                      response.status,
+                      response.entity.toStrict(responseParsingTimeout).value.flatMap(_.toOption)
                     )
                   )
-
                 (failure, responsePromise)
               case _ => (triedResponse, responsePromise)
             }
