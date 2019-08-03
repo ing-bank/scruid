@@ -73,6 +73,26 @@ val series: Future[Map[ZonedDateTime, TimeseriesCount]] = response.map(_.series[
 
 To get the timeseries data from this `Future[DruidRespones]` you can run `val series = result.series[TimeseriesCount]`.
 
+`TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` can also configured using Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html), 
+such as `timeout`, `queryId` and `groupByStrategy`. All three types of query contain the argument `context` which 
+associates query parameter with they corresponding values. The parameter names can also be accessed 
+by `ing.wbaa.druid.definitions.QueryContext` object. Consider, for example, a timeseries query with custom `query id` 
+and `priority`:
+
+```scala
+TimeSeriesQuery(
+  aggregations = List(
+    CountAggregation(name = "count")
+  ),
+  granularity = GranularityType.Hour,
+  intervals = List("2011-06-01/2017-06-01"),
+  context = Map(
+    QueryContext.QueryId -> "some_custom_id",
+    QueryContext.Priority -> "10"
+  )
+)
+```
+
 ## Druid query language (DQL)
 
 Scruid also provides a rich Scala API for building queries using the fluent pattern.
