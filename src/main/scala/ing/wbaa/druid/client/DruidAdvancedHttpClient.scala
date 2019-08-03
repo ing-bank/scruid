@@ -43,7 +43,8 @@ class DruidAdvancedHttpClient private (
     bufferSize: Int,
     bufferOverflowStrategy: OverflowStrategy,
     queryRetries: Int,
-    queryRetryDelay: FiniteDuration
+    queryRetryDelay: FiniteDuration,
+    requestFlowCustomization: RequestFlowCustomization
 )(implicit val system: ActorSystem)
     extends DruidClient
     with DruidResponseHandler {
@@ -107,7 +108,14 @@ class DruidAdvancedHttpClient private (
       .flatMap { entity =>
         val request =
           HttpRequest(HttpMethods.POST, url).withEntity(entity.withContentType(`application/json`))
-        retry(() => executeRequest(query.queryType, request), queryRetries, queryRetryDelay)
+        retry(
+          () =>
+            executeRequest(request).flatMap { response =>
+              handleResponse(response, query.queryType, responseParsingTimeout)
+          },
+          queryRetries,
+          queryRetryDelay
+        )
       }
 
   override def doQueryAsStream(
@@ -149,7 +157,7 @@ class DruidAdvancedHttpClient private (
     *
     * @return a future with the corresponding Http response from Druid
     */
-  private def executeRequest(queryType: QueryType, request: HttpRequest): Future[DruidResponse] = {
+  private def executeRequest(request: HttpRequest): Future[HttpResponse] = {
     logger.debug(
       s"Executing api ${request.method} request to ${request.uri} with entity: ${request.entity}"
     )
@@ -157,18 +165,18 @@ class DruidAdvancedHttpClient private (
     val responsePromise = Promise[HttpResponse]()
 
     queue
-      .offer(request -> responsePromise)
+      .offer(requestFlowCustomization.alterRequest(request) -> responsePromise)
       .flatMap {
         case QueueOfferResult.Enqueued =>
-          responsePromise.future.flatMap { response =>
-            handleResponse(response, queryType, responseParsingTimeout)
-          }
+          requestFlowCustomization.alterResponse(request,
+                                                 responsePromise.future,
+                                                 this.executeRequest)
         case QueueOfferResult.Dropped =>
-          Future.failed[DruidResponse](new RuntimeException("Queue overflowed. Try again later."))
+          Future.failed[HttpResponse](new RuntimeException("Queue overflowed. Try again later."))
         case QueueOfferResult.Failure(ex) =>
-          Future.failed[DruidResponse](ex)
+          Future.failed[HttpResponse](ex)
         case QueueOfferResult.QueueClosed =>
-          Future.failed[DruidResponse](
+          Future.failed[HttpResponse](
             new RuntimeException(
               "Queue was closed (pool shut down) while running the request. Try again later."
             )
@@ -294,14 +302,17 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       clientConfig.getString(Parameters.QueueOverflowStrategy)
     )
 
-    new DruidAdvancedHttpClient(connectionFlow,
-                                brokerFlows,
-                                druidConfig.responseParsingTimeout,
-                                druidConfig.url,
-                                bufferSize,
-                                bufferOverflowStrategy,
-                                maxRetries,
-                                retryDelay)
+    new DruidAdvancedHttpClient(
+      connectionFlow,
+      brokerFlows,
+      druidConfig.responseParsingTimeout,
+      druidConfig.url,
+      bufferSize,
+      bufferOverflowStrategy,
+      maxRetries,
+      retryDelay,
+      NoSpecialRequestFlowCustomization
+    )
   }
 
   /**
