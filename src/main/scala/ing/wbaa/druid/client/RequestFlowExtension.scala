@@ -4,7 +4,7 @@ import scala.concurrent._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 
-trait RequestFlowCustomization {
+trait RequestFlowExtension {
   def alterRequest(request: HttpRequest): HttpRequest
   def alterResponse(request: HttpRequest,
                     response: Future[HttpResponse],
@@ -13,7 +13,7 @@ trait RequestFlowCustomization {
   ): Future[HttpResponse]
 }
 
-object NoSpecialRequestFlowCustomization extends RequestFlowCustomization {
+object NoRequestFlowExtension extends RequestFlowExtension {
   def alterRequest(request: HttpRequest) = request
   def alterResponse(
       request: HttpRequest,
@@ -23,8 +23,8 @@ object NoSpecialRequestFlowCustomization extends RequestFlowCustomization {
     response
 }
 
-class BasicAuthenticationAddition(username: String, password: String)
-    extends RequestFlowCustomization {
+class BasicAuthenticationExtension(username: String, password: String)
+    extends RequestFlowExtension {
   def alterRequest(request: HttpRequest) =
     request.withHeaders(Authorization(BasicHttpCredentials(username, password)))
   def alterResponse(
@@ -39,7 +39,7 @@ object KDC {
   def getTicket(): Future[String] = Future.successful("fake-ticket")
 }
 
-object KerberosAuthenticationAddition extends RequestFlowCustomization {
+object KerberosAuthenticationExtension extends RequestFlowExtension {
   private var cachedTicket: Option[String] = None
 
   def alterRequest(request: HttpRequest) =

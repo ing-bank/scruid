@@ -28,7 +28,7 @@ import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.stream._
 import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
-import ing.wbaa.druid.{ DruidConfig, DruidQuery, DruidResponse, DruidResult, QueryHost, QueryType }
+import ing.wbaa.druid.{ DruidConfig, DruidQuery, DruidResponse, DruidResult, QueryHost }
 import akka.pattern.retry
 
 import scala.concurrent.duration._
@@ -44,7 +44,7 @@ class DruidAdvancedHttpClient private (
     bufferOverflowStrategy: OverflowStrategy,
     queryRetries: Int,
     queryRetryDelay: FiniteDuration,
-    requestFlowCustomization: RequestFlowCustomization
+    requestFlowExtension: RequestFlowExtension
 )(implicit val system: ActorSystem)
     extends DruidClient
     with DruidResponseHandler {
@@ -165,12 +165,10 @@ class DruidAdvancedHttpClient private (
     val responsePromise = Promise[HttpResponse]()
 
     queue
-      .offer(requestFlowCustomization.alterRequest(request) -> responsePromise)
+      .offer(requestFlowExtension.alterRequest(request) -> responsePromise)
       .flatMap {
         case QueueOfferResult.Enqueued =>
-          requestFlowCustomization.alterResponse(request,
-                                                 responsePromise.future,
-                                                 this.executeRequest)
+          requestFlowExtension.alterResponse(request, responsePromise.future, this.executeRequest)
         case QueueOfferResult.Dropped =>
           Future.failed[HttpResponse](new RuntimeException("Queue overflowed. Try again later."))
         case QueueOfferResult.Failure(ex) =>
@@ -311,7 +309,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       bufferOverflowStrategy,
       maxRetries,
       retryDelay,
-      NoSpecialRequestFlowCustomization
+      NoRequestFlowExtension // KerberosAuthenticationExtension // new BasicAuthenticationExtension("user", "password")
     )
   }
 
