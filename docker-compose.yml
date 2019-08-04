@@ -1,7 +1,18 @@
 version: "2.0"
 
 services:
-  
+
+  basic_auth:
+   image: beevelop/nginx-basic-auth
+   container_name: basic_auth
+   links:
+     - scruid_druid:web
+   ports:
+     - "8087:80"
+   environment:
+     - 'HTPASSWD=user:$$apr1$$pSDXXhn5$$Z33QyIDGWzNy7anNidZSE.'
+     - 'FORWARD_PORT=8082'
+
   scruid_druid:
     image: mmartina/docker-druid:latest
     container_name: scruid_druid

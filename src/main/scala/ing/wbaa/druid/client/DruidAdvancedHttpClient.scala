@@ -30,6 +30,7 @@ import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
 import ing.wbaa.druid.{ DruidConfig, DruidQuery, DruidResponse, DruidResult, QueryHost }
 import akka.pattern.retry
+import scala.reflect.runtime.universe
 
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContextExecutor, Future, Promise }
@@ -152,7 +153,6 @@ class DruidAdvancedHttpClient private (
   /**
     * Adds the specified HttpRequest to the queue in order to be executed to some Druid host
     *
-    * @param queryType the type of the Druid Query
     * @param request the Http request for Druid
     *
     * @return a future with the corresponding Http response from Druid
@@ -203,6 +203,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     final val QueryRetries               = "query-retries"
     final val QueryRetryDelay            = "query-retry-delay"
     final val AkkaHttpHostConnectionPool = "akka.http.host-connection-pool"
+    final val AuthenticationBackend      = "authentication-backend"
+    final val AuthenticationConfig       = "authentication-config"
   }
 
   class ConfigBuilder {
@@ -212,6 +214,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     private var queryRetries: Option[Int]                             = None
     private var queryRetryDelay: Option[java.time.Duration]           = None
     private var hostConnectionPoolParams: Option[Map[String, String]] = None
+    private var authenticationBackend: Option[RequestFlowExtension]   = None
 
     def withQueueSize(v: Int): this.type = {
       queueSize = Option(v)
@@ -237,6 +240,11 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       this
     }
 
+    def withAuthenticationBackend(v: RequestFlowExtension): this.type = {
+      authenticationBackend = Option(v)
+      this
+    }
+
     def build(): Config = {
       import scala.collection.JavaConverters._
 
@@ -247,11 +255,17 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
                                   ConfigValueFactory.fromMap(settingsMap.asJava))
         )
 
+      val authenticationBackendClass = authenticationBackend.map(_.getClass.getName)
+
+      val authenticationBackendConfig = authenticationBackend.map(_.exportConfig.root())
+
       val params = Seq(
         Parameters.QueueSize             -> queueSize,
         Parameters.QueueOverflowStrategy -> queueOverflowStrategy,
         Parameters.QueryRetries          -> queryRetries,
-        Parameters.QueryRetryDelay       -> queryRetryDelay
+        Parameters.QueryRetryDelay       -> queryRetryDelay,
+        Parameters.AuthenticationBackend -> authenticationBackendClass,
+        Parameters.AuthenticationConfig  -> authenticationBackendConfig
       )
 
       params
@@ -300,6 +314,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       clientConfig.getString(Parameters.QueueOverflowStrategy)
     )
 
+    val flowExtension = loadAuthenticationBackend(clientConfig)
+
     new DruidAdvancedHttpClient(
       connectionFlow,
       brokerFlows,
@@ -309,7 +325,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       bufferOverflowStrategy,
       maxRetries,
       retryDelay,
-      NoRequestFlowExtension // KerberosAuthenticationExtension // new BasicAuthenticationExtension("user", "password")
+      flowExtension
     )
   }
 
@@ -329,6 +345,24 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     Try(clientConfig.getConfig(Parameters.ConnectionPoolSettings))
       .map(conf => conf.atPath("akka.http.host-connection-pool").withFallback(akkaConf))
       .getOrElse(akkaConf)
+  }
+
+  private def loadAuthenticationBackend(clientConfig: Config): RequestFlowExtension = {
+
+    val authBackend: Class[_ <: RequestFlowExtension] = Class
+      .forName(clientConfig.getString(Parameters.AuthenticationBackend))
+      .asInstanceOf[Class[RequestFlowExtension]]
+
+    val runtimeMirror     = universe.runtimeMirror(getClass.getClassLoader)
+    val module            = runtimeMirror.staticModule(authBackend.getName)
+    val obj               = runtimeMirror.reflectModule(module)
+    val clientConstructor = obj.instance.asInstanceOf[RequestFlowExtensionBuilder]
+
+    val configuration =
+      Option(clientConfig.getConfig(Parameters.AuthenticationConfig))
+        .getOrElse(ConfigFactory.empty())
+
+    clientConstructor(configuration)
   }
 
   /**
