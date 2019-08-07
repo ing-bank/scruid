@@ -138,13 +138,11 @@ trait FilteredAggregation extends Aggregation {
 }
 
 object FilteredAggregation {
-  implicit val encoder: Encoder[FilteredAggregation] = new Encoder[FilteredAggregation] {
-    final def apply(agg: FilteredAggregation): Json =
-      (agg match {
-        case x: InFilteredAggregation       => x.asJsonObject
-        case x: SelectorFilteredAggregation => x.asJsonObject
-      }).add("filter", filterEncoder(agg.filter)).asJson
-  }
+  implicit val encoder: Encoder[FilteredAggregation] = (agg: FilteredAggregation) =>
+    (agg match {
+      case x: InFilteredAggregation       => x.asJsonObject
+      case x: SelectorFilteredAggregation => x.asJsonObject
+    }).add("filter", filterEncoder(agg.filter)).asJson
 }
 
 case class InFilteredAggregation(name: String, filter: InFilter, aggregator: Aggregation)

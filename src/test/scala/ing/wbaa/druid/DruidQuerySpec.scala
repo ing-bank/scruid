@@ -354,11 +354,11 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
         threshold = 5,
         metric = "count",
         aggregations = List(
-          LongSumAggregation(name = "count", fieldName = "count"),
+          CountAggregation("count"),
           InFilteredAggregation(
-            name = "InFilteredAgg",
+            name = "filteredCount",
             InFilter(dimension = "channel", values = List("#en.wikipedia", "#de.wikipedia")),
-            aggregator = LongSumAggregation(name = "filteredCount", fieldName = "count")
+            aggregator = CountAggregation("filteredCount")
           )
         ),
         intervals = List("2011-06-01/2017-06-01")
@@ -387,11 +387,11 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
         threshold = 5,
         metric = "count",
         aggregations = List(
-          LongSumAggregation(name = "count", fieldName = "count"),
+          CountAggregation("count"),
           SelectorFilteredAggregation(
-            name = "SelectorFilteredAgg",
+            name = "filteredCount",
             SelectFilter(dimension = "channel", value = "#en.wikipedia"),
-            aggregator = LongSumAggregation(name = "filteredCount", fieldName = "count")
+            aggregator = CountAggregation("filteredCount")
           )
         ),
         intervals = List("2011-06-01/2017-06-01")
@@ -419,7 +419,7 @@ class DruidQuerySpec extends WordSpec with Matchers with ScalaFutures {
         threshold = 5,
         metric = "count",
         aggregations = List(
-          LongSumAggregation(name = "count", fieldName = "count")
+          CountAggregation("count")
         ),
         postAggregations = List(
           (FieldAccessPostAggregation("count") / ConstantPostAggregation(2))

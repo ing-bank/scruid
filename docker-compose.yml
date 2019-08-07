@@ -3,13 +3,14 @@ version: "2.0"
 services:
   
   scruid_druid:
-    image: mmartina/docker-druid:latest
+    image: fokkodriesprong/docker-druid
     container_name: scruid_druid
     ports:
       - "8081:8081"
       - "8082:8082"
       - "8083:8082"
       - "8084:8082"
+      - "8888:8888"
 
   delay_response:
     image: andymacdonald/clusterf-chaos-proxy:latest

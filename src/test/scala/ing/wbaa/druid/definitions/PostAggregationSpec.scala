@@ -43,7 +43,7 @@ class PostAggregationSpec extends Matchers with WordSpecLike with ScalaFutures {
   sealed trait TestContext {
     def baseRequest(pas: PostAggregation*): GroupByQuery = GroupByQuery(
       aggregations = List(
-        LongSumAggregation("count", "count"),
+        CountAggregation("count"),
         LongSumAggregation("added", "added"),
         LongSumAggregation("deleted", "deleted")
       ),
