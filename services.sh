@@ -4,7 +4,7 @@
 : ${DRUID_HOST:="localhost"}
 : ${DRUID_PORT:="8082"}
 
-set -ex
+set -e
 
 wait_for_port() {
   local name="$1" host="$2" port="$3"
