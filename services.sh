@@ -11,13 +11,17 @@ wait_for_port() {
   local j=0
   while ! nc -z "$host" "$port" >/dev/null 2>&1 < /dev/null; do
     j=$((j+1))
-    if [ $j -ge $TRY_LOOP ]; then
+    if [[ ${j} -ge ${TRY_LOOP} ]]; then
       echo >&2 "INFO $(date) - $host:$port still not reachable, giving up"
       exit 1
     fi
     echo "INFO $(date) - waiting for $name... $j/$TRY_LOOP"
     sleep 5
   done
+}
+
+build_images(){
+  (cd docker; make image)
 }
 
 
@@ -28,12 +32,15 @@ usage() {
   echo "  restart       : restart container instances."
   echo "  down          : delete container instances and their volumes."
   echo "  status        : list container instances."
+  echo "  build         : build container images."
   echo "  help or usage : print usage instructions."
 }
 
 case "$1" in
   start)
-    docker-compose up -d --build
+    # pull images if they exist, otherwise try to build any missing locally
+    docker-compose pull || build_images
+    docker-compose up -d
     wait_for_port "druid" ${DRUID_HOST} ${DRUID_PORT}
   ;;
   stop)
@@ -48,6 +55,9 @@ case "$1" in
   ;;
   status)
     docker-compose ps
+  ;;
+  build)
+    build_images
   ;;
   help|usage)
     usage
