@@ -157,9 +157,9 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     "successfully be interpreted by Druid" in {
 
       val query = DQL
-        .agg('count.longSum as "count")
+        .agg('count.count as "count")
         .agg(
-          'channel.inFiltered('count.longSum as "filteredCount", "#en.wikipedia", "#de.wikipedia")
+          'channel.inFiltered('count.count, "#en.wikipedia", "#de.wikipedia") as "filteredCount"
         )
         .interval("2011-06-01/2017-06-01")
         .topN(dimension = 'isAnonymous, metric = "count", threshold = 5)
@@ -185,10 +185,12 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
       val query = DQL
         .topN('isAnonymous, metric = "count", threshold = 5)
-        .agg('count.longSum as "count")
+        .agg('count.count as "count")
         .agg(
-          'channel.selectorFiltered(aggregator = 'count.longSum as "filteredCount",
-                                    value = "#en.wikipedia") as "SelectorFilteredAgg"
+          'channel.selectorFiltered(
+            aggregator = 'count.count,
+            value = "#en.wikipedia"
+          ) as "filteredCount"
         )
         .interval("2011-06-01/2017-06-01")
         .build()

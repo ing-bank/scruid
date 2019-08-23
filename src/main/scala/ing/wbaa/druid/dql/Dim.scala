@@ -459,6 +459,18 @@ case class Dim private[dql] (name: String,
   // --------------------------------------------------------------------------
 
   /**
+    * Aggregation to count the number of rows
+    *
+    * Please note the count aggregator counts the number of Druid rows, which
+    * does not always reflect the number of raw events ingested. This is because
+    * Apache Druid can be configured to roll up data at ingestion time.
+    *
+    * To count the number of ingested rows of data, include a count aggregator
+    * at ingestion time, and a longSum aggregator at query time.
+    */
+  def count: AggregationExpression = AggregationOps.count
+
+  /**
     * Aggregation to compute the sum of values (as a 64-bit signed integer)
     */
   def longSum: AggregationExpression = AggregationOps.longSum(this)
