@@ -16,7 +16,9 @@
  */
 package ing.wbaa.druid.client
 
-import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpProtocol, StatusCode }
+import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpProtocol, HttpResponse, StatusCode }
+
+import scala.collection.immutable.Seq
 
 /**
   * Indicates that Druid returned a non-OK HTTP status code.
@@ -37,4 +39,7 @@ class HttpStatusException(val status: StatusCode,
                           val protocol: HttpProtocol,
                           val headers: Seq[HttpHeader],
                           val entity: HttpEntity.Strict)
-    extends IllegalStateException(s"Received response with HTTP status code $status")
+    extends IllegalStateException(s"Received response with HTTP status code $status") {
+
+  def response: HttpResponse = HttpResponse(status, headers, entity, protocol)
+}

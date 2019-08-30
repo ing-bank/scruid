@@ -18,7 +18,7 @@
 package ing.wbaa.druid
 
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{ HttpProtocols, StatusCode }
+import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
 import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions._
 import org.scalatest._
@@ -139,10 +139,12 @@ class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutur
 
       whenReady(responseFuture.failed) {
         case exception: HttpStatusException =>
-          exception.status shouldBe StatusCode.int2StatusCode(500)
+          exception.status shouldBe StatusCodes.InternalServerError
           exception.protocol shouldBe HttpProtocols.`HTTP/1.1`
           exception.headers should contain(new RawHeader("x-clusterfk-status-code", "500"))
           exception.entity.isKnownEmpty() shouldBe true
+
+          exception.response.status shouldBe StatusCodes.InternalServerError
         case response => fail(s"expected HttpStatusException, got $response")
       }
 
