@@ -137,7 +137,7 @@ trait DruidResponseHandler {
     if (response.status != StatusCodes.OK) {
       body.flatMap { b =>
         Future.failed(
-          new HttpStatusException(response.status, Some(b))
+          new HttpStatusException(response.status, response.protocol, response.headers, b)
         )
       }
     } else {

@@ -16,19 +16,25 @@
  */
 package ing.wbaa.druid.client
 
-import akka.http.scaladsl.model.{ HttpEntity, StatusCode }
+import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpProtocol, StatusCode }
 
 /**
   * Indicates that Druid returned a non-OK HTTP status code.
   *
   * Note: the response entity is eagerly loaded (`HttpEntity.Strict`). I chose to do so because
   * having to drain or discard a stream on an exception object violates the Principle of Least
-  * Surprise.
+  * Surprise. This class does not simply embed the `HttpResponse` because I found no way to
+  * expose the (eager loaded) fields without requiring an execution context.
   *
   * This class extends IllegalStateException to maintain backwards compatibility.
   *
   * @param status the response status.
+  * @param protocol the response protocol.
+  * @param headers the response headers.
   * @param entity the response entity.
   */
-class HttpStatusException(val status: StatusCode, val entity: Option[HttpEntity.Strict])
-    extends IllegalStateException(s"Received response with HTTP status code $status") {}
+class HttpStatusException(val status: StatusCode,
+                          val protocol: HttpProtocol,
+                          val headers: Seq[HttpHeader],
+                          val entity: HttpEntity.Strict)
+    extends IllegalStateException(s"Received response with HTTP status code $status")

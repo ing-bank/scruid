@@ -17,7 +17,8 @@
 
 package ing.wbaa.druid
 
-import akka.http.scaladsl.model.StatusCode
+import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{ HttpProtocols, StatusCode }
 import ing.wbaa.druid.client.{ DruidHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions.{ CountAggregation, GranularityType }
 import org.scalatest._
@@ -25,6 +26,7 @@ import org.scalatest.concurrent._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.Success
 
 class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
 
@@ -78,10 +80,9 @@ class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
       whenReady(responseFuture.failed) {
         case exception: HttpStatusException =>
           exception.status shouldBe StatusCode.int2StatusCode(500)
-          exception.entity match {
-            case Some(entity) => entity.isKnownEmpty() shouldBe true
-            case _            => fail("expected empty entity, got empty option")
-          }
+          exception.protocol shouldBe HttpProtocols.`HTTP/1.1`
+          exception.headers should contain(new RawHeader("x-clusterfk-status-code", "500"))
+          exception.entity.isKnownEmpty() shouldBe true
         case response => fail(s"expected HttpStatusException, got $response")
       }
 

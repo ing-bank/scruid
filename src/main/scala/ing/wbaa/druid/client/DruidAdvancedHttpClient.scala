@@ -32,7 +32,7 @@ import ing.wbaa.druid.{ DruidConfig, DruidQuery, DruidResponse, DruidResult, Que
 import akka.pattern.retry
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContextExecutor, Future, Promise }
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
 import scala.util.{ Failure, Success, Try }
 
 class DruidAdvancedHttpClient private (
@@ -271,8 +271,9 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
   override val supportsMultipleBrokers: Boolean = true
 
   override def apply(druidConfig: DruidConfig): DruidClient = {
-    implicit val system: ActorSystem        = druidConfig.system
-    implicit val materializer: Materializer = ActorMaterializer()
+    implicit val system: ActorSystem          = druidConfig.system
+    implicit val materializer: Materializer   = ActorMaterializer()
+    implicit val ec: ExecutionContextExecutor = system.dispatcher
 
     val clientConfig = druidConfig.clientConfig
       .getConfig(Parameters.DruidAdvancedHttpClient)
@@ -388,7 +389,9 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       secureConnection: Boolean,
       responseParsingTimeout: FiniteDuration,
       connectionPoolConfig: Config
-  )(implicit system: ActorSystem, materializer: Materializer): Map[QueryHost, ConnectionFlow] = {
+  )(implicit system: ActorSystem,
+    materializer: Materializer,
+    ec: ExecutionContext): Map[QueryHost, ConnectionFlow] = {
 
     require(brokers.nonEmpty)
 
@@ -415,20 +418,23 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
             )
           }
         }
-        .map {
+        .mapAsync(settings.maxOpenRequests) {
           // consider any response with HTTP Code different from StatusCodes.OK as a failure
           case (triedResponse, responsePromise) =>
             triedResponse match {
               case Success(response) if response.status != StatusCodes.OK =>
-                val failure =
-                  Failure(
-                    new HttpStatusException(
-                      response.status,
-                      response.entity.toStrict(responseParsingTimeout).value.flatMap(_.toOption)
+                response.entity
+                  .toStrict(responseParsingTimeout)
+                  .map(body => {
+                    val failure = Failure(
+                      new HttpStatusException(response.status,
+                                              response.protocol,
+                                              response.headers,
+                                              body)
                     )
-                  )
-                (failure, responsePromise)
-              case _ => (triedResponse, responsePromise)
+                    (failure, responsePromise)
+                  })
+              case _ => Future.successful((triedResponse, responsePromise))
             }
         }
 
