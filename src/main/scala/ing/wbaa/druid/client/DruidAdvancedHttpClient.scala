@@ -267,7 +267,6 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
   type ConnectionIn   = (HttpRequest, Promise[HttpResponse])
   type ConnectionOut  = (Try[HttpResponse], Promise[HttpResponse])
   type ConnectionFlow = Flow[ConnectionIn, ConnectionOut, NotUsed]
-
   override val supportsMultipleBrokers: Boolean = true
 
   override def apply(druidConfig: DruidConfig): DruidClient = {
@@ -425,12 +424,16 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
               case Success(response) if response.status != StatusCodes.OK =>
                 response.entity
                   .toStrict(responseParsingTimeout)
-                  .map(body => {
+                  .map(Success(_))
+                  .recover {
+                    case t: Throwable => Failure(t)
+                  }
+                  .map((entity: Try[HttpEntity.Strict]) => {
                     val failure = Failure(
                       new HttpStatusException(response.status,
                                               response.protocol,
                                               response.headers,
-                                              body)
+                                              entity)
                     )
                     (failure, responsePromise)
                   })

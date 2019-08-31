@@ -142,7 +142,7 @@ class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutur
           exception.status shouldBe StatusCodes.InternalServerError
           exception.protocol shouldBe HttpProtocols.`HTTP/1.1`
           exception.headers should contain(new RawHeader("x-clusterfk-status-code", "500"))
-          exception.entity.isKnownEmpty() shouldBe true
+          exception.entity.get.isKnownEmpty() shouldBe true
 
           exception.response.status shouldBe StatusCodes.InternalServerError
         case response => fail(s"expected HttpStatusException, got $response")
