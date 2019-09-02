@@ -141,7 +141,7 @@ trait DruidResponseHandler {
         .recover {
           case t: Throwable => Failure(t)
         }
-        .flatMap { (entity: Try[HttpEntity.Strict]) =>
+        .flatMap { entity: Try[HttpEntity.Strict] =>
           Future.failed(
             new HttpStatusException(response.status, response.protocol, response.headers, entity)
           )

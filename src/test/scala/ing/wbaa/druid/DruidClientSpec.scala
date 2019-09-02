@@ -26,7 +26,6 @@ import org.scalatest.concurrent._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Success
 
 class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
 
