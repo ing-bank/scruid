@@ -395,6 +395,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     require(brokers.nonEmpty)
 
     val settings: ConnectionPoolSettings = ConnectionPoolSettings(connectionPoolConfig)
+    val parallelism                      = settings.pipeliningLimit * settings.maxConnections
     val log: LoggingAdapter              = system.log
 
     brokers.map { queryHost ⇒
@@ -417,7 +418,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
             )
           }
         }
-        .mapAsync(settings.maxOpenRequests) {
+        .mapAsyncUnordered(parallelism) {
           // consider any response with HTTP Code different from StatusCodes.OK as a failure
           case (triedResponse, responsePromise) =>
             triedResponse match {
