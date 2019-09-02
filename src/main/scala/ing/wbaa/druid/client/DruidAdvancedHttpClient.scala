@@ -424,8 +424,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
               case Success(response) if response.status != StatusCodes.OK =>
                 response.entity
                   .toStrict(responseParsingTimeout)
-                  .map(Success(_))
-                  .recover {
+                  .map(Success(_)) // Success[HttpEntity.Strict] --> Success[Try[HttpEntity.Strict]]
+                  .recover { //       Failure[IOException]       --> Success[Try[IOException]]
                     case t: Throwable => Failure(t)
                   }
                   .map((entity: Try[HttpEntity.Strict]) => {
