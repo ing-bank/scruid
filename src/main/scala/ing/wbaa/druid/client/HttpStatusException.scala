@@ -42,5 +42,12 @@ class HttpStatusException(val status: StatusCode,
                           val entity: Try[HttpEntity.Strict])
     extends IllegalStateException(s"Received response with HTTP status code $status") {
 
+  /**
+    * Returns an `HttpResponse` object equivalent to the original response received from Druid.
+    *
+    * Caution: this method throws an exception if `this.entity` is a failure.
+    * @return an HTTP response object.
+    * @throws Throwable if the response entity `toStrict` failed.
+    */
   def response: HttpResponse = HttpResponse(status, headers, entity.get, protocol)
 }
