@@ -20,7 +20,6 @@ package ing.wbaa.druid
 import java.net.URI
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.directives.AuthenticationDirective
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory }
 import ing.wbaa.druid.client.{ DruidClient, DruidClientBuilder }
 

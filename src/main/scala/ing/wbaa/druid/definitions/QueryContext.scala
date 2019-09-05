@@ -32,7 +32,7 @@ object QueryContext {
   final val PopulateResultLevelCache = "populateResultLevelCache"
   final val BySegment                = "bySegment"
   final val Finalize                 = "finalize"
-  @deprecated("deprecated context parameter in Druid")
+  @deprecated("deprecated context parameter in Druid", since = "2.3.0")
   final val ChunkPeriod                  = "chunkPeriod"
   final val MaxScatterGatherBytes        = "maxScatterGatherBytes"
   final val MaxQueuedBytes               = "maxQueuedBytes"
