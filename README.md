@@ -2,9 +2,9 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/9b7c4adf8ad447efa9c7ea8a9ffda6b2)](https://www.codacy.com/app/fokko/scruid?utm_source=github.com&utm_medium=referral&utm_content=ing-bank/scruid&utm_campaign=Badge_Coverage)
 [![Download](https://api.bintray.com/packages/ing-bank/maven-releases/scruid/images/download.svg)](https://bintray.com/ing-bank/maven-releases/scruid/_latestVersion)
 
-# Scruid
+![Scruid](logo/logo-with-tagline.svg)
 
-Scruid (Scala+Druid) is an open source library that allows you to compose queries easily in Scala. The library will take care of the translation of the query into json, parse the result in the case class that you define.
+Scruid (Scala+Druid) is an open source library that allows you to compose Druid queries easily in Scala. The library will take care of the translation of the query into json, parse the result in the case class that you define.
 
 Currently the API is under heavy development, so changes might occur.
 
@@ -73,6 +73,26 @@ val series: Future[Map[ZonedDateTime, TimeseriesCount]] = response.map(_.series[
 
 To get the timeseries data from this `Future[DruidRespones]` you can run `val series = result.series[TimeseriesCount]`.
 
+`TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` can also configured using Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html),
+such as `timeout`, `queryId` and `groupByStrategy`. All three types of query contain the argument `context` which
+associates query parameter with they corresponding values. The parameter names can also be accessed
+by `ing.wbaa.druid.definitions.QueryContext` object. Consider, for example, a timeseries query with custom `query id`
+and `priority`:
+
+```scala
+TimeSeriesQuery(
+  aggregations = List(
+    CountAggregation(name = "count")
+  ),
+  granularity = GranularityType.Hour,
+  intervals = List("2011-06-01/2017-06-01"),
+  context = Map(
+    QueryContext.QueryId -> "some_custom_id",
+    QueryContext.Priority -> "10"
+  )
+)
+```
+
 ## Druid query language (DQL)
 
 Scruid also provides a rich Scala API for building queries using the fluent pattern.
@@ -97,7 +117,7 @@ For details and examples see the [DQL documentation](docs/dql.md).
 
 ## Handling large payloads with Akka Streams
 
-For queries with large payload of results (e.g., half a million of records), Scruid can transform the corresponding response into an [Akka Stream](https://doc.akka.io/docs/akka/2.5/stream/) Source. 
+For queries with large payload of results (e.g., half a million of records), Scruid can transform the corresponding response into an [Akka Stream](https://doc.akka.io/docs/akka/2.5/stream/) Source.
 The results can be processed, filtered and transformed using [Flows](https://doc.akka.io/docs/akka/2.5/stream/stream-flows-and-basics.html) and/or output to Sinks, as a continuous stream, without collecting the entire payload first.
 To process the results with Akka Stream, you can call one of the following methods:
 
@@ -149,7 +169,7 @@ druid = {
   health-endpoint = ${?DRUID_HEALTH_ENDPOINT}
   client-backend = "ing.wbaa.druid.client.DruidHttpClient"
   client-backend = ${?DRUID_CLIENT_BACKEND}
-  
+
   datasource = "wikiticker"
   datasource = ${?DRUID_DATASOURCE}
 
@@ -191,7 +211,7 @@ All parameters of `DruidConfig` are optional, and in case that some parameter is
 ## Druid Clients
 
 Scruid provides two client implementations, one for simple requests over a single Druid query host (default) and
-an advanced one with queue, cached pool connections and a load balancer when multiple Druid query hosts are provided. 
+an advanced one with queue, cached pool connections and a load balancer when multiple Druid query hosts are provided.
 Depending on your use case, it is also possible to create a custom client. For details regarding clients, their
 configuration, as well the creation of a custom one see the [Scruid Clients](docs/scruid_clients.md) documentation.
 

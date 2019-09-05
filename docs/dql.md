@@ -646,4 +646,41 @@ val query: GroupByQuery = DQL
 val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
 ```
 
+## Query Context
 
+Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html) is used for various query 
+configuration parameters, e.g., `timeout`, `queryId` and `groupByStrategy`. Query context can be set in `TopNQuery`, 
+`GroupByQuery` and `TimeSeriesQuery` query types. The parameter names can also be accessed by 
+`ing.wbaa.druid.definitions.QueryContext` object. 
+
+Consider, for example, a group-by query with custom `query id` and `priority`:
+
+```scala
+val query: GroupByQuery = DQL
+    .from("wikiticker")
+    .granularity(GranularityType.Day)
+    .interval("2011-06-01/2017-06-01")
+    .agg(count as "count")
+    .where('countryName.isNotNull)
+    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
+    .withQueryContext(Map(
+      QueryContext.QueryId  -> "some_custom_id",
+      QueryContext.Priority -> "100"
+    ))
+    .build()
+```
+
+Alternatively, context parameters can also be specified one each time by using the function `setQueryContextParam`:
+
+```scala
+val query: GroupByQuery = DQL
+    .from("wikiticker")
+    .granularity(GranularityType.Day)
+    .interval("2011-06-01/2017-06-01")
+    .agg(count as "count")
+    .where('countryName.isNotNull)
+    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
+    .setQueryContextParam(QueryContext.QueryId, "some_custom_id")
+    .setQueryContextParam(QueryContext.Priority, "100")
+    .build()
+```

@@ -18,6 +18,7 @@
 package ing.wbaa.druid.dql
 
 import ing.wbaa.druid._
+import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.expressions._
 
@@ -26,6 +27,7 @@ import ing.wbaa.druid.dql.expressions._
   */
 private[dql] sealed trait QueryBuilderCommons {
 
+  protected var queryContextParams              = Map.empty[QueryContextParam, QueryContextValue]
   protected var dataSourceOpt                   = Option.empty[String]
   protected var granularityOpt                  = Option.empty[Granularity]
   protected var aggregations: List[Aggregation] = Nil
@@ -37,6 +39,16 @@ private[dql] sealed trait QueryBuilderCommons {
   protected var filters: List[Filter] = Nil
 
   protected var postAggregationExpr: List[PostAggregationExpression] = Nil
+
+  def withQueryContext(params: Map[QueryContextParam, QueryContextValue]): this.type = {
+    queryContextParams = params
+    this
+  }
+
+  def setQueryContextParam(key: QueryContextParam, value: QueryContextValue): this.type = {
+    queryContextParams += (key -> value)
+    this
+  }
 
   /**
     * Specify the datasource to use, other than the default one in the configuration
@@ -104,6 +116,7 @@ private[dql] sealed trait QueryBuilderCommons {
     else Option(AndFilter(filters))
 
   protected def copyTo[T <: QueryBuilderCommons](other: T): T = {
+    other.queryContextParams = queryContextParams
     other.dataSourceOpt = dataSourceOpt
     other.granularityOpt = granularityOpt
     other.aggregations = aggregations
@@ -152,7 +165,8 @@ final class QueryBuilder private[dql] () extends QueryBuilderCommons {
       filter = this.getFilters,
       granularity = this.granularityOpt.getOrElse(GranularityType.Week),
       descending = this.descending.toString,
-      postAggregations = this.getPostAggs
+      postAggregations = this.getPostAggs,
+      context = this.queryContextParams
     )(conf)
   }
 
@@ -221,7 +235,8 @@ final class TopNQueryBuilder private[dql] (dimension: Dim, metric: String, n: In
       intervals = this.intervals,
       granularity = this.granularityOpt.getOrElse(GranularityType.All),
       filter = this.getFilters,
-      postAggregations = this.getPostAggs
+      postAggregations = this.getPostAggs,
+      context = this.queryContextParams
     )(conf)
   }
 
@@ -327,7 +342,8 @@ final class GroupByQueryBuilder private[dql] (dimensions: Iterable[Dim])
       granularity = this.granularityOpt.getOrElse(GranularityType.All),
       having = havingOpt,
       limitSpec = limitSpecOpt,
-      postAggregations = this.getPostAggs
+      postAggregations = this.getPostAggs,
+      context = this.queryContextParams
     )(conf)
   }
 

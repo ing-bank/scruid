@@ -14,13 +14,14 @@ services:
      - 'FORWARD_PORT=8082'
 
   scruid_druid:
-    image: mmartina/docker-druid:latest
+    image: fokkodriesprong/docker-druid
     container_name: scruid_druid
     ports:
       - "8081:8081"
       - "8082:8082"
       - "8083:8082"
       - "8084:8082"
+      - "8888:8888"
 
   delay_response:
     image: andymacdonald/clusterf-chaos-proxy:latest
@@ -45,3 +46,14 @@ services:
       JAVA_OPTS: "-Dserver.port=8090 -Dchaos.strategy=INTERNAL_SERVER_ERROR -Ddestination.hostProtocolAndPort=http://scruid_druid:8082"
     ports:
       - "8086:8090"
+
+  slow_response:
+    build:
+      context: docker/openresty
+    container_name: slow_response
+    depends_on:
+      - scruid_druid
+    links:
+      - scruid_druid
+    ports:
+      - "8087:8080"

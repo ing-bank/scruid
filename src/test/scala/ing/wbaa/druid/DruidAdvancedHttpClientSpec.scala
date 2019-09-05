@@ -17,7 +17,11 @@
 
 package ing.wbaa.druid
 
-import ing.wbaa.druid.client.DruidAdvancedHttpClient
+import java.util.concurrent.TimeoutException
+
+import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
+import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions._
 import org.scalatest._
 import org.scalatest.concurrent._
@@ -126,6 +130,49 @@ class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutur
 
       config.client.shutdown().futureValue
 
+    }
+
+    "throw HttpStatusException for non-200 status codes" in {
+      implicit val config =
+        DruidConfig(clientBackend = classOf[DruidAdvancedHttpClient],
+                    hosts = Seq(QueryHost("localhost", 8086))) // yields HTTP 500
+
+      val responseFuture = queries.head.execute()
+
+      whenReady(responseFuture.failed) {
+        case exception: HttpStatusException =>
+          exception.status shouldBe StatusCodes.InternalServerError
+          exception.protocol shouldBe HttpProtocols.`HTTP/1.1`
+          exception.headers should contain(new RawHeader("x-clusterfk-status-code", "500"))
+          exception.entity.get.isKnownEmpty() shouldBe true
+
+          exception.response.status shouldBe StatusCodes.InternalServerError
+        case response => fail(s"expected HttpStatusException, got $response")
+      }
+
+      config.client.shutdown().futureValue
+    }
+
+    "throw HttpStatusException for non-200 status codes where body fails to materialize" in {
+      // the endpoint on 8087 returns HTTP 502 and takes 5 seconds to send the response body
+      implicit val config =
+        DruidConfig(
+          clientBackend = classOf[DruidAdvancedHttpClient],
+          responseParsingTimeout = 1.seconds,
+          hosts = Seq(QueryHost("localhost", 8087))
+        )
+
+      val responseFuture = queries.head.execute()
+
+      whenReady(responseFuture.failed) {
+        case exception: HttpStatusException =>
+          exception.status shouldBe StatusCodes.BadGateway
+          exception.entity.isFailure shouldBe true
+          exception.entity.failed.get shouldBe a[TimeoutException]
+        case response => fail(s"expected HttpStatusException, got $response")
+      }
+
+      config.client.shutdown().futureValue
     }
 
     s"execute $numberOfConcurrentQueriesLarge concurrent queries " +

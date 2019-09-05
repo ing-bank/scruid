@@ -19,7 +19,7 @@ package ing.wbaa.druid.client
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{ HttpResponse, StatusCodes }
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, StatusCodes }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import ing.wbaa.druid._
@@ -32,6 +32,7 @@ import org.typelevel.jawn.AsyncParser
 
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.concurrent.duration.FiniteDuration
+import scala.util.{ Failure, Success, Try }
 
 trait DruidClient extends CirceHttpSupport with JavaTimeDecoders {
 
@@ -132,17 +133,22 @@ trait DruidResponseHandler {
     val body =
       response.entity
         .toStrict(responseParsingTimeout)
-        .map(_.data.decodeString("UTF-8"))
     body.onComplete(b => logger.debug(s"Druid response: $b"))
 
     if (response.status != StatusCodes.OK) {
-      body.flatMap { b =>
-        Future.failed(
-          new Exception(s"Got unexpected response (with status ${response.status}) from Druid: $b")
-        )
-      }
+      body
+        .map(Success(_))
+        .recover {
+          case t: Throwable => Failure(t)
+        }
+        .flatMap { entity: Try[HttpEntity.Strict] =>
+          Future.failed(
+            new HttpStatusException(response.status, response.protocol, response.headers, entity)
+          )
+        }
     } else {
       body
+        .map(e => e.data.decodeString("UTF-8"))
         .map(decode[List[DruidResult]])
         .map {
           case Left(error)  => throw new Exception(s"Unable to parse json response: $error")

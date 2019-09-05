@@ -33,7 +33,7 @@ import akka.pattern.retry
 import scala.reflect.runtime.universe
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContextExecutor, Future, Promise }
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
 import scala.util.{ Failure, Success, Try }
 
 class DruidAdvancedHttpClient private (
@@ -287,11 +287,12 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
   type ConnectionIn   = (HttpRequest, Promise[HttpResponse])
   type ConnectionOut  = (Try[HttpResponse], Promise[HttpResponse])
   type ConnectionFlow = Flow[ConnectionIn, ConnectionOut, NotUsed]
-
   override val supportsMultipleBrokers: Boolean = true
 
   override def apply(druidConfig: DruidConfig): DruidClient = {
-    implicit val system: ActorSystem = druidConfig.system
+    implicit val system: ActorSystem          = druidConfig.system
+    implicit val materializer: Materializer   = ActorMaterializer()
+    implicit val ec: ExecutionContextExecutor = system.dispatcher
 
     val clientConfig = druidConfig.clientConfig
       .getConfig(Parameters.DruidAdvancedHttpClient)
@@ -303,7 +304,10 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     val retryDelay =
       FiniteDuration(clientConfig.getDuration(Parameters.QueryRetryDelay).getNano, NANOSECONDS)
 
-    val brokerFlows = createConnectionFlows(druidConfig.hosts, druidConfig.secure, poolConfig)
+    val brokerFlows = createConnectionFlows(druidConfig.hosts,
+                                            druidConfig.secure,
+                                            druidConfig.responseParsingTimeout,
+                                            poolConfig)
 
     val connectionFlow =
       if (brokerFlows.size > 1) balancer(brokerFlows) else brokerFlows.values.head
@@ -425,12 +429,16 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
   private def createConnectionFlows(
       brokers: Seq[QueryHost],
       secureConnection: Boolean,
+      responseParsingTimeout: FiniteDuration,
       connectionPoolConfig: Config
-  )(implicit system: ActorSystem): Map[QueryHost, ConnectionFlow] = {
+  )(implicit system: ActorSystem,
+    materializer: Materializer,
+    ec: ExecutionContext): Map[QueryHost, ConnectionFlow] = {
 
     require(brokers.nonEmpty)
 
     val settings: ConnectionPoolSettings = ConnectionPoolSettings(connectionPoolConfig)
+    val parallelism                      = settings.pipeliningLimit * settings.maxConnections
     val log: LoggingAdapter              = system.log
 
     brokers.map { queryHost ⇒
@@ -453,20 +461,32 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
             )
           }
         }
-        .map {
+        .mapAsyncUnordered(parallelism) {
           // consider any response with HTTP Code different from StatusCodes.OK as a failure
           case (triedResponse, responsePromise) =>
             triedResponse match {
-              case Success(value) if value.status != StatusCodes.OK =>
-                val failure =
-                  Failure(
-                    new IllegalStateException(
-                      s"Received response with HTTP status code ${value.status}"
+              case Success(response) if response.status != StatusCodes.OK =>
+                response.entity
+                  .toStrict(responseParsingTimeout)
+                  .map {
+                    // Future.success(entity) => Future.success(Try.success(entity))
+                    Success(_)
+                  }
+                  .recover {
+                    // Future.failure(throwable) => Future.success(Try.failure(throwable))
+                    case t: Throwable => Failure(t)
+                  }
+                  .map { entity =>
+                    // Future.success(Try(entity|throwable)) => Future.success(failure(HSE(try)), promise)
+                    val failure = Failure(
+                      new HttpStatusException(response.status,
+                                              response.protocol,
+                                              response.headers,
+                                              entity)
                     )
-                  )
-
-                (failure, responsePromise)
-              case _ => (triedResponse, responsePromise)
+                    (failure, responsePromise)
+                  }
+              case _ => Future.successful((triedResponse, responsePromise))
             }
         }
 

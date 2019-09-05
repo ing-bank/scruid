@@ -23,6 +23,7 @@ import org.scalatest.{ Matchers, WordSpec }
 import org.scalatest.concurrent._
 import ing.wbaa.druid.dql.DSL._
 import io.circe.generic.auto._
+import io.circe.syntax._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -32,6 +33,9 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(1 minute, 100 millis)
 
   private val totalNumberOfEntries = 39244
+
+  private val expectedRequestAsJson =
+    """{"aggregations":[{"name":"count","type":"count"}],"intervals":["2011-06-01/2017-06-01"],"filter":null,"granularity":"hour","descending":"true","postAggregations":[],"context":{"queryId":"some_custom_id","priority":"100","useCache":"false","skipEmptyBuckets":"true"}}"""
 
   case class TimeseriesCount(count: Int)
   case class GroupByIsAnonymous(isAnonymous: String, count: Int)
@@ -153,9 +157,9 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     "successfully be interpreted by Druid" in {
 
       val query = DQL
-        .agg('count.longSum as "count")
+        .agg('count.count as "count")
         .agg(
-          'channel.inFiltered('count.longSum as "filteredCount", "#en.wikipedia", "#de.wikipedia")
+          'channel.inFiltered('count.count, "#en.wikipedia", "#de.wikipedia") as "filteredCount"
         )
         .interval("2011-06-01/2017-06-01")
         .topN(dimension = 'isAnonymous, metric = "count", threshold = 5)
@@ -181,10 +185,12 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
       val query = DQL
         .topN('isAnonymous, metric = "count", threshold = 5)
-        .agg('count.longSum as "count")
+        .agg('count.count as "count")
         .agg(
-          'channel.selectorFiltered(aggregator = 'count.longSum as "filteredCount",
-                                    value = "#en.wikipedia") as "SelectorFilteredAgg"
+          'channel.selectorFiltered(
+            aggregator = 'count.count,
+            value = "#en.wikipedia"
+          ) as "filteredCount"
         )
         .interval("2011-06-01/2017-06-01")
         .build()
@@ -227,6 +233,61 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
                                                   isAnonymous = "true")
       }
     }
+  }
+
+  "DQL query with context" should {
+
+    "withQueryContext produce the desired JSON" in {
+
+      val query = DQL
+        .granularity(GranularityType.Hour)
+        .interval("2011-06-01/2017-06-01")
+        .setDescending(true)
+        .agg(count as "count")
+        .withQueryContext(
+          Map(
+            QueryContext.QueryId          -> "some_custom_id",
+            QueryContext.Priority         -> "100",
+            QueryContext.UseCache         -> "false",
+            QueryContext.SkipEmptyBuckets -> "true"
+          )
+        )
+        .build()
+
+      val requestJson = query.asJson.noSpaces
+
+      requestJson shouldBe expectedRequestAsJson
+
+      val resultF = query.execute()
+
+      whenReady(resultF) { response =>
+        response.list[TimeseriesCount].map(_.count).sum shouldBe totalNumberOfEntries
+      }
+    }
+
+    "setQueryContextParam produce the desired JSON" in {
+      val query = DQL
+        .granularity(GranularityType.Hour)
+        .interval("2011-06-01/2017-06-01")
+        .agg(count as "count")
+        .setDescending(true)
+        .setQueryContextParam(QueryContext.QueryId, "some_custom_id")
+        .setQueryContextParam(QueryContext.Priority, "100")
+        .setQueryContextParam(QueryContext.UseCache, "false")
+        .setQueryContextParam(QueryContext.SkipEmptyBuckets, "true")
+        .build()
+
+      val requestJson = query.asJson.noSpaces
+
+      requestJson shouldBe expectedRequestAsJson
+
+      val resultF = query.execute()
+
+      whenReady(resultF) { response =>
+        response.list[TimeseriesCount].map(_.count).sum shouldBe totalNumberOfEntries
+      }
+    }
+
   }
 
 }

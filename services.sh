@@ -4,6 +4,8 @@
 : ${DRUID_HOST:="localhost"}
 : ${DRUID_PORT:="8082"}
 
+set -e
+
 wait_for_port() {
   local name="$1" host="$2" port="$3"
   local j=0
@@ -31,7 +33,7 @@ usage() {
 
 case "$1" in
   start)
-    docker-compose up -d 
+    docker-compose up -d --build
     wait_for_port "druid" ${DRUID_HOST} ${DRUID_PORT}
   ;;
   stop)
