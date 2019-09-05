@@ -17,7 +17,10 @@
 
 package ing.wbaa.druid
 
-import akka.http.scaladsl.model.StatusCode
+import java.util.concurrent.TimeoutException
+
+import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
 import ing.wbaa.druid.client.{ DruidHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions.{ CountAggregation, GranularityType }
 import org.scalatest._
@@ -77,15 +80,45 @@ class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
 
       whenReady(responseFuture.failed) {
         case exception: HttpStatusException =>
-          exception.status shouldBe StatusCode.int2StatusCode(500)
-          exception.entity match {
-            case Some(entity) => entity.isKnownEmpty() shouldBe true
-            case _            => fail("expected empty entity, got empty option")
-          }
+          exception.status shouldBe StatusCodes.InternalServerError
+          exception.protocol shouldBe HttpProtocols.`HTTP/1.1`
+          exception.headers should contain(new RawHeader("x-clusterfk-status-code", "500"))
+          exception.entity.get.isKnownEmpty() shouldBe true
         case response => fail(s"expected HttpStatusException, got $response")
       }
 
       client.shutdown().futureValue
+    }
+
+    "throw HttpStatusException for non-200 status codes where body fails to materialize" in {
+      // the endpoint on 8087 returns HTTP 502 and takes 5 seconds to send the response body
+      implicit val config =
+        DruidConfig(
+          clientBackend = classOf[DruidHttpClient],
+          responseParsingTimeout = 1.seconds,
+          hosts = Seq(QueryHost("localhost", 8087))
+        )
+
+      val client = config.client
+      val responseFuture = client.doQuery(
+        TimeSeriesQuery(
+          aggregations = List(
+            CountAggregation(name = "count")
+          ),
+          granularity = GranularityType.Hour,
+          intervals = List("2011-06-01/2017-06-01")
+        )
+      )
+
+      whenReady(responseFuture.failed) {
+        case exception: HttpStatusException =>
+          exception.status shouldBe StatusCodes.BadGateway
+          exception.entity.isFailure shouldBe true
+          exception.entity.failed.get shouldBe a[TimeoutException]
+        case response => fail(s"expected HttpStatusException, got $response")
+      }
+
+      config.client.shutdown().futureValue
     }
 
   }

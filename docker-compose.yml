@@ -35,3 +35,14 @@ services:
       JAVA_OPTS: "-Dserver.port=8090 -Dchaos.strategy=INTERNAL_SERVER_ERROR -Ddestination.hostProtocolAndPort=http://scruid_druid:8082"
     ports:
       - "8086:8090"
+
+  slow_response:
+    build:
+      context: docker/openresty
+    container_name: slow_response
+    depends_on:
+      - scruid_druid
+    links:
+      - scruid_druid
+    ports:
+      - "8087:8080"
