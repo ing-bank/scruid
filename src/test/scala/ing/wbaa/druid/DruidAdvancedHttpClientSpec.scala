@@ -17,6 +17,8 @@
 
 package ing.wbaa.druid
 
+import java.util.concurrent.TimeoutException
+
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
 import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
@@ -145,6 +147,28 @@ class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutur
           exception.entity.get.isKnownEmpty() shouldBe true
 
           exception.response.status shouldBe StatusCodes.InternalServerError
+        case response => fail(s"expected HttpStatusException, got $response")
+      }
+
+      config.client.shutdown().futureValue
+    }
+
+    "throw HttpStatusException for non-200 status codes where body fails to materialize" in {
+      // the endpoint on 8087 returns HTTP 502 and takes 5 seconds to send the response body
+      implicit val config =
+        DruidConfig(
+          clientBackend = classOf[DruidAdvancedHttpClient],
+          responseParsingTimeout = 1.seconds,
+          hosts = Seq(QueryHost("localhost", 8087))
+        )
+
+      val responseFuture = queries.head.execute()
+
+      whenReady(responseFuture.failed) {
+        case exception: HttpStatusException =>
+          exception.status shouldBe StatusCodes.BadGateway
+          exception.entity.isFailure shouldBe true
+          exception.entity.failed.get shouldBe a[TimeoutException]
         case response => fail(s"expected HttpStatusException, got $response")
       }
 

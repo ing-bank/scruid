@@ -33,7 +33,7 @@ usage() {
 
 case "$1" in
   start)
-    docker-compose up -d 
+    docker-compose up -d --build
     wait_for_port "druid" ${DRUID_HOST} ${DRUID_PORT}
   ;;
   stop)
