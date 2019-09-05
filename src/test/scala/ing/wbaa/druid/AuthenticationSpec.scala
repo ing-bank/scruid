@@ -17,7 +17,12 @@
 
 package ing.wbaa.druid
 
-import ing.wbaa.druid.client.{ BasicAuthenticationExtension, DruidAdvancedHttpClient }
+import akka.http.scaladsl.model.StatusCodes
+import ing.wbaa.druid.client.{
+  BasicAuthenticationExtension,
+  DruidAdvancedHttpClient,
+  HttpStatusException
+}
 import ing.wbaa.druid.definitions._
 import org.scalatest._
 import org.scalatest.concurrent._
@@ -33,23 +38,52 @@ class AuthenticationSpec extends WordSpec with Matchers with ScalaFutures with I
   private val basicAuthenticationAddition =
     new BasicAuthenticationExtension(username = "user", password = "aloha")
 
-  implicit val config = DruidConfig(
-    clientBackend = classOf[DruidAdvancedHttpClient],
-    clientConfig = DruidAdvancedHttpClient
-      .ConfigBuilder()
-      .withAuthenticationBackend(basicAuthenticationAddition)
-      .build(),
-    hosts = Seq(QueryHost("localhost", 8088))
-  )
-
-  implicit val client = config.client
-  implicit val mat    = config.client.actorMaterializer
-
   case class TimeseriesCount(count: Int)
+
+  "TimeSeriesQuery without Basic Auth" should {
+
+    implicit val config = DruidConfig(
+      clientBackend = classOf[DruidAdvancedHttpClient],
+      clientConfig = DruidAdvancedHttpClient
+        .ConfigBuilder()
+        .build(),
+      hosts = Seq(QueryHost("localhost", 8088))
+    )
+
+    implicit val client = config.client
+    implicit val mat    = config.client.actorMaterializer
+
+    "get 401 Auth Required when querying Druid without Authentication config" in {
+      val request = TimeSeriesQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        granularity = GranularityType.Hour,
+        intervals = List("2011-06-01/2017-06-01")
+      ).execute
+
+      whenReady(request.failed) { throwable =>
+        throwable shouldBe a[HttpStatusException]
+        throwable.asInstanceOf[HttpStatusException].status shouldBe StatusCodes.Unauthorized
+      }
+    }
+  }
 
   "TimeSeriesQuery with Basic Auth" should {
 
-    "successfully be interpreted by Druid" in {
+    implicit val config = DruidConfig(
+      clientBackend = classOf[DruidAdvancedHttpClient],
+      clientConfig = DruidAdvancedHttpClient
+        .ConfigBuilder()
+        .withAuthenticationBackend(basicAuthenticationAddition)
+        .build(),
+      hosts = Seq(QueryHost("localhost", 8088))
+    )
+
+    implicit val client = config.client
+    implicit val mat    = config.client.actorMaterializer
+
+    "successfully query Druid when an Authentication config is set" in {
       val request = TimeSeriesQuery(
         aggregations = List(
           CountAggregation(name = "count")
