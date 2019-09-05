@@ -39,7 +39,7 @@ class AuthenticationSpec extends WordSpec with Matchers with ScalaFutures with I
       .ConfigBuilder()
       .withAuthenticationBackend(basicAuthenticationAddition)
       .build(),
-    hosts = Seq(QueryHost("localhost", 8087))
+    hosts = Seq(QueryHost("localhost", 8088))
   )
 
   implicit val client = config.client

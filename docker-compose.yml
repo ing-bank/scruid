@@ -2,17 +2,6 @@ version: "2.0"
 
 services:
 
-  basic_auth:
-   image: beevelop/nginx-basic-auth
-   container_name: basic_auth
-   links:
-     - scruid_druid:web
-   ports:
-     - "8087:80"
-   environment:
-     - 'HTPASSWD=user:$$apr1$$pSDXXhn5$$Z33QyIDGWzNy7anNidZSE.'
-     - 'FORWARD_PORT=8082'
-
   scruid_druid:
     image: fokkodriesprong/docker-druid
     container_name: scruid_druid
@@ -50,10 +39,11 @@ services:
   slow_response:
     build:
       context: docker/openresty
-    container_name: slow_response
+    container_name: openresty
     depends_on:
       - scruid_druid
     links:
       - scruid_druid
     ports:
-      - "8087:8080"
+      - "8087:8080" # Slow response
+      - "8088:8081" # Basic authentication
