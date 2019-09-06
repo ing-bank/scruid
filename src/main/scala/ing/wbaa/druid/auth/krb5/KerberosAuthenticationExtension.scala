@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import com.typesafe.config.{ Config, ConfigFactory }
 import ing.wbaa.druid.client.{ RequestFlowExtension, RequestFlowExtensionBuilder }
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -37,7 +38,11 @@ class KerberosAuthenticationExtension extends RequestFlowExtension {
 }
 
 object KerberosAuthenticationExtension extends RequestFlowExtensionBuilder {
+  val logger = LoggerFactory.getLogger(classOf[KerberosAuthenticationExtension])
 
-  override def apply(config: Config): RequestFlowExtension = new KerberosAuthenticationExtension
+  override def apply(config: Config): RequestFlowExtension = {
+    logger.warn("Using non-working prototype Kerberos extension")
+    new KerberosAuthenticationExtension
+  }
 
 }

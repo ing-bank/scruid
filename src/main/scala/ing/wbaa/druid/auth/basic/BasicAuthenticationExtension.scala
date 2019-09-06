@@ -8,6 +8,7 @@ import ing.wbaa.druid.client.{
   RequestFlowExtension,
   RequestFlowExtensionBuilder
 }
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -31,6 +32,7 @@ class BasicAuthenticationExtension(username: String, password: String)
 }
 
 object BasicAuthenticationExtension extends RequestFlowExtensionBuilder {
+  val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationExtension])
 
   override def apply(config: Config): RequestFlowExtension = {
 
@@ -48,6 +50,7 @@ object BasicAuthenticationExtension extends RequestFlowExtensionBuilder {
         )
       }
 
+    logger.info(s"BasicAuthenticationExtension[username=$username] created")
     new BasicAuthenticationExtension(username, password)
   }
 }
