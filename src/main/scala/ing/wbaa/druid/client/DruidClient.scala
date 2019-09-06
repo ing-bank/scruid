@@ -148,7 +148,7 @@ trait DruidResponseHandler {
         }
     } else {
       body
-        .map(e => e.data.decodeString("UTF-8"))
+        .map(_.data.decodeString("UTF-8"))
         .map(decode[List[DruidResult]])
         .map {
           case Left(error)  => throw new Exception(s"Unable to parse json response: $error")
