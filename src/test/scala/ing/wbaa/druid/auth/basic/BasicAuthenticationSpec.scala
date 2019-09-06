@@ -15,23 +15,20 @@
  * limitations under the License.
  */
 
-package ing.wbaa.druid
+package ing.wbaa.druid.auth.basic
 
 import akka.http.scaladsl.model.StatusCodes
-import ing.wbaa.druid.client.{
-  BasicAuthenticationExtension,
-  DruidAdvancedHttpClient,
-  HttpStatusException
-}
+import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.{ DruidConfig, QueryHost, TimeSeriesQuery }
+import io.circe.generic.auto._
 import org.scalatest._
 import org.scalatest.concurrent._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import io.circe.generic.auto._
 
-class AuthenticationSpec extends WordSpec with Matchers with ScalaFutures with Inspectors {
+class BasicAuthenticationSpec extends WordSpec with Matchers with ScalaFutures with Inspectors {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(5 minutes, 100 millis)
   private val totalNumberOfEntries                     = 39244
@@ -75,7 +72,7 @@ class AuthenticationSpec extends WordSpec with Matchers with ScalaFutures with I
       clientBackend = classOf[DruidAdvancedHttpClient],
       clientConfig = DruidAdvancedHttpClient
         .ConfigBuilder()
-        .withAuthenticationBackend(basicAuthenticationAddition)
+        .withRequestFlowExtension(basicAuthenticationAddition)
         .build(),
       hosts = Seq(QueryHost("localhost", 8088))
     )

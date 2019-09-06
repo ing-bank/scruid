@@ -203,8 +203,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     final val QueryRetries               = "query-retries"
     final val QueryRetryDelay            = "query-retry-delay"
     final val AkkaHttpHostConnectionPool = "akka.http.host-connection-pool"
-    final val AuthenticationBackend      = "authentication-backend"
-    final val AuthenticationConfig       = "authentication-config"
+    final val RequestFlowExtension       = "authentication-backend"
+    final val RequestFlowExtensionConfig = "authentication-config"
   }
 
   class ConfigBuilder {
@@ -214,7 +214,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     private var queryRetries: Option[Int]                             = None
     private var queryRetryDelay: Option[java.time.Duration]           = None
     private var hostConnectionPoolParams: Option[Map[String, String]] = None
-    private var authenticationBackend: Option[RequestFlowExtension]   = None
+    private var requestFlowExtension: Option[RequestFlowExtension]    = None
 
     def withQueueSize(v: Int): this.type = {
       queueSize = Option(v)
@@ -240,8 +240,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       this
     }
 
-    def withAuthenticationBackend(v: RequestFlowExtension): this.type = {
-      authenticationBackend = Option(v)
+    def withRequestFlowExtension(v: RequestFlowExtension): this.type = {
+      requestFlowExtension = Option(v)
       this
     }
 
@@ -255,17 +255,17 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
                                   ConfigValueFactory.fromMap(settingsMap.asJava))
         )
 
-      val authenticationBackendClass = authenticationBackend.map(_.getClass.getName)
+      val requestFlowExtensionClass = requestFlowExtension.map(_.getClass.getName)
 
-      val authenticationBackendConfig = authenticationBackend.map(_.exportConfig.root())
+      val requestFlowExtensionConfig = requestFlowExtension.map(_.exportConfig.root())
 
       val params = Seq(
-        Parameters.QueueSize             -> queueSize,
-        Parameters.QueueOverflowStrategy -> queueOverflowStrategy,
-        Parameters.QueryRetries          -> queryRetries,
-        Parameters.QueryRetryDelay       -> queryRetryDelay,
-        Parameters.AuthenticationBackend -> authenticationBackendClass,
-        Parameters.AuthenticationConfig  -> authenticationBackendConfig
+        Parameters.QueueSize                  -> queueSize,
+        Parameters.QueueOverflowStrategy      -> queueOverflowStrategy,
+        Parameters.QueryRetries               -> queryRetries,
+        Parameters.QueryRetryDelay            -> queryRetryDelay,
+        Parameters.RequestFlowExtension       -> requestFlowExtensionClass,
+        Parameters.RequestFlowExtensionConfig -> requestFlowExtensionConfig
       )
 
       params
@@ -353,17 +353,17 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
 
   private def loadAuthenticationBackend(clientConfig: Config): RequestFlowExtension = {
 
-    val authBackend: Class[_ <: RequestFlowExtension] = Class
-      .forName(clientConfig.getString(Parameters.AuthenticationBackend))
+    val flowExtension: Class[_ <: RequestFlowExtension] = Class
+      .forName(clientConfig.getString(Parameters.RequestFlowExtension))
       .asInstanceOf[Class[RequestFlowExtension]]
 
     val runtimeMirror     = universe.runtimeMirror(getClass.getClassLoader)
-    val module            = runtimeMirror.staticModule(authBackend.getName)
+    val module            = runtimeMirror.staticModule(flowExtension.getName)
     val obj               = runtimeMirror.reflectModule(module)
     val clientConstructor = obj.instance.asInstanceOf[RequestFlowExtensionBuilder]
 
     val configuration =
-      Option(clientConfig.getConfig(Parameters.AuthenticationConfig))
+      Option(clientConfig.getConfig(Parameters.RequestFlowExtensionConfig))
         .getOrElse(ConfigFactory.empty())
 
     clientConstructor(configuration)
