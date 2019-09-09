@@ -40,6 +40,7 @@ object AggregationType extends EnumCodec[AggregationType] {
   case object LongLast    extends AggregationType
   case object ThetaSketch extends AggregationType
   case object HyperUnique extends AggregationType
+  case object Cardinality extends AggregationType
   case object Filtered    extends AggregationType
   val values: Set[AggregationType] = sealerate.values[AggregationType]
 }
@@ -54,6 +55,7 @@ object Aggregation {
     final def apply(agg: Aggregation): Json =
       (agg match {
         case x: CountAggregation       => x.asJsonObject
+        case x: CardinalityAggregation => x.asJsonObject
         case x: SingleFieldAggregation => x.asJson.asObject.get
         case x: FilteredAggregation    => x.asJson.asObject.get
       }).add("type", agg.`type`.asJson).asJson
@@ -129,6 +131,15 @@ case class HyperUniqueAggregation(
     round: Boolean = false
 ) extends SingleFieldAggregation {
   val `type` = AggregationType.HyperUnique
+}
+
+case class CardinalityAggregation(
+    override val name: String,
+    fields: Iterable[Dimension],
+    byRow: Boolean = false,
+    round: Boolean = false
+) extends Aggregation {
+  override val `type`: AggregationType = AggregationType.Cardinality
 }
 
 trait FilteredAggregation extends Aggregation {
