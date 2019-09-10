@@ -229,6 +229,33 @@ class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutur
 
     }
 
+    "throw HttpStatusException when pushing an invalid query" in {
+
+      implicit val config: DruidConfig = DruidConfig(clientBackend =
+                                                       classOf[DruidAdvancedHttpClient],
+                                                     hosts = Seq(QueryHost("localhost", 8082)))
+
+      val client = config.client
+      val responseFuture = client.doQuery(
+        TimeSeriesQuery(
+          aggregations = List(
+            CountAggregation(name = "count")
+          ),
+          intervals = List("invalid interval")
+        )
+      )
+
+      whenReady(responseFuture.failed) {
+        case exception: HttpStatusException =>
+          exception.status shouldBe StatusCodes.InternalServerError
+          exception.entity.isFailure shouldBe false
+          exception.entity.get.data.utf8String shouldBe "{\"error\":\"Unknown exception\",\"errorMessage\":\"Instantiation of [simple type, class org.apache.druid.query.spec.LegacySegmentSpec] value failed: Format requires a '/' separator: invalid interval (through reference chain: org.apache.druid.query.timeseries.TimeseriesQuery[\\\"intervals\\\"])\",\"errorClass\":\"com.fasterxml.jackson.databind.JsonMappingException\",\"host\":null}"
+        case response => fail(s"expected HttpStatusException, got $response")
+      }
+
+      config.client.shutdown().futureValue
+    }
+
   }
 
 }
