@@ -17,7 +17,7 @@
 
 package ing.wbaa.druid.dql
 
-import ing.wbaa.druid.{ GroupByQuery, TimeSeriesQuery, TopNQuery }
+import ing.wbaa.druid.{ DruidQuery, GroupByQuery, TimeSeriesQuery, TopNQuery }
 import ing.wbaa.druid.definitions._
 import org.scalatest.{ Matchers, WordSpec }
 import org.scalatest.concurrent._
@@ -42,6 +42,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
   case class TopCountry(count: Int, countryName: Option[String])
   case class AggregatedFilteredAnonymous(count: Int, isAnonymous: String, filteredCount: Int)
   case class PostAggregationAnonymous(count: Int, isAnonymous: String, halfCount: Double)
+  case class AggregationJavascript(value: Double)
 
   case class AggregatedCardinality(cardinalityValue: Double)
 
@@ -353,6 +354,38 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
       }
     }
 
+  }
+
+  "DQL also work with 'javascript' aggregations" should {
+    "successfully be interpreted by Druid" in {
+      val expectedValue = 22642.0
+
+      val query: DruidQuery = DQL
+        .agg(
+          javascript(
+            name = "value",
+            fieldNames = Seq("cityName", "countryIsoCode"),
+            fnAggregate =
+              """
+                |function(current, countryIsoCode, cityName) {
+                |  return ((countryIsoCode != null && cityName != null) ? cityName.length + countryIsoCode.length + current : current);
+                |}
+                |""".stripMargin,
+            fnCombine = "function(partialA, partialB) { return partialA + partialB; }",
+            fnReset = "function() { return 0; }"
+          )
+        )
+        .interval("2011-06-01/2017-06-01")
+        .build()
+
+      val resultF = query.execute()
+
+      whenReady(resultF) { response =>
+        val result = response.list[AggregationJavascript]
+        result.size shouldBe 1
+        result.head.value shouldBe expectedValue
+      }
+    }
   }
 
 }

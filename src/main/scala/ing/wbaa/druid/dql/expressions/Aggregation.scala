@@ -272,3 +272,24 @@ final case class SelectorFilteredAgg(dimension: String,
 
   override def getName: String = name.getOrElse(s"selector_filtered_$dimension")
 }
+
+final case class JavascriptAgg(
+    fields: Seq[String],
+    fnAggregate: String,
+    fnCombine: String,
+    fnReset: String,
+    name: Option[String] = None
+) extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation = JavascriptAggregation(
+    this.getName,
+    fields,
+    fnAggregate,
+    fnCombine,
+    fnReset
+  )
+
+  override def alias(name: String): AggregationExpression = copy(name = Option(name))
+
+  override def getName: String = name.getOrElse(s"js_${fields.mkString("_")}")
+}

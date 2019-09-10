@@ -486,6 +486,39 @@ selectorFiltered('channel, 'count.longSum, "#en.wikipedia")
 
 ```
 
+## Javascript Aggregator
+
+Custom aggregations over a set of columns can be defined using Javascript (both metrics and dimensions are allowed).
+The Javascript functions should always return floating-point values. Please note that Javascript-based functionality 
+is disabled by default in Druid server and should be enabled by setting the configuration property 
+`druid.javascript.enabled = true`. For further details see the official Druid  
+[documentation for aggregations](https://druid.apache.org/docs/latest/querying/aggregations) and 
+the [Javascript guide](https://druid.apache.org/docs/latest/development/javascript.html).
+
+Javascript aggregation is defined using the `javascript` function. For example the aggregation below sums the 
+lengths of the values of `dim_one` and `dim_one` when they are not null:
+
+```scala
+javascript(
+  name = "length_sum",
+  fieldNames = Seq("dim_one", "dim_two"),
+  fnAggregate = 
+    """
+    |function (current, dim_one, dim_two) {
+    |  return ((dim_one != null && dim_two != null) ? current + dim_one.length + dim_two.length : current); 
+    |}
+    """.stripMargin,
+  fnCombine = "function(partialA, partialB) { return partialA + partialB; }",
+  fnReset = "function() { return 0; }"
+)
+``` 
+
+The resulting value of the aggregation will be represented by the column `length_sum`. The aggregation is computed over 
+the dimensions `dim_one` and `dim_two` using three Javascript functions. `fnAggregate` defines the partial aggregation 
+update function between `dim_one`, `dim_two` and the current value `current`. `fnCombine` defines how partial 
+aggregation results are being combined. Finally, `fnReset` defines the initial value of the aggregation.
+
+
 ## Post-aggregations
 
 Post-aggregations are specifications of processing that should happen on aggregated values as they come out of Druid.

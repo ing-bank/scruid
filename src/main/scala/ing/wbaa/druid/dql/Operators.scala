@@ -105,6 +105,14 @@ trait AggregationOps {
     SelectorFilteredAgg(dim.name, None, aggregator.build())
 
   def count: CountAgg = new CountAgg()
+
+  def javascript(name: String,
+                 fieldNames: Iterable[String],
+                 fnAggregate: String,
+                 fnCombine: String,
+                 fnReset: String): JavascriptAgg =
+    JavascriptAgg(fieldNames.toSeq, fnAggregate, fnCombine, fnReset, Option(name))
+
 }
 
 trait FilteringExpressionOps {
