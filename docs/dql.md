@@ -422,7 +422,7 @@ see [the official documentation](https://druid.apache.org/docs/latest/querying/h
 By default, cardinality is computed by value.
 
 ```scala
-// Compute the cardinality by value for dimensions din_name_one, dim_name_two and dim_name_three
+// Compute the cardinality by value for dimensions dim_name_one, dim_name_two and dim_name_three
 cardinality('dim_name_one, 'dim_name_two, 'dim_name_three)
 
 // The HyperLogLog algorithm generates decimal estimates with some error. Flag "round" can be set to true to 
@@ -436,7 +436,7 @@ cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).set(round = true)
 Cardinality can also be computed by row, i.e. the cardinality of distinct dimension combinations.
 
 ```scala
-// Compute the cardinality by row for dimensions din_name_one, dim_name_two and dim_name_three
+// Compute the cardinality by row for dimensions dim_name_one, dim_name_two and dim_name_three
 cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).byRow(true)
 
 // or alternatively
