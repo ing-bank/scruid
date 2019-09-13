@@ -59,6 +59,9 @@ trait AggregationOps {
 
   def hyperUnique(dim: Dim): HyperUniqueAgg = hyperUnique(dim.name)
 
+  def cardinality(dims: Dim*): CardinalityAgg               = CardinalityAgg(dims)
+  def cardinality(name: String, dims: Dim*): CardinalityAgg = CardinalityAgg(dims, Option(name))
+
   def inFiltered(dimName: String,
                  aggregator: AggregationExpression,
                  values: Iterable[String]): InFilteredAgg =

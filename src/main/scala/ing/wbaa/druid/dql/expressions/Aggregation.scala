@@ -18,6 +18,7 @@
 package ing.wbaa.druid.dql.expressions
 
 import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.dql.Dim
 
 sealed trait AggregationExpression extends Named[AggregationExpression] {
 
@@ -208,6 +209,32 @@ final case class HyperUniqueAgg(fieldName: String,
     copy(isInputHyperUnique = isInputHyperUnique, round = isRound)
 
   override def getName: String = name.getOrElse(s"hyper_unique_$fieldName")
+}
+
+final case class CardinalityAgg(fields: Seq[Dim],
+                                name: Option[String] = None,
+                                byRow: Boolean = false,
+                                round: Boolean = false)
+    extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation = CardinalityAggregation(
+    this.getName,
+    fields.map(_.build()),
+    byRow,
+    round
+  )
+
+  override def alias(name: String): AggregationExpression = copy(name = Option(name))
+
+  override def getName: String = name.getOrElse(s"cardinality_${fields.map(_.name).mkString("_")}")
+
+  def setByRow(v: Boolean): CardinalityAgg = copy(byRow = v)
+
+  def setRound(v: Boolean): CardinalityAgg = copy(round = v)
+
+  def set(byRow: Boolean = false, round: Boolean = false): CardinalityAgg =
+    copy(byRow = byRow, round = round)
+
 }
 
 final case class InFilteredAgg(dimension: String,

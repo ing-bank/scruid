@@ -399,7 +399,7 @@ doubleLast('dim_name) as "agg_last"
 
 #### Approximate Aggregations
 
-DQL supports `thetaSketch` and `hyperUnique` approximate aggregators.
+DQL supports `thetaSketch`, `hyperUnique` and `cardinality` approximate aggregators.
 
 ```scala
 // can be defined over some dimension
@@ -415,8 +415,51 @@ thetaSketch('dim_name).set(isInputThetaSketch = true, size = 32768) as "agg_thet
 'dim_name.hyperUnique.set(isInputHyperUnique = true, isRound = true) as "agg_hyper_unique"
 ```
 
-#### Filtered Aggregator
+Cardinality aggregator computes the cardinality of a set of dimensions, using HyperLogLog to estimate the cardinality.
+Please note that this aggregator is much slower than indexing a column with the `hyperUnique` aggregator (for details
+see [the official documentation](https://druid.apache.org/docs/latest/querying/hll-old.html)).
 
+By default, cardinality is computed by value.
+
+```scala
+// Compute the cardinality by value for dimensions dim_name_one, dim_name_two and dim_name_three
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three)
+
+// The HyperLogLog algorithm generates decimal estimates with some error. Flag "round" can be set to true to 
+// round off estimated values to whole numbers.
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).setRound(true)
+
+// or alternatively
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).set(round = true)
+```
+
+Cardinality can also be computed by row, i.e. the cardinality of distinct dimension combinations.
+
+```scala
+// Compute the cardinality by row for dimensions dim_name_one, dim_name_two and dim_name_three
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).byRow(true)
+
+// or alternatively
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).set(byRow = true)
+
+// Similar to cardinality by value the flag "round" can be set to true to 
+// round off estimated values to whole numbers
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).byRow(true).setRound(true)
+
+// or alternatively
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).set(byRow = true, round = true)
+```
+
+Cardinality can also be computed over the outcomes of any extraction function to some dimension(s). For example,
+assume that we would like to compute the cardinality over the values of `dim_name_one`, `dim_name_two` and the 
+first character over the values of `dim_name_three`. In such case we can use the `SubstringExtractionFn` in 
+cardinality aggregation as below:
+
+```scala
+cardinality('dim_name_one, 'dim_name_two, 'dim_name_three.extract(SubstringExtractionFn(0, Some(1))).as("dim_name_three_first_char"))
+```
+
+#### Filtered Aggregator
 
 `inFiltered` wraps any given aggregator, but only aggregates the values for which the given dimension the *in filter* matches
 Similarly, `selectorFiltered` wraps any given aggregator and filters the values using the *selector filter*.

@@ -43,6 +43,8 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
   case class AggregatedFilteredAnonymous(count: Int, isAnonymous: String, filteredCount: Int)
   case class PostAggregationAnonymous(count: Int, isAnonymous: String, halfCount: Double)
 
+  case class AggregatedCardinality(cardinalityValue: Double)
+
   "DQL TimeSeriesQuery" should {
     "successfully be interpreted by Druid" in {
 
@@ -206,6 +208,69 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
         topN(1) shouldBe AggregatedFilteredAnonymous(count = 3799,
                                                      filteredCount = 1556,
                                                      isAnonymous = "true")
+      }
+    }
+  }
+
+  "DQL also work with 'cardinality' aggregations" should {
+
+    "successfully computing cardinality by value" in {
+
+      val expectedValue = 1148.0
+
+      val query = DQL
+        .agg(cardinality("cardinalityValue", 'countryName, 'cityName).setRound(true))
+        .interval("2011-06-01/2017-06-01")
+        .build()
+
+      val request = query.execute()
+      whenReady(request) { response =>
+        val result = response.list[AggregatedCardinality]
+        result.size shouldBe 1
+        result.head.cardinalityValue shouldBe expectedValue
+      }
+    }
+
+    "successfully computing cardinality by row" in {
+
+      val expectedValue = 1152.0
+
+      val query = DQL
+        .agg(
+          cardinality("cardinalityValue", 'countryName, 'cityName)
+            .set(byRow = true, round = true)
+        )
+        .interval("2011-06-01/2017-06-01")
+        .build()
+
+      val request = query.execute()
+      whenReady(request) { response =>
+        val result = response.list[AggregatedCardinality]
+        result.size shouldBe 1
+        result.head.cardinalityValue shouldBe expectedValue
+      }
+    }
+
+    "successfully computing cardinality by row, using an extraction function to a dimension " in {
+
+      val expectedValue = 509.0
+
+      val query = DQL
+        .agg(
+          cardinality(
+            "cardinalityValue",
+            'countryName,
+            'cityName.extract(SubstringExtractionFn(0, Some(1))).as("city_first_char")
+          ).set(byRow = true, round = true)
+        )
+        .interval("2011-06-01/2017-06-01")
+        .build()
+
+      val request = query.execute()
+      whenReady(request) { response =>
+        val result = response.list[AggregatedCardinality]
+        result.size shouldBe 1
+        result.head.cardinalityValue shouldBe expectedValue
       }
     }
   }
