@@ -23,9 +23,11 @@ import scala.concurrent._
 
 /**
   * Customization hook for altering the request flow in `DruidAdvancedHttpClient`. This is primarily intended to handle
-  * authentication requirements.
+  * authentication requirements. The advanced client always uses a single interceptor, which defaults to a no-op
+  * implementation. There is no support for chaining interceptors into a filter chain, but you could write a composite
+  * interceptor to overcome this.
   */
-trait RequestFlowExtension {
+trait RequestInterceptor {
 
   /**
     * Intercept the outgoing request before it is transmitted.
@@ -61,17 +63,24 @@ trait RequestFlowExtension {
 }
 
 /**
-  * Marker trait for objects that produce a `RequestFlowExtension`.
+  * Marker trait for objects that produce a `RequestInterceptor`. One such object is specified in the scruid
+  * configuration settings. The default is `NoopRequestInterceptor`.
   */
-trait RequestFlowExtensionBuilder {
-  def apply(config: Config): RequestFlowExtension
+trait RequestInterceptorBuilder {
+
+  /**
+    * Construct the intended interceptor, using the given configuration object.
+    * @param config the config object
+    * @return a request interceptor. It is an error to return null.
+    */
+  def apply(config: Config): RequestInterceptor
 }
 
 /**
   * Forwards the request and response unmodified. Can be used as a default value, but is also suitable for use as a
   * base class.
   */
-class NoopRequestFlowExtension extends RequestFlowExtension {
+class NoopRequestInterceptor extends RequestInterceptor {
 
   def interceptRequest(request: HttpRequest): HttpRequest = request
 
@@ -85,7 +94,7 @@ class NoopRequestFlowExtension extends RequestFlowExtension {
   override def exportConfig: Config = ConfigFactory.empty()
 }
 
-object NoopRequestFlowExtension extends RequestFlowExtensionBuilder {
-  private lazy val instance                                = new NoopRequestFlowExtension
-  override def apply(config: Config): RequestFlowExtension = instance
+object NoopRequestInterceptor extends RequestInterceptorBuilder {
+  private lazy val instance                              = new NoopRequestInterceptor
+  override def apply(config: Config): RequestInterceptor = instance
 }

@@ -20,9 +20,9 @@ import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import akka.http.scaladsl.model.HttpRequest
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import ing.wbaa.druid.client.{
-  NoopRequestFlowExtension,
-  RequestFlowExtension,
-  RequestFlowExtensionBuilder
+  NoopRequestInterceptor,
+  RequestInterceptor,
+  RequestInterceptorBuilder
 }
 import org.slf4j.LoggerFactory
 
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory
   * @param password the password
   */
 class BasicAuthenticationExtension(username: String, password: String)
-    extends NoopRequestFlowExtension {
+    extends NoopRequestInterceptor {
   override def interceptRequest(request: HttpRequest): HttpRequest =
     request.withHeaders(Authorization(BasicHttpCredentials(username, password)))
 
@@ -45,10 +45,10 @@ class BasicAuthenticationExtension(username: String, password: String)
       .withValue("password", ConfigValueFactory.fromAnyRef(password))
 }
 
-object BasicAuthenticationExtension extends RequestFlowExtensionBuilder {
+object BasicAuthenticationExtension extends RequestInterceptorBuilder {
   private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationExtension])
 
-  override def apply(config: Config): RequestFlowExtension = {
+  override def apply(config: Config): RequestInterceptor = {
 
     val username =
       Option(config.getString("username")).getOrElse {

@@ -47,9 +47,6 @@ class BasicAuthenticationSpec extends WordSpec with Matchers with ScalaFutures {
       hosts = Seq(QueryHost("localhost", 8088))
     )
 
-    implicit val client = config.client
-    implicit val mat    = config.client.actorMaterializer
-
     "get 401 Auth Required when querying Druid without Authentication config" in {
       val request = TimeSeriesQuery(
         aggregations = List(
@@ -72,13 +69,10 @@ class BasicAuthenticationSpec extends WordSpec with Matchers with ScalaFutures {
       clientBackend = classOf[DruidAdvancedHttpClient],
       clientConfig = DruidAdvancedHttpClient
         .ConfigBuilder()
-        .withRequestFlowExtension(basicAuthenticationAddition)
+        .withRequestInterceptor(basicAuthenticationAddition)
         .build(),
       hosts = Seq(QueryHost("localhost", 8088))
     )
-
-    implicit val client = config.client
-    implicit val mat    = config.client.actorMaterializer
 
     "successfully query Druid when an Authentication config is set" in {
       val request = TimeSeriesQuery(

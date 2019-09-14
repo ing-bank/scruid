@@ -45,7 +45,7 @@ class DruidAdvancedHttpClient private (
     bufferOverflowStrategy: OverflowStrategy,
     queryRetries: Int,
     queryRetryDelay: FiniteDuration,
-    requestFlowExtension: RequestFlowExtension
+    requestFlowExtension: RequestInterceptor
 )(implicit val system: ActorSystem)
     extends DruidClient
     with DruidResponseHandler {
@@ -205,8 +205,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     final val QueryRetries               = "query-retries"
     final val QueryRetryDelay            = "query-retry-delay"
     final val AkkaHttpHostConnectionPool = "akka.http.host-connection-pool"
-    final val RequestFlowExtension       = "request-flow-extension"
-    final val RequestFlowExtensionConfig = "request-flow-extension-config"
+    final val RequestInterceptor         = "request-interceptor"
+    final val RequestInterceptorConfig   = "request-interceptor-config"
   }
 
   class ConfigBuilder {
@@ -216,7 +216,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     private var queryRetries: Option[Int]                             = None
     private var queryRetryDelay: Option[java.time.Duration]           = None
     private var hostConnectionPoolParams: Option[Map[String, String]] = None
-    private var requestFlowExtension: Option[RequestFlowExtension]    = None
+    private var requestInterceptor: Option[RequestInterceptor]        = None
 
     def withQueueSize(v: Int): this.type = {
       queueSize = Option(v)
@@ -242,8 +242,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       this
     }
 
-    def withRequestFlowExtension(v: RequestFlowExtension): this.type = {
-      requestFlowExtension = Option(v)
+    def withRequestInterceptor(v: RequestInterceptor): this.type = {
+      requestInterceptor = Option(v)
       this
     }
 
@@ -257,17 +257,17 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
                                   ConfigValueFactory.fromMap(settingsMap.asJava))
         )
 
-      val requestFlowExtensionClass = requestFlowExtension.map(_.getClass.getName)
+      val requestFlowExtensionClass = requestInterceptor.map(_.getClass.getName)
 
-      val requestFlowExtensionConfig = requestFlowExtension.map(_.exportConfig.root())
+      val requestFlowExtensionConfig = requestInterceptor.map(_.exportConfig.root())
 
       val params = Seq(
-        Parameters.QueueSize                  -> queueSize,
-        Parameters.QueueOverflowStrategy      -> queueOverflowStrategy,
-        Parameters.QueryRetries               -> queryRetries,
-        Parameters.QueryRetryDelay            -> queryRetryDelay,
-        Parameters.RequestFlowExtension       -> requestFlowExtensionClass,
-        Parameters.RequestFlowExtensionConfig -> requestFlowExtensionConfig
+        Parameters.QueueSize                -> queueSize,
+        Parameters.QueueOverflowStrategy    -> queueOverflowStrategy,
+        Parameters.QueryRetries             -> queryRetries,
+        Parameters.QueryRetryDelay          -> queryRetryDelay,
+        Parameters.RequestInterceptor       -> requestFlowExtensionClass,
+        Parameters.RequestInterceptorConfig -> requestFlowExtensionConfig
       )
 
       params
@@ -320,7 +320,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       clientConfig.getString(Parameters.QueueOverflowStrategy)
     )
 
-    val flowExtension = loadRequestFlowExtension(clientConfig)
+    val flowExtension = loadRequestInterceptor(clientConfig)
 
     new DruidAdvancedHttpClient(
       connectionFlow,
@@ -353,19 +353,19 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       .getOrElse(akkaConf)
   }
 
-  private def loadRequestFlowExtension(clientConfig: Config): RequestFlowExtension = {
+  private def loadRequestInterceptor(clientConfig: Config): RequestInterceptor = {
 
-    val flowExtension: Class[_ <: RequestFlowExtension] = Class
-      .forName(clientConfig.getString(Parameters.RequestFlowExtension))
-      .asInstanceOf[Class[RequestFlowExtension]]
+    val flowExtension: Class[_ <: RequestInterceptor] = Class
+      .forName(clientConfig.getString(Parameters.RequestInterceptor))
+      .asInstanceOf[Class[RequestInterceptor]]
 
     val runtimeMirror     = universe.runtimeMirror(getClass.getClassLoader)
     val module            = runtimeMirror.staticModule(flowExtension.getName)
     val obj               = runtimeMirror.reflectModule(module)
-    val clientConstructor = obj.instance.asInstanceOf[RequestFlowExtensionBuilder]
+    val clientConstructor = obj.instance.asInstanceOf[RequestInterceptorBuilder]
 
     val configuration =
-      Option(clientConfig.getConfig(Parameters.RequestFlowExtensionConfig))
+      Option(clientConfig.getConfig(Parameters.RequestInterceptorConfig))
         .getOrElse(ConfigFactory.empty())
 
     clientConstructor(configuration)
