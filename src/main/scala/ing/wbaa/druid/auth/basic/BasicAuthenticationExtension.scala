@@ -1,7 +1,23 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ing.wbaa.druid.auth.basic
 
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.HttpRequest
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import ing.wbaa.druid.client.{
   NoopRequestFlowExtension,
@@ -9,8 +25,6 @@ import ing.wbaa.druid.client.{
   RequestFlowExtensionBuilder
 }
 import org.slf4j.LoggerFactory
-
-import scala.concurrent.{ ExecutionContext, Future }
 
 /**
   * Adds a basic authentication header with static credentials to every outgoing request. Does not
@@ -21,7 +35,7 @@ import scala.concurrent.{ ExecutionContext, Future }
   */
 class BasicAuthenticationExtension(username: String, password: String)
     extends NoopRequestFlowExtension {
-  override def alterRequest(request: HttpRequest): HttpRequest =
+  override def interceptRequest(request: HttpRequest): HttpRequest =
     request.withHeaders(Authorization(BasicHttpCredentials(username, password)))
 
   override def exportConfig: Config =
@@ -32,7 +46,7 @@ class BasicAuthenticationExtension(username: String, password: String)
 }
 
 object BasicAuthenticationExtension extends RequestFlowExtensionBuilder {
-  val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationExtension])
+  private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationExtension])
 
   override def apply(config: Config): RequestFlowExtension = {
 

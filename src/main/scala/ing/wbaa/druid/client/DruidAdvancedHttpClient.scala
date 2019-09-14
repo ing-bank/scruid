@@ -165,10 +165,12 @@ class DruidAdvancedHttpClient private (
     val responsePromise = Promise[HttpResponse]()
 
     queue
-      .offer(requestFlowExtension.alterRequest(request) -> responsePromise)
+      .offer(requestFlowExtension.interceptRequest(request) -> responsePromise)
       .flatMap {
         case QueueOfferResult.Enqueued =>
-          requestFlowExtension.alterResponse(request, responsePromise.future, this.executeRequest)
+          requestFlowExtension.interceptResponse(request,
+                                                 responsePromise.future,
+                                                 this.executeRequest)
         case QueueOfferResult.Dropped =>
           Future.failed[HttpResponse](new RuntimeException("Queue overflowed. Try again later."))
         case QueueOfferResult.Failure(ex) =>
@@ -203,8 +205,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     final val QueryRetries               = "query-retries"
     final val QueryRetryDelay            = "query-retry-delay"
     final val AkkaHttpHostConnectionPool = "akka.http.host-connection-pool"
-    final val RequestFlowExtension       = "authentication-backend"
-    final val RequestFlowExtensionConfig = "authentication-config"
+    final val RequestFlowExtension       = "request-flow-extension"
+    final val RequestFlowExtensionConfig = "request-flow-extension-config"
   }
 
   class ConfigBuilder {
@@ -318,7 +320,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       clientConfig.getString(Parameters.QueueOverflowStrategy)
     )
 
-    val flowExtension = loadAuthenticationBackend(clientConfig)
+    val flowExtension = loadRequestFlowExtension(clientConfig)
 
     new DruidAdvancedHttpClient(
       connectionFlow,
@@ -351,7 +353,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       .getOrElse(akkaConf)
   }
 
-  private def loadAuthenticationBackend(clientConfig: Config): RequestFlowExtension = {
+  private def loadRequestFlowExtension(clientConfig: Config): RequestFlowExtension = {
 
     val flowExtension: Class[_ <: RequestFlowExtension] = Class
       .forName(clientConfig.getString(Parameters.RequestFlowExtension))

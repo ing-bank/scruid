@@ -28,7 +28,7 @@ import org.scalatest.concurrent._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class BasicAuthenticationSpec extends WordSpec with Matchers with ScalaFutures with Inspectors {
+class BasicAuthenticationSpec extends WordSpec with Matchers with ScalaFutures {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(5 minutes, 100 millis)
   private val totalNumberOfEntries                     = 39244
