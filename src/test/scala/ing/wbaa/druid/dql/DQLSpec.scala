@@ -276,13 +276,38 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     }
   }
 
-  "DQL also work with post 'arithmetic' post-aggregations" should {
+  "DQL also work with 'arithmetic' post-aggregations" should {
     "successfully be interpreted by Druid" in {
 
       val query: TopNQuery = DQL
         .topN('isAnonymous, metric = "count", threshold = 5)
         .agg(count)
         .postAgg(('count / 2) as "halfCount")
+        .interval("2011-06-01/2017-06-01")
+        .build()
+
+      val request = query.execute()
+
+      whenReady(request) { response =>
+        val topN = response.list[PostAggregationAnonymous]
+        topN.size shouldBe 2
+        topN.head shouldBe PostAggregationAnonymous(count = 35445,
+                                                    halfCount = 17722.5,
+                                                    isAnonymous = "false")
+        topN(1) shouldBe PostAggregationAnonymous(count = 3799,
+                                                  halfCount = 1899.5,
+                                                  isAnonymous = "true")
+      }
+    }
+  }
+
+  "DQL also work with 'javascript' post-aggregations" should {
+    "successfully be interpreted by Druid" in {
+
+      val query: TopNQuery = DQL
+        .topN('isAnonymous, metric = "count", threshold = 5)
+        .agg(count)
+        .postAgg(javascript("halfCount", Seq('count), "function(count){ return count/2; }"))
         .interval("2011-06-01/2017-06-01")
         .build()
 
@@ -364,7 +389,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
         .agg(
           javascript(
             name = "value",
-            fieldNames = Seq("cityName", "countryIsoCode"),
+            fields = Seq('cityName, 'countryIsoCode),
             fnAggregate =
               """
                 |function(current, countryIsoCode, cityName) {

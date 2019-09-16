@@ -501,7 +501,7 @@ lengths of the values of `dim_one` and `dim_one` when they are not null:
 ```scala
 javascript(
   name = "length_sum",
-  fieldNames = Seq("dim_one", "dim_two"),
+  fields = Seq('dim_one, 'dim_two), // or the string names of the dimensions (i.e. Seq("dim_one", "dim_two"))  
   fnAggregate = 
     """
     |function (current, dim_one, dim_two) {
@@ -591,6 +591,19 @@ Is used to wrap a hyperUnique object such that it can be used in post aggregatio
 
 // or alternatively as function:
 hyperUniqueCardinality('dim_name)
+```
+
+#### Javascript post-aggregator
+
+Applies the specified Javascript function to the given fields. Fields are passed as arguments to the Javascript 
+function in the given order.
+
+```scala
+// calculate the sum of two dimensions (dim_one and dim_two)
+javascript(name = "sum", fields = Seq('dim_one, 'dim_two), function = "function(dim_one, dim_two) { return dim_one + dim_two; }")
+
+// or alternatively by specifying the dimensions names
+javascript(name = "sum", fields = Seq("dim_one", "dim_two"), function = "function(dim_one, dim_two) { return dim_one + dim_two; }")
 ```
 
 

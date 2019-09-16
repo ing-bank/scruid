@@ -88,3 +88,14 @@ case class HyperUniqueCardinalityPostAgg(fieldName: String, name: Option[String]
 
   override def getName: String = name.getOrElse(s"post_${fieldName}")
 }
+
+case class JavascriptPostAgg(fieldNames: Seq[String], function: String, name: Option[String] = None)
+    extends PostAggregationExpression {
+
+  override protected[dql] def build(complexAggNames: Set[String]): PostAggregation =
+    JavascriptPostAggregation(this.getName, fieldNames, function)
+
+  override def alias(name: String): PostAggregationExpression = copy(name = Option(name))
+
+  override def getName: String = name.getOrElse(s"post_${fieldNames.mkString("_")}")
+}

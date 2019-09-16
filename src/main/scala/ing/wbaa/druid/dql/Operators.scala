@@ -20,6 +20,8 @@ package ing.wbaa.druid.dql
 import ing.wbaa.druid.definitions.{ ExtractionFn, Filter }
 import ing.wbaa.druid.dql.expressions._
 
+import scala.reflect.ClassTag
+
 trait AggregationOps {
 
   def longSum(dimName: String): LongSumAgg = new LongSumAgg(dimName)
@@ -107,11 +109,18 @@ trait AggregationOps {
   def count: CountAgg = new CountAgg()
 
   def javascript(name: String,
-                 fieldNames: Iterable[String],
+                 fields: Iterable[Dim],
+                 fnAggregate: String,
+                 fnCombine: String,
+                 fnReset: String)(implicit classTag: ClassTag[Dim]): JavascriptAgg =
+    JavascriptAgg(fields.map(_.name).toSeq, fnAggregate, fnCombine, fnReset, Option(name))
+
+  def javascript(name: String,
+                 fields: Iterable[String],
                  fnAggregate: String,
                  fnCombine: String,
                  fnReset: String): JavascriptAgg =
-    JavascriptAgg(fieldNames.toSeq, fnAggregate, fnCombine, fnReset, Option(name))
+    JavascriptAgg(fields.toSeq, fnAggregate, fnCombine, fnReset, Option(name))
 
 }
 
@@ -143,6 +152,16 @@ trait PostAggregationOps {
 
   def hyperUniqueCardinality(dim: Dim): PostAggregationExpression =
     HyperUniqueCardinalityPostAgg(dim.name, dim.outputNameOpt)
+
+  def javascript(name: String,
+                 fields: Iterable[String],
+                 function: String): PostAggregationExpression =
+    JavascriptPostAgg(fields.toSeq, function, Option(name))
+
+  def javascript(name: String, fields: Iterable[Dim], function: String)(
+      implicit classTag: ClassTag[Dim]
+  ): PostAggregationExpression =
+    JavascriptPostAgg(fields.map(_.name).toSeq, function, Option(name))
 }
 
 object AggregationOps         extends AggregationOps
