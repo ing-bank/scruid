@@ -45,7 +45,7 @@ class DruidAdvancedHttpClient private (
     bufferOverflowStrategy: OverflowStrategy,
     queryRetries: Int,
     queryRetryDelay: FiniteDuration,
-    requestFlowExtension: RequestInterceptor
+    requestInterceptor: RequestInterceptor
 )(implicit val system: ActorSystem)
     extends DruidClient
     with DruidResponseHandler {
@@ -165,12 +165,10 @@ class DruidAdvancedHttpClient private (
     val responsePromise = Promise[HttpResponse]()
 
     queue
-      .offer(requestFlowExtension.interceptRequest(request) -> responsePromise)
+      .offer(requestInterceptor.interceptRequest(request) -> responsePromise)
       .flatMap {
         case QueueOfferResult.Enqueued =>
-          requestFlowExtension.interceptResponse(request,
-                                                 responsePromise.future,
-                                                 this.executeRequest)
+          requestInterceptor.interceptResponse(request, responsePromise.future, this.executeRequest)
         case QueueOfferResult.Dropped =>
           Future.failed[HttpResponse](new RuntimeException("Queue overflowed. Try again later."))
         case QueueOfferResult.Failure(ex) =>
@@ -257,17 +255,16 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
                                   ConfigValueFactory.fromMap(settingsMap.asJava))
         )
 
-      val requestFlowExtensionClass = requestInterceptor.map(_.getClass.getName)
-
-      val requestFlowExtensionConfig = requestInterceptor.map(_.exportConfig.root())
+      val requestInterceptorClass  = requestInterceptor.map(_.getClass.getName)
+      val requestInterceptorConfig = requestInterceptor.map(_.exportConfig.root())
 
       val params = Seq(
         Parameters.QueueSize                -> queueSize,
         Parameters.QueueOverflowStrategy    -> queueOverflowStrategy,
         Parameters.QueryRetries             -> queryRetries,
         Parameters.QueryRetryDelay          -> queryRetryDelay,
-        Parameters.RequestInterceptor       -> requestFlowExtensionClass,
-        Parameters.RequestInterceptorConfig -> requestFlowExtensionConfig
+        Parameters.RequestInterceptor       -> requestInterceptorClass,
+        Parameters.RequestInterceptorConfig -> requestInterceptorConfig
       )
 
       params

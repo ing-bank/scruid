@@ -57,7 +57,7 @@ trait RequestInterceptor {
   ): Future[HttpResponse]
 
   /**
-    * Returns the active configuration of this extension.
+    * Returns the active configuration of this interceptor.
     */
   def exportConfig: Config
 }
