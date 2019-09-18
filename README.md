@@ -215,6 +215,10 @@ an advanced one with queue, cached pool connections and a load balancer when mul
 Depending on your use case, it is also possible to create a custom client. For details regarding clients, their
 configuration, as well the creation of a custom one see the [Scruid Clients](docs/scruid_clients.md) documentation.
 
+## Authentication
+
+The Advanced client can be configured to authenticate with the Druid cluster. See the [Scruid Clients](docs/scruid_clients.md) document for more information.
+
 ## Tests
 
 To run the tests, please make sure that you have the Druid instance running:
