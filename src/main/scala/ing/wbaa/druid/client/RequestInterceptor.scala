@@ -41,8 +41,8 @@ trait RequestInterceptor {
     * authentication challenge, reach out to an authentication system such as a token issuer, and then re-transmit the
     * original request to Druid with appropriate authentication headers.
     *
-    * Implementors should be aware that any request sent through the provided `druidEndpoint` will
-    * itself pass through the request flow extension. Be careful not to infinitely recurse.
+    * Implementors should be aware that any request sent through the provided `sendToDruid` function will itself pass
+    * through the request interception hooks. Be careful not to infinitely recurse.
     *
     * @param request the original, outgoing request.
     * @param response the response that came back from the server.

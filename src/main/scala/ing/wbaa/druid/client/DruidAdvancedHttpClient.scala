@@ -317,7 +317,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       clientConfig.getString(Parameters.QueueOverflowStrategy)
     )
 
-    val flowExtension = loadRequestInterceptor(clientConfig)
+    val requestInterceptor = loadRequestInterceptor(clientConfig)
 
     new DruidAdvancedHttpClient(
       connectionFlow,
@@ -328,7 +328,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       bufferOverflowStrategy,
       maxRetries,
       retryDelay,
-      flowExtension
+      requestInterceptor
     )
   }
 
@@ -352,12 +352,12 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
 
   private def loadRequestInterceptor(clientConfig: Config): RequestInterceptor = {
 
-    val flowExtension: Class[_ <: RequestInterceptor] = Class
+    val interceptorType: Class[_ <: RequestInterceptor] = Class
       .forName(clientConfig.getString(Parameters.RequestInterceptor))
       .asInstanceOf[Class[RequestInterceptor]]
 
     val runtimeMirror     = universe.runtimeMirror(getClass.getClassLoader)
-    val module            = runtimeMirror.staticModule(flowExtension.getName)
+    val module            = runtimeMirror.staticModule(interceptorType.getName)
     val obj               = runtimeMirror.reflectModule(module)
     val clientConstructor = obj.instance.asInstanceOf[RequestInterceptorBuilder]
 
