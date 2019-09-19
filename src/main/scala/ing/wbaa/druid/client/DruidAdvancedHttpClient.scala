@@ -28,8 +28,9 @@ import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.stream._
 import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
-import ing.wbaa.druid.{ DruidConfig, DruidQuery, DruidResponse, DruidResult, QueryHost, QueryType }
+import ing.wbaa.druid.{ DruidConfig, DruidQuery, DruidResponse, DruidResult, QueryHost }
 import akka.pattern.retry
+import scala.reflect.runtime.universe
 
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
@@ -43,7 +44,8 @@ class DruidAdvancedHttpClient private (
     bufferSize: Int,
     bufferOverflowStrategy: OverflowStrategy,
     queryRetries: Int,
-    queryRetryDelay: FiniteDuration
+    queryRetryDelay: FiniteDuration,
+    requestInterceptor: RequestInterceptor
 )(implicit val system: ActorSystem)
     extends DruidClient
     with DruidResponseHandler {
@@ -107,7 +109,14 @@ class DruidAdvancedHttpClient private (
       .flatMap { entity =>
         val request =
           HttpRequest(HttpMethods.POST, url).withEntity(entity.withContentType(`application/json`))
-        retry(() => executeRequest(query.queryType, request), queryRetries, queryRetryDelay)
+        retry(
+          () =>
+            executeRequest(request).flatMap { response =>
+              handleResponse(response, query.queryType, responseParsingTimeout)
+          },
+          queryRetries,
+          queryRetryDelay
+        )
       }
 
   override def doQueryAsStream(
@@ -144,12 +153,11 @@ class DruidAdvancedHttpClient private (
   /**
     * Adds the specified HttpRequest to the queue in order to be executed to some Druid host
     *
-    * @param queryType the type of the Druid Query
     * @param request the Http request for Druid
     *
     * @return a future with the corresponding Http response from Druid
     */
-  private def executeRequest(queryType: QueryType, request: HttpRequest): Future[DruidResponse] = {
+  private def executeRequest(request: HttpRequest): Future[HttpResponse] = {
     logger.debug(
       s"Executing api ${request.method} request to ${request.uri} with entity: ${request.entity}"
     )
@@ -157,18 +165,16 @@ class DruidAdvancedHttpClient private (
     val responsePromise = Promise[HttpResponse]()
 
     queue
-      .offer(request -> responsePromise)
+      .offer(requestInterceptor.interceptRequest(request) -> responsePromise)
       .flatMap {
         case QueueOfferResult.Enqueued =>
-          responsePromise.future.flatMap { response =>
-            handleResponse(response, queryType, responseParsingTimeout)
-          }
+          requestInterceptor.interceptResponse(request, responsePromise.future, this.executeRequest)
         case QueueOfferResult.Dropped =>
-          Future.failed[DruidResponse](new RuntimeException("Queue overflowed. Try again later."))
+          Future.failed[HttpResponse](new RuntimeException("Queue overflowed. Try again later."))
         case QueueOfferResult.Failure(ex) =>
-          Future.failed[DruidResponse](ex)
+          Future.failed[HttpResponse](ex)
         case QueueOfferResult.QueueClosed =>
-          Future.failed[DruidResponse](
+          Future.failed[HttpResponse](
             new RuntimeException(
               "Queue was closed (pool shut down) while running the request. Try again later."
             )
@@ -197,6 +203,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     final val QueryRetries               = "query-retries"
     final val QueryRetryDelay            = "query-retry-delay"
     final val AkkaHttpHostConnectionPool = "akka.http.host-connection-pool"
+    final val RequestInterceptor         = "request-interceptor"
+    final val RequestInterceptorConfig   = "request-interceptor-config"
   }
 
   class ConfigBuilder {
@@ -206,6 +214,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     private var queryRetries: Option[Int]                             = None
     private var queryRetryDelay: Option[java.time.Duration]           = None
     private var hostConnectionPoolParams: Option[Map[String, String]] = None
+    private var requestInterceptor: Option[RequestInterceptor]        = None
 
     def withQueueSize(v: Int): this.type = {
       queueSize = Option(v)
@@ -231,6 +240,11 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       this
     }
 
+    def withRequestInterceptor(v: RequestInterceptor): this.type = {
+      requestInterceptor = Option(v)
+      this
+    }
+
     def build(): Config = {
       import scala.collection.JavaConverters._
 
@@ -241,11 +255,16 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
                                   ConfigValueFactory.fromMap(settingsMap.asJava))
         )
 
+      val requestInterceptorClass  = requestInterceptor.map(_.getClass.getName)
+      val requestInterceptorConfig = requestInterceptor.map(_.exportConfig.root())
+
       val params = Seq(
-        Parameters.QueueSize             -> queueSize,
-        Parameters.QueueOverflowStrategy -> queueOverflowStrategy,
-        Parameters.QueryRetries          -> queryRetries,
-        Parameters.QueryRetryDelay       -> queryRetryDelay
+        Parameters.QueueSize                -> queueSize,
+        Parameters.QueueOverflowStrategy    -> queueOverflowStrategy,
+        Parameters.QueryRetries             -> queryRetries,
+        Parameters.QueryRetryDelay          -> queryRetryDelay,
+        Parameters.RequestInterceptor       -> requestInterceptorClass,
+        Parameters.RequestInterceptorConfig -> requestInterceptorConfig
       )
 
       params
@@ -298,14 +317,19 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       clientConfig.getString(Parameters.QueueOverflowStrategy)
     )
 
-    new DruidAdvancedHttpClient(connectionFlow,
-                                brokerFlows,
-                                druidConfig.responseParsingTimeout,
-                                druidConfig.url,
-                                bufferSize,
-                                bufferOverflowStrategy,
-                                maxRetries,
-                                retryDelay)
+    val requestInterceptor = loadRequestInterceptor(clientConfig)
+
+    new DruidAdvancedHttpClient(
+      connectionFlow,
+      brokerFlows,
+      druidConfig.responseParsingTimeout,
+      druidConfig.url,
+      bufferSize,
+      bufferOverflowStrategy,
+      maxRetries,
+      retryDelay,
+      requestInterceptor
+    )
   }
 
   /**
@@ -324,6 +348,24 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     Try(clientConfig.getConfig(Parameters.ConnectionPoolSettings))
       .map(conf => conf.atPath("akka.http.host-connection-pool").withFallback(akkaConf))
       .getOrElse(akkaConf)
+  }
+
+  private def loadRequestInterceptor(clientConfig: Config): RequestInterceptor = {
+
+    val interceptorType: Class[_ <: RequestInterceptor] = Class
+      .forName(clientConfig.getString(Parameters.RequestInterceptor))
+      .asInstanceOf[Class[RequestInterceptor]]
+
+    val runtimeMirror     = universe.runtimeMirror(getClass.getClassLoader)
+    val module            = runtimeMirror.staticModule(interceptorType.getName)
+    val obj               = runtimeMirror.reflectModule(module)
+    val clientConstructor = obj.instance.asInstanceOf[RequestInterceptorBuilder]
+
+    val configuration =
+      Option(clientConfig.getConfig(Parameters.RequestInterceptorConfig))
+        .getOrElse(ConfigFactory.empty())
+
+    clientConstructor(configuration)
   }
 
   /**

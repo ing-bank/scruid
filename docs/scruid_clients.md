@@ -17,6 +17,8 @@ Scruid provides the following two implementations of HTTP Clients:
    creates a separate cached connection-pool per Broker and adds a [Balancer](https://doc.akka.io/api/akka/2.5.23/akka/stream/scaladsl/Balance.html) 
    in front of them.
 
+   4. Supports authentication by means of the `RequestInterceptor` system. At present, only HTTP Basic authentication is implemented.
+
 ## Configuration of DruidAdvancedHttpClient
 
 To enable `DruidAdvancedHttpClient` you should specify as a `client-backend` following class name in the configuration:
@@ -45,6 +47,13 @@ client-config = {
          max-open-requests = 128
          max-connection-lifetime = 15 min
      }
+
+     request-interceptor = "ing.wbaa.druid.auth.basic.BasicAuthenticationExtension"
+
+     request-interceptor-config = {
+         username = "scruid-user"
+         password = "${SCRUID_PASSWORD}"
+     }
  }
 
 }
@@ -59,6 +68,8 @@ A description of the configuration parameters is given below:
   - `query-retry-delay`: the duration to wait before retrying a failed query
   - `host-connection-pool`: contains any Akka Http [Host Connection Pool settings](https://doc.akka.io/docs/akka-http/current/client-side/host-level.html#configuring-a-host-connection-pool) 
   to override for the host connection pools
+  - `request-interceptor`: contains the fully-qualified name of an object that implements the `RequestInterceptorBuilder` trait.
+  - `request-interceptor-config`: this configuration object is passed as-is to the specified `request-interceptor` builder.
 
 ### Programmatically override DruidAdvancedHttpClient configuration
 

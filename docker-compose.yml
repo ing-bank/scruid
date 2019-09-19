@@ -1,7 +1,7 @@
 version: "2.0"
 
 services:
-  
+
   scruid_druid:
     image: fokkodriesprong/docker-druid
     container_name: scruid_druid
@@ -39,10 +39,11 @@ services:
   slow_response:
     build:
       context: docker/openresty
-    container_name: slow_response
+    container_name: openresty
     depends_on:
       - scruid_druid
     links:
       - scruid_druid
     ports:
-      - "8087:8080"
+      - "8087:8080" # Slow response
+      - "8088:8081" # Basic authentication

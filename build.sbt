@@ -64,7 +64,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "2.2.1-SNAPSHOT",
+    version := "2.3.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       "com.typesafe"      % "config"             % "1.3.3",
       "io.circe"          %% "circe-core"        % circeVersion,
@@ -77,9 +77,9 @@ lazy val root = (project in file("."))
       "org.mdedetrich"    %% "akka-http-circe"   % mdedetrichVersion,
       "com.typesafe.akka" %% "akka-http"         % "10.1.5",
       "ca.mrvisser"       %% "sealerate"         % "0.0.5",
-      "ch.qos.logback"    % "logback-classic"    % "1.2.3",
+      "ch.qos.logback"    % "logback-classic"    % "1.2.3" % Provided,
       "org.scalactic"     %% "scalactic"         % "3.0.5",
-      "org.scalatest"     %% "scalatest"         % "3.0.5" % "test"
+      "org.scalatest"     %% "scalatest"         % "3.0.5" % Test
     ),
     resolvers += Resolver.sonatypeRepo("releases")
   )
