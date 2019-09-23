@@ -38,6 +38,9 @@ object DSL
     */
   implicit def symbolToDim(s: Symbol): Dim = new Dim(s.name)
 
+  implicit def symbolsToDims[T <: Iterable[Symbol]](iterable: T): Iterable[Dim] =
+    iterable.map(s => new Dim(s.name))
+
   implicit class StringToDim(val sc: StringContext) extends AnyVal {
 
     /**
