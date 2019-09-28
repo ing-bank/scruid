@@ -3,7 +3,7 @@ version: "2.0"
 services:
 
   scruid_druid:
-    image: fokkodriesprong/docker-druid:latest
+    image: fokkodriesprong/docker-druid:version-0.15.1
     container_name: scruid_druid
     ports:
       - "8081:8081"
