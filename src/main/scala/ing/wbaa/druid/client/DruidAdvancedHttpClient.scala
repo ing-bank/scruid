@@ -246,7 +246,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     }
 
     def build(): Config = {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
 
       val initialConfig = hostConnectionPoolParams
         .foldLeft(ConfigFactory.empty().root())(
@@ -403,13 +403,13 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
   private def balancer(
       brokers: Map[QueryHost, Flow[ConnectionIn, ConnectionOut, Any]]
   ): ConnectionFlow =
-    Flow.fromGraph(GraphDSL.create() { implicit b ⇒
+    Flow.fromGraph(GraphDSL.create() { implicit b =>
       import GraphDSL.Implicits._
 
       val balancer = b.add(Balance[ConnectionIn](outputPorts = brokers.size))
       val merge    = b.add(Merge[ConnectionOut](inputPorts = brokers.size))
 
-      brokers.values.foreach { brokerConnectionFlow ⇒
+      brokers.values.foreach { brokerConnectionFlow =>
         balancer ~> brokerConnectionFlow ~> merge
       }
       FlowShape(balancer.in, merge.out)
@@ -440,7 +440,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     val parallelism                      = settings.pipeliningLimit * settings.maxConnections
     val log: LoggingAdapter              = system.log
 
-    brokers.map { queryHost ⇒
+    brokers.map { queryHost =>
       val flow = Flow[ConnectionIn]
         .log("scruid-load-balancer", _ => s"Sending query to ${queryHost.host}:${queryHost.port}")
         .via {

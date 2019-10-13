@@ -5,7 +5,7 @@ jobs:
     working_directory: ~/scruid
 
     environment:
-      _JAVA_OPTIONS: -Xms512m -Xmx2g
+      _JAVA_OPTIONS: -Xms512m -Xmx4g
       TERM: dumb
 
     steps:
@@ -15,7 +15,9 @@ jobs:
       - restore_cache:
           key: ivy2-{{ checksum "/tmp/build.sbt" }}
       - run: wget localhost:8082/status
-      - run: sbt +compile
+      - run: sbt ++2.11.12 compile
+      - run: sbt ++2.12.9 compile
+      - run: sbt ++2.13.1 compile
       - run: sbt coverage test coverageReport
       - run: docker-compose down
       - store_artifacts:

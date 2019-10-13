@@ -85,7 +85,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
       val query: GroupByQuery = DQL
         .interval("2011-06-01/2017-06-01")
         .agg(count as "count")
-        .groupBy('isAnonymous)
+        .groupBy(d"isAnonymous")
         .build()
 
       val request = query.execute()
@@ -99,7 +99,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
       val query = DQL
         .interval("2011-06-01/2017-06-01")
         .agg(count as "count")
-        .groupBy('isAnonymous)
+        .groupBy(d"isAnonymous")
         .granularity(GranularityType.Hour)
         .build()
 
@@ -118,7 +118,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
       val query = DQL
         .agg(count as "count")
         .interval("2011-06-01/2017-06-01")
-        .topN(dimension = 'countryName, metric = "count", threshold = topNLimit)
+        .topN(dimension = d"countryName", metric = "count", threshold = topNLimit)
         .build()
 
       val request = query.execute()
@@ -141,8 +141,8 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
       val query = DQL
         .agg(count as "count")
         .interval("2011-06-01/2017-06-01")
-        .topN(dimension = 'countryName, metric = "count", threshold = 5)
-        .where('countryName === "United States" or 'countryName === "Italy")
+        .topN(dimension = d"countryName", metric = "count", threshold = 5)
+        .where(d"countryName" === "United States" or d"countryName" === "Italy")
         .build()
 
       val request = query.execute()
@@ -160,12 +160,12 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     "successfully be interpreted by Druid" in {
 
       val query = DQL
-        .agg('count.count as "count")
+        .agg(d"count".count as "count")
         .agg(
-          'channel.inFiltered('count.count, "#en.wikipedia", "#de.wikipedia") as "filteredCount"
+          d"channel".inFiltered(d"count".count, "#en.wikipedia", "#de.wikipedia") as "filteredCount"
         )
         .interval("2011-06-01/2017-06-01")
-        .topN(dimension = 'isAnonymous, metric = "count", threshold = 5)
+        .topN(dimension = d"isAnonymous", metric = "count", threshold = 5)
         .build()
 
       val request = query.execute()
@@ -187,11 +187,11 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     "successfully be interpreted by Druid" in {
 
       val query = DQL
-        .topN('isAnonymous, metric = "count", threshold = 5)
-        .agg('count.count as "count")
+        .topN(d"isAnonymous", metric = "count", threshold = 5)
+        .agg(d"count".count as "count")
         .agg(
-          'channel.selectorFiltered(
-            aggregator = 'count.count,
+          d"channel".selectorFiltered(
+            aggregator = d"count".count,
             value = "#en.wikipedia"
           ) as "filteredCount"
         )
@@ -220,7 +220,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
       val expectedValue = 1148.0
 
       val query = DQL
-        .agg(cardinality("cardinalityValue", 'countryName, 'cityName).setRound(true))
+        .agg(cardinality("cardinalityValue", d"countryName", d"cityName").setRound(true))
         .interval("2011-06-01/2017-06-01")
         .build()
 
@@ -238,7 +238,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
       val query = DQL
         .agg(
-          cardinality("cardinalityValue", 'countryName, 'cityName)
+          cardinality("cardinalityValue", d"countryName", d"cityName")
             .set(byRow = true, round = true)
         )
         .interval("2011-06-01/2017-06-01")
@@ -260,8 +260,8 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
         .agg(
           cardinality(
             "cardinalityValue",
-            'countryName,
-            'cityName.extract(SubstringExtractionFn(0, Some(1))).as("city_first_char")
+            d"countryName",
+            d"cityName".extract(SubstringExtractionFn(0, Some(1))).as("city_first_char")
           ).set(byRow = true, round = true)
         )
         .interval("2011-06-01/2017-06-01")
@@ -280,9 +280,9 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     "successfully be interpreted by Druid" in {
 
       val query: TopNQuery = DQL
-        .topN('isAnonymous, metric = "count", threshold = 5)
+        .topN(d"isAnonymous", metric = "count", threshold = 5)
         .agg(count)
-        .postAgg(('count / 2) as "halfCount")
+        .postAgg((d"count" / 2) as "halfCount")
         .interval("2011-06-01/2017-06-01")
         .build()
 
@@ -305,9 +305,9 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     "successfully be interpreted by Druid" in {
 
       val query: TopNQuery = DQL
-        .topN('isAnonymous, metric = "count", threshold = 5)
+        .topN(d"isAnonymous", metric = "count", threshold = 5)
         .agg(count)
-        .postAgg(javascript("halfCount", Seq('count), "function(count){ return count/2; }"))
+        .postAgg(javascript("halfCount", Seq(d"count"), "function(count){ return count/2; }"))
         .interval("2011-06-01/2017-06-01")
         .build()
 
@@ -389,7 +389,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
         .agg(
           javascript(
             name = "value",
-            fields = Seq('cityName, 'countryIsoCode),
+            fields = Seq(d"cityName", d"countryIsoCode"),
             fnAggregate =
               """
                 |function(current, countryIsoCode, cityName) {

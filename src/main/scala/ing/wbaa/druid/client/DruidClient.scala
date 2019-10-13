@@ -23,7 +23,6 @@ import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, StatusCodes }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import ing.wbaa.druid._
-import io.circe.java8.time._
 import org.mdedetrich.akka.http.support.CirceHttpSupport
 import org.slf4j.{ Logger, LoggerFactory }
 import io.circe.parser.decode
@@ -34,7 +33,7 @@ import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{ Failure, Success, Try }
 
-trait DruidClient extends CirceHttpSupport with JavaTimeDecoders {
+trait DruidClient extends CirceHttpSupport with CirceDecoders {
 
   protected val logger: Logger = LoggerFactory.getLogger(getClass)
 

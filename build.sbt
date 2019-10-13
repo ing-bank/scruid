@@ -14,9 +14,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-scalacOptions ++= Seq("-Xmax-classfile-name", "78")
 
-lazy val unusedWarnings = Seq("-Ywarn-unused-import", "-Ywarn-unused")
+val circeForScala211Version = "0.11.1" // Only for Scala v2.11
+val circeLatestVersion      = "0.12.1" // for Scala v2.12+
+val mdedetrichVersion       = "0.4.0"
+val scalacticVersion        = "3.0.8"
+val scalatestVersion        = "3.0.8"
+val typesafeConfigVersion   = "1.3.3"
+val akkaHttpVersion         = "10.1.9"
+val sealerateVersion        = "0.0.6"
+val logbackVersion          = "1.2.3"
+val collectionCompatVersion = "2.1.2"
+
+def scalaVersionSpecificDependencies(scalaVer: String): Seq[ModuleID] = {
+
+  val circeScalaSpecificVersion =
+    if (scalaVer.startsWith("2.11")) circeForScala211Version
+    else circeLatestVersion
+
+  val circeCommonArtifacts = Seq(
+    "io.circe" %% "circe-core"    % circeScalaSpecificVersion,
+    "io.circe" %% "circe-parser"  % circeScalaSpecificVersion,
+    "io.circe" %% "circe-generic" % circeScalaSpecificVersion
+  )
+
+  val circeScalaSpecificArtifacts =
+    CrossVersion.partialVersion(scalaVer) match {
+      case Some((2, 11)) => Seq("io.circe" %% "circe-java8" % circeScalaSpecificVersion)
+      case _             => Seq.empty
+    }
+
+  circeCommonArtifacts ++ circeScalaSpecificArtifacts
+}
+
+def unusedWarnings(scalaVer: String): Seq[String] = {
+  val commonWarnings = Seq("-Ywarn-unused")
+
+  val scalacSpecificWarnings =
+    CrossVersion.partialVersion(scalaVer) match {
+      case Some((2, v)) if v >= 13 => Seq("-Ywarn-unused:imports")
+      case _                       => Seq("-Ywarn-unused-import")
+    }
+
+  commonWarnings ++ scalacSpecificWarnings
+}
 
 lazy val commonSettings: Seq[Setting[_]] = Seq(
   bintrayOrganization := Some("ing-bank"),
@@ -43,43 +84,34 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
       s"git@github.com:${bintrayOrganization.value.get}/${name.value}.git"
     )
   ),
-  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.8"),
-  scalaVersion in ThisBuild := "2.12.8",
+  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.9", "2.13.1"),
+  scalaVersion in ThisBuild := "2.12.9",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
-  scalacOptions ++= PartialFunction
-    .condOpt(CrossVersion.partialVersion(scalaVersion.value)) {
-      case Some((2, v)) if v >= 11 => unusedWarnings
-    }
-    .toList
-    .flatten,
+  scalacOptions ++= unusedWarnings(scalaVersion.value),
   publishArtifact in Test := false,
   Test / parallelExecution := false
-) ++ Seq(Compile, Test).flatMap(c => scalacOptions in (c, console) --= unusedWarnings)
-
-val circeVersion = "0.11.1"
-
-val mdedetrichVersion = "0.3.0"
+) ++ Seq(Compile, Test).flatMap(
+  c => scalacOptions in (c, console) --= unusedWarnings(scalaVersion.value)
+)
 
 lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
     version := "2.3.0-SNAPSHOT",
+    resolvers += Resolver.sonatypeRepo("releases"),
     libraryDependencies ++= Seq(
-      "com.typesafe"      % "config"             % "1.3.3",
-      "io.circe"          %% "circe-core"        % circeVersion,
-      "io.circe"          %% "circe-parser"      % circeVersion,
-      "io.circe"          %% "circe-generic"     % circeVersion,
-      "io.circe"          %% "circe-java8"       % circeVersion,
-      "org.mdedetrich"    %% "akka-stream-json"  % mdedetrichVersion,
-      "org.mdedetrich"    %% "akka-http-json"    % mdedetrichVersion,
-      "org.mdedetrich"    %% "akka-stream-circe" % mdedetrichVersion,
-      "org.mdedetrich"    %% "akka-http-circe"   % mdedetrichVersion,
-      "com.typesafe.akka" %% "akka-http"         % "10.1.5",
-      "ca.mrvisser"       %% "sealerate"         % "0.0.5",
-      "ch.qos.logback"    % "logback-classic"    % "1.2.3" % Provided,
-      "org.scalactic"     %% "scalactic"         % "3.0.5",
-      "org.scalatest"     %% "scalatest"         % "3.0.5" % Test
-    ),
-    resolvers += Resolver.sonatypeRepo("releases")
+      "com.typesafe"           % "config"                   % typesafeConfigVersion,
+      "org.mdedetrich"         %% "akka-stream-json"        % mdedetrichVersion,
+      "org.mdedetrich"         %% "akka-http-json"          % mdedetrichVersion,
+      "org.mdedetrich"         %% "akka-stream-circe"       % mdedetrichVersion,
+      "org.mdedetrich"         %% "akka-http-circe"         % mdedetrichVersion,
+      "com.typesafe.akka"      %% "akka-http"               % akkaHttpVersion,
+      "ca.mrvisser"            %% "sealerate"               % sealerateVersion,
+      "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatVersion,
+      "ch.qos.logback"         % "logback-classic"          % logbackVersion % Provided,
+      "org.scalactic"          %% "scalactic"               % scalacticVersion,
+      "org.scalatest"          %% "scalatest"               % scalatestVersion % Test
+    )
   )
+  .settings(libraryDependencies ++= scalaVersionSpecificDependencies(scalaVersion.value))

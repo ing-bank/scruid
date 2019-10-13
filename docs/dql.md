@@ -24,9 +24,9 @@ val query = DQL
   .from("wikiticker")
   .granularity(GranularityType.Hour)
   .interval("2011-06-01/2017-06-01")
-  .where('countryName === "Italy" or 'countryName === "Greece")
+  .where(d"countryName" === "Italy" or d"countryName" === "Greece")
   .agg(count as "agg_count")
-  .postAgg(('agg_count / 2) as "halfCount")
+  .postAgg((d"agg_count" / 2) as "halfCount")
   //...
 ```
 
@@ -91,9 +91,9 @@ The equivalent fragment of a Druid query expressed in JSON is given below:
 }
 ```
 
-Dimensions can be represented using Scala symbols, e.g., \`countryName, or by using function `dim`,
-e.g., `dim("countryName")` or as a String prefix function symbol `d`, e.g., `d"countryName"`. In the latter case
-it is possible to pass a string with variables in order to perform string interpolation, for example:
+Dimensions can be represented using String prefix function symbol `d`, e.g., `d"countryName"`, or by using the function 
+`dim` or with Scala symbols, e.g., \`countryName (deprecated for Scala 2.13+). In the first case it is possible to pass 
+a string with variables in order to perform string interpolation, for example:
 
 ```
 val prefix = "country"
@@ -110,19 +110,19 @@ In `where` function you can define the following operators to filter the rows of
 
 | Example                                    | Description                                                             |
 |--------------------------------------------|-------------------------------------------------------------------------|
-| `'countryName === "Greece"`                | the value of dimension `countryName` equals to "Greece"                 |
-| `'dim === 10`                              | the value of dimension `dim` equals to 10                               |
-| `'dim === 10.1`                            | the value of dimension `dim` equals to 10.1                             |
-| `'dim1 === 'dim2`                          | the values of dimensions `'dim1` and `'dim2` are equal                  |
+| `d"countryName" === "Greece"`                | the value of dimension `countryName` equals to "Greece"                 |
+| `d"dim" === 10`                              | the value of dimension `dim` equals to 10                               |
+| `d"dim" === 10.1`                            | the value of dimension `dim` equals to 10.1                             |
+| `d"dim1" === d"dim2"`                          | the values of dimensions `dim1` and `dim2` are equal                  |
 
 #### Not equals
 
 | Example                                    | Description                                                             |
 |--------------------------------------------|-------------------------------------------------------------------------|
-| `'countryName =!= "Greece"`                | the value of dimension `countryName` not equals to "Greece"             |
-| `'dim =!= 10`                              | the value of dimension `dim` not equals to 10                           |
-| `'dim =!= 10.1`                            | the value of dimension `dim` not equals to 10.1                         |
-| `'dim1 =!= 'dim2`                          | the values of dimensions`'dim1` and `'dim2` are not equal               |
+| `d"countryName" =!= "Greece"`                | the value of dimension `countryName` not equals to "Greece"             |
+| `d"dim" =!= 10`                              | the value of dimension `dim` not equals to 10                           |
+| `d"dim" =!= 10.1`                            | the value of dimension `dim` not equals to 10.1                         |
+| `d"dim1" =!= d"dim2"`                          | the values of dimensions`dim1` and `dim2` are not equal               |
 
 
 #### Regular expression
@@ -131,7 +131,7 @@ It matches the specified dimension with the given pattern. The pattern can be an
 For example, match a floating point number from a string:
 
 ```scala
-'dim regex "\\d+(\\.\\d+)"
+d"dim" regex "\\d+(\\.\\d+)"
 ```
 
 #### Like
@@ -140,7 +140,7 @@ Like operators can be used for basic wildcard searches. They are equivalent to t
 match all last names that start with character 'S'.
 
 ```scala
-'lastName like "S%"
+d"lastName" like "S%"
 ```
 
 #### Search
@@ -148,19 +148,19 @@ match all last names that start with character 'S'.
 Search operators can be used to filter on partial string matches. For example, for case sensitive search (default):
 
 ```scala
-'dim contains "some string"
+d"dim" contains "some string"
 
 // which is equivalent to:
-'dim contains("some string", caseSensitive = true)
+d"dim" contains("some string", caseSensitive = true)
 ```
 
 Similarly, to ignore case sensitivity in search:
 
 ```scala
-'dim containsIgnoreCase "some string"
+d"dim" containsIgnoreCase "some string"
 
 // which is equivalent to:
-'dim contains("some string", caseSensitive = false)
+d"dim" contains("some string", caseSensitive = false)
 ```
 
 #### In
@@ -169,13 +169,13 @@ To express the `SQL IN` operator, in order to match the value of a dimension int
 In the example below, the dimension `outlaw` matches to any of 'Good', 'Bad' or 'Ugly' values:
 
 ```scala
-'outlaw in ("Good", "Bad", "Ugly")
+d"outlaw" in ("Good", "Bad", "Ugly")
 ```
 
 We can easily express a negation of the `in` operator, by directly using the `notIn` operator.
 
 ```scala
-'outlaw notIn ("Good", "Bad", "Ugly")
+d"outlaw" notIn ("Good", "Bad", "Ugly")
 ```
 
 #### Bound
@@ -187,56 +187,56 @@ greater than, less than, greater than or equal to, less than or equal to, and "b
 When numbers are given to bound operators, then the ordering is numeric:
 
 ```scala
-'dim > 10
-'dim >= 10.0
-'dim < 1.1
-'dim <= 1
+d"dim" > 10
+d"dim" >= 10.0
+d"dim" < 1.1
+d"dim" <= 1
 
 // 0.0 < dim < 10.0
-'dim between(0.0, 10.0)
+d"dim" between(0.0, 10.0)
 
 // 0.0 <= dim <= 10.0
-'dim between(0.0, 10.0, lowerStrict = false, upperStrict = false)
+d"dim" between(0.0, 10.0, lowerStrict = false, upperStrict = false)
 
 // 0.0 <= dim < 10.0
-'dim between(0.0, 10.0, lowerStrict = false, upperStrict = true)
+d"dim" between(0.0, 10.0, lowerStrict = false, upperStrict = true)
 ```
 
 When strings are given to bound operators, then the ordering is lexicographic:
 
 ```scala
-'dim > "10"
-'dim >= "10.0"
-'dim < "1.1"
-'dim <= "1"
+d"dim" > "10"
+d"dim" >= "10.0"
+d"dim" < "1.1"
+d"dim" <= "1"
 
 // "0.0" < dim < "10.0"
-'dim between("0.0", "10.0")
+d"dim" between("0.0", "10.0")
 
 // "0.0" <= dim <= "10.0"
-'dim between("0.0", "10.0", lowerStrict = false, upperStrict = false)
+d"dim" between("0.0", "10.0", lowerStrict = false, upperStrict = false)
 
 // "0.0" <= dim < "10.0"
-'dim between("0.0", "10.0", lowerStrict = false, upperStrict = true)
+d"dim" between("0.0", "10.0", lowerStrict = false, upperStrict = true)
 ```
 
 Furthermore, you can specify any other ordering (e.g. Alphanumeric) or define some extraction function:
 
 ```
-'dim > "10" withOrdering(DimensionOrderType.Alphanumeric)
+d"dim" > "10" withOrdering(DimensionOrderType.Alphanumeric)
 
 // "0.0" < dim < "10.0"
-'dim between("0.0", "10.0") withOrdering(DimensionOrderType.Alphanumeric)
+d"dim" between("0.0", "10.0") withOrdering(DimensionOrderType.Alphanumeric)
 ```
 
 ```scala
-'dim > "10" withOrdering(DimensionOrderType.Alphanumeric)
+d"dim" > "10" withOrdering(DimensionOrderType.Alphanumeric)
 
 // "0.0" < dim < "10.0"
-'dim between("0.0", "10.0") withOrdering(DimensionOrderType.Alphanumeric)
+d"dim" between("0.0", "10.0") withOrdering(DimensionOrderType.Alphanumeric)
 
 // apply some extraction function
-'dim > "10" withExtractionFn(<some ExtractionFn>)
+d"dim" > "10" withExtractionFn(<some ExtractionFn>)
 ```
 
 #### Interval
@@ -245,13 +245,13 @@ Interval operator performs range filtering on dimensions that contain long milli
 with the boundaries specified as ISO 8601 time intervals.
 
 ```scala
-'dim interval "2011-06-01/2012-06-01"
+d"dim" interval "2011-06-01/2012-06-01"
 
-'dim intervals("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
+d"dim" intervals("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
 
-'__time interval "2011-06-01/2012-06-01"
+d"__time" interval "2011-06-01/2012-06-01"
 
-'__time intervals("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
+d"__time" intervals("2011-06-01/2012-06-01", "2012-06-01/2013-06-01", ...)
 ```
 
 #### Logical operators
@@ -261,13 +261,13 @@ with the boundaries specified as ISO 8601 time intervals.
 To define a logical `AND` between other operators you can use the operator `and`, for example:
 
 ```scala
-('dim1 === 10) and ('dim2 interval "2011-06-01/2012-06-01") and ('dim3 === "foo")
+(d"dim1" === 10) and (d"dim2" interval "2011-06-01/2012-06-01") and (d"dim3" === "foo")
 ```
 
 Alternatively, you can use the function `conjunction`, as follows:
 
 ```scala
-conjunction('dim1 === 10, 'dim2 interval "2011-06-01/2012-06-01", 'dim3 === "foo")
+conjunction(d"dim1" === 10, d"dim2" interval "2011-06-01/2012-06-01", d"dim3" === "foo")
 ```
 
 ###### OR
@@ -275,13 +275,13 @@ conjunction('dim1 === 10, 'dim2 interval "2011-06-01/2012-06-01", 'dim3 === "foo
 To define a logical `OR` between other operators you can use the operator `or`, for example:
 
 ```scala
-('dim1 === 10) or ('dim2 interval "2011-06-01/2012-06-01") or ('dim3 === "foo")
+(d"dim1" === 10) or (d"dim2" interval "2011-06-01/2012-06-01") or (d"dim3" === "foo")
 ```
 
 Alternatively, you can use the function `disjunction`, as follows:
 
 ```scala
-disjunction('dim1 === 10, 'dim2 interval "2011-06-01/2012-06-01", 'dim3 === "foo")
+disjunction(d"dim1" === 10, d"dim2" interval "2011-06-01/2012-06-01", d"dim3" === "foo")
 ```
 
 ###### NOT
@@ -289,7 +289,7 @@ disjunction('dim1 === 10, 'dim2 interval "2011-06-01/2012-06-01", 'dim3 === "foo
 To define a negation of an operator, you can use the operator `not`:
 
 ```scala
-not('dim1 between (10, 100))
+not(d"dim1" between (10, 100))
 ```
 
 #### Operators for geographic queries
@@ -304,7 +304,7 @@ Assume, for example, that the dimension named as `geodim` is spatially indexed i
 You can perform a geographic query by specifying the minimum and maximum coordinates as below: 
 
 ```scala
-'geodim within (minCoords = Seq(37.970540, 23.724153), maxCoords = Seq(37.972166, 23.727828))
+d"geodim" within (minCoords = Seq(37.970540, 23.724153), maxCoords = Seq(37.972166, 23.727828))
 ```
 
 Alternatively, you can filter spatially indexed columns by specifying the origin coordinates and a distance either
@@ -312,7 +312,7 @@ in kilometers, miles or directly in degrees:
 ```scala
 import ing.wbaa.druid.dql.expressions.Distance.DistanceUnit
 
-'geodim within (coords = Seq(37.971515, 23.726717), distance = 4.0, unit = DistanceUnit.KM)
+d"geodim" within (coords = Seq(37.971515, 23.726717), distance = 4.0, unit = DistanceUnit.KM)
 ```
 
 ## Aggregations
@@ -361,10 +361,10 @@ count as "some_count" // uses the name "some_count"
 
 ```scala
 // can be defined over some dimension
-'dim_name.longSum as "agg_sum"
+d"dim_name".longSum as "agg_sum"
 
 // or as function
-doubleSum('dim_name) as "agg_sum"
+doubleSum(d"dim_name") as "agg_sum"
 ```
 
 #### Min / Max aggregators
@@ -374,10 +374,10 @@ or Double.POSITIVE_INFINITY, respectively.
 
 ```scala
 // can be defined over some dimension
-'dim_name.longMin as "agg_min"
+d"dim_name".longMin as "agg_min"
 
 // or as function
-doubleMin('dim_name) as "agg_min"
+doubleMin(d"dim_name") as "agg_min"
 ```
 
 Similarly, `longMax` and `doubleMax` computes the maximum of all metric values and Long.MIN_VALUE
@@ -391,10 +391,10 @@ or Double.NEGATIVE_INFINITY, respectively.
 
 ```scala
 // can be defined over some dimension
-'dim_name.longFirst as "agg_first"
+d"dim_name".longFirst as "agg_first"
 
 // or as function
-doubleLast('dim_name) as "agg_last"
+doubleLast(d"dim_name") as "agg_last"
 ```
 
 #### Approximate Aggregations
@@ -403,16 +403,16 @@ DQL supports `thetaSketch`, `hyperUnique` and `cardinality` approximate aggregat
 
 ```scala
 // can be defined over some dimension
-'dim_name.thetaSketch as "agg_theta"
+d"dim_name".thetaSketch as "agg_theta"
 
 // or as function
-hyperUnique('dim_name) as "agg_hyper_unique"
+hyperUnique(d"dim_name") as "agg_hyper_unique"
 
 // can also set additional parameters
 
-thetaSketch('dim_name).set(isInputThetaSketch = true, size = 32768) as "agg_theta"
+thetaSketch(d"dim_name").set(isInputThetaSketch = true, size = 32768) as "agg_theta"
 
-'dim_name.hyperUnique.set(isInputHyperUnique = true, isRound = true) as "agg_hyper_unique"
+d"dim_name".hyperUnique.set(isInputHyperUnique = true, isRound = true) as "agg_hyper_unique"
 ```
 
 Cardinality aggregator computes the cardinality of a set of dimensions, using HyperLogLog to estimate the cardinality.
@@ -423,31 +423,31 @@ By default, cardinality is computed by value.
 
 ```scala
 // Compute the cardinality by value for dimensions dim_name_one, dim_name_two and dim_name_three
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three)
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three")
 
 // The HyperLogLog algorithm generates decimal estimates with some error. Flag "round" can be set to true to 
 // round off estimated values to whole numbers.
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).setRound(true)
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three").setRound(true)
 
 // or alternatively
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).set(round = true)
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three").set(round = true)
 ```
 
 Cardinality can also be computed by row, i.e. the cardinality of distinct dimension combinations.
 
 ```scala
 // Compute the cardinality by row for dimensions dim_name_one, dim_name_two and dim_name_three
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).byRow(true)
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three").byRow(true)
 
 // or alternatively
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).set(byRow = true)
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three").set(byRow = true)
 
 // Similar to cardinality by value the flag "round" can be set to true to 
 // round off estimated values to whole numbers
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).byRow(true).setRound(true)
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three").byRow(true).setRound(true)
 
 // or alternatively
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three).set(byRow = true, round = true)
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three").set(byRow = true, round = true)
 ```
 
 Cardinality can also be computed over the outcomes of any extraction function to some dimension(s). For example,
@@ -456,7 +456,7 @@ first character over the values of `dim_name_three`. In such case we can use the
 cardinality aggregation as below:
 
 ```scala
-cardinality('dim_name_one, 'dim_name_two, 'dim_name_three.extract(SubstringExtractionFn(0, Some(1))).as("dim_name_three_first_char"))
+cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three".extract(SubstringExtractionFn(0, Some(1))).as("dim_name_three_first_char"))
 ```
 
 #### Filtered Aggregator
@@ -469,20 +469,20 @@ For example, the `inFiltered` below applies over the `longSum` aggregation, only
 `#en.wikipedia` and `#de.wikipedia` of `channel` dimension:
 
 ```scala
-'channel.inFiltered('count.longSum, "#en.wikipedia", "#de.wikipedia")
+d"channel".inFiltered(d"count".longSum, "#en.wikipedia", "#de.wikipedia")
 
 // Equivalent inFiltered as function
-inFiltered('channel, 'count.longSum, "#en.wikipedia", "#de.wikipedia")
+inFiltered(d"channel", d"count".longSum, "#en.wikipedia", "#de.wikipedia")
 ```
 
 Similarly, the `selectorFiltered` below applies over the `longSum` aggregation, only for value `"#en.wikipedia"` of
 `channel` dimension:
 
 ```scala
-'channel.selectorFiltered('count.longSum, "#en.wikipedia")
+d"channel".selectorFiltered(d"count".longSum, "#en.wikipedia")
 
 // Equivalent selectorFiltered as function
-selectorFiltered('channel, 'count.longSum, "#en.wikipedia")
+selectorFiltered(d"channel", d"count".longSum, "#en.wikipedia")
 
 ```
 
@@ -501,7 +501,7 @@ lengths of the values of `dim_one` and `dim_one` when they are not null:
 ```scala
 javascript(
   name = "length_sum",
-  fields = Seq('dim_one, 'dim_two), // or the string names of the dimensions (i.e. Seq("dim_one", "dim_two"))  
+  fields = Seq(d"dim_one", d"dim_two"), // or the string names of the dimensions (i.e. Seq("dim_one", "dim_two"))  
   fnAggregate = 
     """
     |function (current, dim_one, dim_two) {
@@ -556,9 +556,9 @@ Arithmetic post-aggregator can be applied to aggregators or other post aggregato
 the supported functions are `+`, `-`, `*`, `/`, and `quotient`.
 
 ```scala
-'dim_name + 2
+d"dim_name" + 2
 
-('count / 2) as "halfCount"
+(d"count" / 2) as "halfCount"
 ```
 
 In arithmetic post-aggregators you can specify an ordering (e.g., NumericFirst) of the results (this can be useful
@@ -570,16 +570,16 @@ by *NaN*, and *infinite values* last.
 import ing.wbaa.druid.definitions.Ordering
 
 // Set explicitly 'floating point' ordering:
-('count / 2).withOrdering(Ordering.FloatingPoint) as "halfCount"
+(d"count" / 2).withOrdering(Ordering.FloatingPoint) as "halfCount"
 
 // or equivalently:
-('count / 2).floatingPointOrdering as "halfCount"
+(d"count" / 2).floatingPointOrdering as "halfCount"
 
 // Set numeric first ordering:
-('count / 2).withOrdering(Ordering.NumericFirst) as "halfCount"
+(d"count" / 2).withOrdering(Ordering.NumericFirst) as "halfCount"
 
 // or equivalently:
-('count / 2).numericFirstOrdering as "halfCount"
+(d"count" / 2).numericFirstOrdering as "halfCount"
 ```
 
 #### HyperUnique Cardinality post-aggregator
@@ -587,10 +587,10 @@ import ing.wbaa.druid.definitions.Ordering
 Is used to wrap a hyperUnique object such that it can be used in post aggregations.
 
 ```scala
-'dim_name.hyperUniqueCardinality
+d"dim_name".hyperUniqueCardinality
 
 // or alternatively as function:
-hyperUniqueCardinality('dim_name)
+hyperUniqueCardinality(d"dim_name")
 ```
 
 #### Javascript post-aggregator
@@ -600,7 +600,7 @@ function in the given order.
 
 ```scala
 // calculate the sum of two dimensions (dim_one and dim_two)
-javascript(name = "sum", fields = Seq('dim_one, 'dim_two), function = "function(dim_one, dim_two) { return dim_one + dim_two; }")
+javascript(name = "sum", fields = Seq(d"dim_one", d"dim_two"), function = "function(dim_one, dim_two) { return dim_one + dim_two; }")
 
 // or alternatively by specifying the dimensions names
 javascript(name = "sum", fields = Seq("dim_one", "dim_two"), function = "function(dim_one, dim_two) { return dim_one + dim_two; }")
@@ -614,10 +614,10 @@ Extraction functions define the transformation applied to each dimension value.
 ```scala
 import ing.wbaa.druid.LowerExtractionFn
 
-'countryName.extract(LowerExtractionFn()) as "country"
+d"countryName".extract(LowerExtractionFn()) as "country"
 
 // or as function
-extract('countryName, LowerExtractionFn()) as "country"
+extract(d"countryName", LowerExtractionFn()) as "country"
 ```
 
 ## Example queries
@@ -653,8 +653,8 @@ val query: TopNQuery = DQL
     .granularity(GranularityType.Week)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "agg_count")
-    .postAgg(('agg_count / 2) as "half_count")
-    .topN('countryName, metric = "agg_count", threshold = 5)
+    .postAgg((d"agg_count" / 2) as "half_count")
+    .topN(d"countryName", metric = "agg_count", threshold = 5)
     .build()
 
 val response: Future[List[PostAggregationAnonymous]] = query.execute().map(_.list[PostAggregationAnonymous])
@@ -672,7 +672,7 @@ val query: GroupByQuery = DQL
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
-    .groupBy('isAnonymous)
+    .groupBy(d"isAnonymous")
     .build()
 
 val response: List[GroupByIsAnonymous] = query.execute().map(_.list[GroupByIsAnonymous])
@@ -691,8 +691,8 @@ val query: GroupByQuery = DQL
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
-    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
-    .limit(10, 'count.desc(DimensionOrderType.Numeric))
+    .groupBy(d"isAnonymous", d"countryName".extract(UpperExtractionFn()) as "country")
+    .limit(10, d"count".desc(DimensionOrderType.Numeric))
     .build()
 
 val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
@@ -708,9 +708,9 @@ val query: GroupByQuery = DQL
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
-    .where('countryName.isNotNull)
-    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
-    .limit(10, 'count.desc(DimensionOrderType.Numeric))
+    .where(d"countryName".isNotNull)
+    .groupBy(d"isAnonymous", d"countryName".extract(UpperExtractionFn()) as "country")
+    .limit(10, d"count".desc(DimensionOrderType.Numeric))
     .build()
 
 val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
@@ -726,10 +726,10 @@ val query: GroupByQuery = DQL
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
-    .where('countryName.isNotNull)
-    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
-    .having('count > 100 and 'count < 200)
-    .limit(10, 'count.desc(DimensionOrderType.Numeric))
+    .where(d"countryName".isNotNull)
+    .groupBy(d"isAnonymous", d"countryName".extract(UpperExtractionFn()) as "country")
+    .having(d"count" > 100 and d"count" < 200)
+    .limit(10, d"count".desc(DimensionOrderType.Numeric))
     .build()
 
 val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
@@ -750,8 +750,8 @@ val query: GroupByQuery = DQL
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
-    .where('countryName.isNotNull)
-    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
+    .where(d"countryName".isNotNull)
+    .groupBy(d"isAnonymous", d"countryName".extract(UpperExtractionFn()) as "country")
     .withQueryContext(Map(
       QueryContext.QueryId  -> "some_custom_id",
       QueryContext.Priority -> "100"
@@ -767,8 +767,8 @@ val query: GroupByQuery = DQL
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
-    .where('countryName.isNotNull)
-    .groupBy('isAnonymous, 'countryName.extract(UpperExtractionFn()) as "country")
+    .where(d"countryName".isNotNull)
+    .groupBy(d"isAnonymous", d"countryName".extract(UpperExtractionFn()) as "country")
     .setQueryContextParam(QueryContext.QueryId, "some_custom_id")
     .setQueryContextParam(QueryContext.Priority, "100")
     .build()
