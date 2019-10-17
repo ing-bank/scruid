@@ -19,8 +19,8 @@ package ing.wbaa.druid
 
 import java.time._
 
+import ing.wbaa.druid.client.CirceDecoders
 import io.circe._
-import io.circe.java8.time._
 import scala.collection.immutable.ListMap
 import cats.syntax.either._ // DO NOT REMOVE: required for scala 2.11
 
@@ -57,7 +57,7 @@ case class DruidResult(timestamp: ZonedDateTime, result: Json) {
   }
 }
 
-object DruidResult extends JavaTimeDecoders {
+object DruidResult extends CirceDecoders {
   private def extractResultField(c: HCursor): ACursor = {
     val result = c.downField("result")
     val event  = c.downField("event")

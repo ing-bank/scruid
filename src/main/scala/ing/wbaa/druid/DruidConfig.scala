@@ -124,7 +124,7 @@ object DruidConfig {
     if (hosts.isEmpty)
       throw new ConfigException.Generic("Empty configuration parameter 'hosts'")
 
-    val hostWithPortsValues = hosts.split(',').map(_.trim)
+    val hostWithPortsValues = hosts.split(',').map(_.trim).toIndexedSeq
 
     if (hostWithPortsValues.exists(_.isEmpty))
       throw new ConfigException.Generic("Empty host:port value in configuration parameter 'hosts'")
