@@ -98,7 +98,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "2.3.0-SNAPSHOT",
+    version := "2.3.0",
     resolvers += Resolver.sonatypeRepo("releases"),
     libraryDependencies ++= Seq(
       "com.typesafe"           % "config"                   % typesafeConfigVersion,
