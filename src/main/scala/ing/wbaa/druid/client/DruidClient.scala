@@ -90,7 +90,7 @@ trait DruidClient extends CirceHttpSupport with CirceDecoders {
     */
   def doQueryAsStream(query: DruidQuery)(
       implicit druidConfig: DruidConfig
-  ): Source[DruidResult, NotUsed]
+  ): Source[BaseResult, NotUsed]
 
   /**
     * Shutdown the client and close the active connections to Druid
@@ -119,7 +119,7 @@ trait DruidClientBuilder {
 
 }
 
-trait DruidResponseHandler {
+trait DruidResponseHandler extends CirceDecoders {
   self: DruidClient =>
 
   protected def handleResponse(
@@ -148,20 +148,44 @@ trait DruidResponseHandler {
     } else {
       body
         .map(_.data.decodeString("UTF-8"))
-        .map(decode[List[DruidResult]])
+        .map { json =>
+          queryType match {
+            case QueryType.Scan =>
+              decode[List[DruidScanResults]](json).right
+                .map(results => DruidResponseScanImpl(results))
+            case _ =>
+              decode[List[DruidResult]](json).right
+                .map(results => DruidResponseTimeseriesImpl(results, queryType))
+          }
+        }
         .map {
-          case Left(error)  => throw new Exception(s"Unable to parse json response: $error")
-          case Right(value) => DruidResponse(results = value, queryType = queryType)
+          case Left(error)  => throw error
+          case Right(value) => value
         }
     }
   }
 
   protected def handleResponseAsStream(
-      response: HttpResponse
-  ): Source[DruidResult, NotUsed] =
+      response: HttpResponse,
+      queryType: QueryType
+  ): Source[BaseResult, NotUsed] =
     response.entity
       .withoutSizeLimit()
       .dataBytes
-      .via(CirceStreamSupport.decode[DruidResult](AsyncParser.UnwrapArray))
+      .via {
+        queryType match {
+          case QueryType.Scan =>
+            CirceStreamSupport
+              .decode[List[DruidScanResults]](AsyncParser.ValueStream)
+              .mapConcat(_.flatMap(_.events))
+          case QueryType.Select =>
+            CirceStreamSupport
+              .decode[DruidResult](AsyncParser.UnwrapArray)
+              .mapConcat(_.as[DruidSelectEvents].events)
+
+          case _ =>
+            CirceStreamSupport.decode[DruidResult](AsyncParser.UnwrapArray)
+        }
+      }
       .mapMaterializedValue(_ => NotUsed)
 }

@@ -39,6 +39,7 @@ class DruidConfig(val hosts: Seq[QueryHost],
                   val responseParsingTimeout: FiniteDuration,
                   val clientBackend: Class[_ <: DruidClient],
                   val clientConfig: Config,
+                  val scanQueryLegacyMode: Boolean,
                   val system: ActorSystem) {
   def copy(
       hosts: Seq[QueryHost] = this.hosts,
@@ -48,7 +49,8 @@ class DruidConfig(val hosts: Seq[QueryHost],
       datasource: String = this.datasource,
       responseParsingTimeout: FiniteDuration = this.responseParsingTimeout,
       clientBackend: Class[_ <: DruidClient] = this.clientBackend,
-      clientConfig: Config = this.clientConfig
+      clientConfig: Config = this.clientConfig,
+      scanQueryLegacyMode: Boolean = this.scanQueryLegacyMode
   ): DruidConfig =
     new DruidConfig(hosts,
                     secure,
@@ -58,6 +60,7 @@ class DruidConfig(val hosts: Seq[QueryHost],
                     responseParsingTimeout,
                     clientBackend,
                     clientConfig,
+                    scanQueryLegacyMode,
                     system)
 
   lazy val client: DruidClient = {
@@ -99,6 +102,7 @@ object DruidConfig {
       clientBackend: Class[_ <: DruidClient] =
         Class.forName(druidConfig.getString("client-backend")).asInstanceOf[Class[DruidClient]],
       clientConfig: Config = druidConfig.getConfig("client-config"),
+      scanQueryLegacyMode: Boolean = druidConfig.getBoolean("scan-query-legacy-mode"),
       system: ActorSystem = ActorSystem("scruid-actor-system")
   ): DruidConfig =
     new DruidConfig(hosts,
@@ -109,6 +113,7 @@ object DruidConfig {
                     responseParsingTimeout,
                     clientBackend,
                     clientConfig,
+                    scanQueryLegacyMode,
                     system)
 
   /**

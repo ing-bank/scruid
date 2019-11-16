@@ -190,7 +190,7 @@ case class Dim private[dql] (name: String,
   /**
     * @return regex-filter of this dimension for the specified Java regular expression pattern
     */
-  def regex(pattern: String): FilteringExpression = new Regex(this, pattern)
+  def regex(pattern: String): FilteringExpression = new RegexExp(this, pattern)
 
   /**
     * @return selector expression stating that the contents of the dimension should be null

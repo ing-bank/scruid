@@ -10,7 +10,7 @@ Currently the API is under heavy development, so changes might occur.
 
 ## Example queries:
 
-Scruid provides three query constructors: `TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` (see below for details). You can call the `execute` method ona query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
+Scruid provides query constructors for `TopNQuery`, `GroupByQuery`, `TimeSeriesQuery`, `ScanQuery`, `SelectQuery` and `SearchQuery` (see below for details). You can call the `execute` method on a query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
 
 - `.list[T](implicit decoder: Decoder[T]): List[T]` : This decodes the JSON to a list with items of type `T`.
 - `.series[T](implicit decoder: Decoder[T]): Map[ZonedDateTime, T]` : This decodes the JSON to a timeseries map with the timestamp as key and `T` as value.
@@ -71,10 +71,55 @@ val response = TimeSeriesQuery(
 val series: Future[Map[ZonedDateTime, TimeseriesCount]] = response.map(_.series[TimeseriesCount])
 ```
 
-To get the timeseries data from this `Future[DruidRespones]` you can run `val series = result.series[TimeseriesCount]`.
+### Select query
 
-`TopNQuery`, `GroupByQuery` and `TimeSeriesQuery` can also configured using Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html),
-such as `timeout`, `queryId` and `groupByStrategy`. All three types of query contain the argument `context` which
+```scala
+case class SelectResult(channel: Option[String], cityName: Option[String], countryIsoCode: Option[String], user: Option[String])
+
+val response = SelectQuery(
+    granularity = GranularityType.Hour
+    intervals = List("2011-06-01/2017-06-01")
+    pagingSpec = PagingSpec(10),
+    dimensions = List("channel", "cityName", "countryIsoCode", "user")
+).execute()
+
+val result: Future[List[SelectResult]] = response.map(_.list[SelectResult])
+```
+
+### Scan query
+
+```scala
+case class ScanResult(channel: Option[String], cityName: Option[String], countryIsoCode: Option[String], user: Option[String])
+
+val response = ScanQuery(
+    granularity = GranularityType.Hour
+    intervals = List("2011-06-01/2017-06-01")
+    dimensions = List("channel", "cityName", "countryIsoCode", "user"),
+    limit = 100
+).execute() 
+
+val result: Future[List[ScanResult]] = response.map(_.list[ScanResult])
+```
+
+### Search query
+
+Search query is a bit different, since it does not take type parameters as its results are of type `ing.wbaa.druid.DruidSearchResult`
+
+```scala
+val response = SearchQuery(
+    granularity = GranularityType.Hour,
+    intervals = List("2011-06-01/2017-06-01"),
+    query = ContainsInsensitive("GR"),
+    searchDimensions = List("countryIsoCode")
+).execute()
+
+val result = Future[List[DruidSearchResult]] = response.map(_.list)
+```
+
+## Query context
+
+Queries can be configured using Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html),
+such as `timeout`, `queryId` and `groupByStrategy`. All types of query contain the argument `context` which
 associates query parameter with they corresponding values. The parameter names can also be accessed
 by `ing.wbaa.druid.definitions.QueryContext` object. Consider, for example, a timeseries query with custom `query id`
 and `priority`:
@@ -115,15 +160,66 @@ val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[Grou
 
 For details and examples see the [DQL documentation](docs/dql.md).
 
+## Print native Druid JSON representation 
+
+For all types of queries you can call the function `toDebugString`, in order to get the corresponding native Druid JSON 
+query representation.
+
+For example the following:
+
+```scala
+val query: TopNQuery = DQL
+    .from("wikipedia")
+    .agg(count as "count")
+    .interval("2011-06-01/2017-06-01")
+    .topN(dimension = d"countryName", metric = "count", threshold = 5)
+    .build()
+
+println(query.toDebugString)
+```
+
+will print to the standard output:
+
+```json
+{
+  "dimension" : {
+    "dimension" : "countryName",
+    "outputName" : "countryName",
+    "outputType" : null,
+    "type" : "default"
+  },
+  "threshold" : 5,
+  "metric" : "count",
+  "aggregations" : [
+    {
+      "name" : "count",
+      "type" : "count"
+    }
+  ],
+  "intervals" : [
+    "2011-06-01/2017-06-01"
+  ],
+  "granularity" : "all",
+  "filter" : null,
+  "postAggregations" : [
+  ],
+  "context" : {
+
+  },
+  "queryType" : "topN",
+  "dataSource" : "wikipedia"
+}
+```
+
 ## Handling large payloads with Akka Streams
 
 For queries with large payload of results (e.g., half a million of records), Scruid can transform the corresponding response into an [Akka Stream](https://doc.akka.io/docs/akka/2.5/stream/) Source.
 The results can be processed, filtered and transformed using [Flows](https://doc.akka.io/docs/akka/2.5/stream/stream-flows-and-basics.html) and/or output to Sinks, as a continuous stream, without collecting the entire payload first.
 To process the results with Akka Stream, you can call one of the following methods:
 
-- `.stream`: gives a Source of `DruidResult`.
-- `.streamAs[T](implicit decoder: Decoder[T])`: gives a Source where each JSON record is being decoded to the type of `T`.
-- `.streamSeriesAs[T](implicit decoder: Decoder[T])`: gives a Source where each JSON record is being decoded to the type of `T` and it is accompanied by its corresponding timestamp.
+  - `.stream`: gives a Source of `DruidResult`.
+  - `.streamAs[T](implicit decoder: Decoder[T])`: gives a Source where each JSON record is being decoded to the type of `T`.
+  - `.streamSeriesAs[T](implicit decoder: Decoder[T])`: gives a Source where each JSON record is being decoded to the type of `T` and it is accompanied by its corresponding timestamp.
 
 All the methods above can be applied to any timeseries, group-by or top-N query created either directly by using query constructors or by DQL.
 
@@ -170,7 +266,10 @@ druid = {
   client-backend = "ing.wbaa.druid.client.DruidHttpClient"
   client-backend = ${?DRUID_CLIENT_BACKEND}
 
-  datasource = "wikiticker"
+  scan-query-legacy-mode = false
+  scan-query-legacy-mode = ${?DRUID_SCAN_QUERY_LEGACY_MODE}
+
+  datasource = "wikipedia"
   datasource = ${?DRUID_DATASOURCE}
 
   response-parsing-timeout = 5 seconds
@@ -189,7 +288,7 @@ import scala.concurrent.duration._
 
 implicit val druidConf = DruidConfig(
   hosts = Seq("localhost:8082"),
-  datasource = "wikiticker",
+  datasource = "wikipedia",
   responseParsingTimeout = 10.seconds
 )
 
