@@ -3,7 +3,7 @@ version: "2.0"
 services:
 
   scruid_druid:
-    image: docker.pkg.github.com/anskarl/scruid/druid:latest
+    image: "docker.pkg.github.com/anskarl/scruid/druid:${DRUID_VERSION}"
     container_name: scruid_druid
     ports:
       - "8081:8081"
@@ -13,7 +13,7 @@ services:
       - "8888:8888"
 
   delay_response:
-    image: docker.pkg.github.com/anskarl/scruid/clusterf-chaos-proxy:latest
+    image: "docker.pkg.github.com/anskarl/scruid/clusterf-chaos-proxy:${CHAOS_PROXY_VERSION}"
     container_name: delay_response
     depends_on:
       - scruid_druid
@@ -25,7 +25,7 @@ services:
       - "8085:8090"
 
   always_fail_500:
-    image: docker.pkg.github.com/anskarl/scruid/clusterf-chaos-proxy:latest
+    image: "docker.pkg.github.com/anskarl/scruid/clusterf-chaos-proxy:${CHAOS_PROXY_VERSION}"
     container_name: always_fail_500
     depends_on:
       - scruid_druid
@@ -37,7 +37,7 @@ services:
       - "8086:8090"
 
   slow_response:
-    image: docker.pkg.github.com/anskarl/scruid/openresty:latest
+    image: "docker.pkg.github.com/anskarl/scruid/openresty:${OPENRESTY_VERSION}-alpine"
     container_name: slow_response
     depends_on:
       - scruid_druid
