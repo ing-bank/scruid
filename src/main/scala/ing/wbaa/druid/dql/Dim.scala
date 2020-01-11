@@ -521,6 +521,41 @@ case class Dim private[dql] (name: String,
   def doubleLast: AggregationExpression = AggregationOps.doubleLast(this)
 
   /**
+    * Aggregation to compute the sum of values (as a 32-bit floating point value)
+    */
+  def floatSum: AggregationExpression = AggregationOps.floatSum(this)
+
+  /**
+    * Aggregation to compute the maximum of all metric values and Float.NEGATIVE_INFINITY
+    */
+  def floatMax: AggregationExpression = AggregationOps.floatMax(this)
+
+  /**
+    * Aggregation to compute the minimum of all metric values and Float.POSITIVE_INFINITY
+    */
+  def floatMin: AggregationExpression = AggregationOps.floatMin(this)
+
+  /**
+    * Aggregation to compute the metric value with the minimum timestamp or 0 if no row exist
+    */
+  def floatFirst: AggregationExpression = AggregationOps.floatFirst(this)
+
+  /**
+    * Aggregation to compute the metric value with the maximum timestamp or 0 if no row exist
+    */
+  def floatLast: AggregationExpression = AggregationOps.floatLast(this)
+
+  /**
+    * Aggregation to compute the metric value with the minimum timestamp or null if no row exist
+    */
+  def stringFirst: AggregationExpression = AggregationOps.stringFirst(this)
+
+  /**
+    * Aggregation to compute the metric value with the maximum timestamp or null if no row exist
+    */
+  def stringLast: AggregationExpression = AggregationOps.stringLast(this)
+
+  /**
     * Aggregation to compute theta-sketches
     */
   def thetaSketch: ThetaSketchAgg = AggregationOps.thetaSketch(this)

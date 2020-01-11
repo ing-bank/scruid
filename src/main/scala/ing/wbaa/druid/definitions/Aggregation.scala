@@ -30,14 +30,21 @@ object AggregationType extends EnumCodec[AggregationType] {
   case object Count       extends AggregationType
   case object LongSum     extends AggregationType
   case object DoubleSum   extends AggregationType
+  case object FloatSum    extends AggregationType
   case object DoubleMax   extends AggregationType
   case object DoubleMin   extends AggregationType
+  case object FloatMax    extends AggregationType
+  case object FloatMin    extends AggregationType
   case object LongMin     extends AggregationType
   case object LongMax     extends AggregationType
   case object DoubleFirst extends AggregationType
   case object DoubleLast  extends AggregationType
+  case object FloatFirst  extends AggregationType
+  case object FloatLast   extends AggregationType
   case object LongFirst   extends AggregationType
   case object LongLast    extends AggregationType
+  case object StringFirst extends AggregationType
+  case object StringLast  extends AggregationType
   case object ThetaSketch extends AggregationType
   case object HyperUnique extends AggregationType
   case object Cardinality extends AggregationType
@@ -75,12 +82,19 @@ object SingleFieldAggregation {
       case x: DoubleSumAggregation   => x.asJson
       case x: DoubleMaxAggregation   => x.asJson
       case x: DoubleMinAggregation   => x.asJson
+      case x: FloatSumAggregation    => x.asJson
+      case x: FloatMaxAggregation    => x.asJson
+      case x: FloatMinAggregation    => x.asJson
       case x: LongMaxAggregation     => x.asJson
       case x: LongMinAggregation     => x.asJson
       case x: DoubleFirstAggregation => x.asJson
       case x: DoubleLastAggregation  => x.asJson
+      case x: FloatFirstAggregation  => x.asJson
+      case x: FloatLastAggregation   => x.asJson
       case x: LongLastAggregation    => x.asJson
       case x: LongFirstAggregation   => x.asJson
+      case x: StringFirstAggregation => x.asJson
+      case x: StringLastAggregation  => x.asJson
       case x: ThetaSketchAggregation => x.asJson
       case x: HyperUniqueAggregation => x.asJson
     }
@@ -100,6 +114,15 @@ case class DoubleMaxAggregation(name: String, fieldName: String) extends SingleF
 case class DoubleMinAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
   val `type` = AggregationType.DoubleMin
 }
+case class FloatSumAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
+  val `type` = AggregationType.FloatSum
+}
+case class FloatMaxAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
+  val `type` = AggregationType.FloatMax
+}
+case class FloatMinAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
+  val `type` = AggregationType.FloatMin
+}
 case class LongMinAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
   val `type` = AggregationType.LongMin
 }
@@ -112,12 +135,37 @@ case class DoubleFirstAggregation(name: String, fieldName: String) extends Singl
 case class DoubleLastAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
   val `type` = AggregationType.DoubleLast
 }
+case class FloatFirstAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
+  val `type` = AggregationType.FloatFirst
+}
+case class FloatLastAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
+  val `type` = AggregationType.FloatLast
+}
 case class LongFirstAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
   val `type` = AggregationType.LongFirst
 }
 case class LongLastAggregation(name: String, fieldName: String) extends SingleFieldAggregation {
   val `type` = AggregationType.LongLast
 }
+
+case class StringFirstAggregation(
+    name: String,
+    fieldName: String,
+    maxStringBytes: Option[Int] = None,
+    filterNullValues: Boolean = false
+) extends SingleFieldAggregation {
+  val `type` = AggregationType.StringFirst
+}
+
+case class StringLastAggregation(
+    name: String,
+    fieldName: String,
+    maxStringBytes: Option[Int] = None,
+    filterNullValues: Boolean = false
+) extends SingleFieldAggregation {
+  val `type` = AggregationType.StringLast
+}
+
 case class ThetaSketchAggregation(name: String,
                                   fieldName: String,
                                   isInputThetaSketch: Boolean = false,
