@@ -386,8 +386,8 @@ or Double.NEGATIVE_INFINITY, respectively.
 
 #### First / Last aggregator
 
-`longFirst`, `floatFirst` and `doubleFirst` computes the metric value with the minimum timestamp or 0 if no row exist.
-`longLast`, `floatLast` and `doubleLast` computes the metric value with the maximum timestamp or 0 if no row exist
+`longFirst`, `floatFirst` and `doubleFirst` computes the metric value with the minimum timestamp or 0 if no row exists.
+`longLast`, `floatLast` and `doubleLast` computes the metric value with the maximum timestamp or 0 if no row exists.
 
 ```scala
 // can be defined over some dimension
@@ -397,8 +397,8 @@ d"dim_name".longFirst as "agg_first"
 doubleLast(d"dim_name") as "agg_last"
 ```
 
-`stringFirst` computes the metric value with the minimum timestamp or `null` if no row exist. 
-`stringLast` computes the metric value with the maximum timestamp or `null` if no row exist.
+`stringFirst` computes the metric value with the minimum timestamp or `null` if no row exists. 
+`stringLast` computes the metric value with the maximum timestamp or `null` if no row exists.
 
 ```scala
 // can be defined over some dimension

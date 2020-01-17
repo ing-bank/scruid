@@ -226,7 +226,7 @@ final case class StringFirstAgg(
   override def getName: String = name.getOrElse(s"string_first_${fieldName}")
 
   def maxStringBytes(v: Int): StringFirstAgg = {
-    require(v > 0)
+    require(v > 0, s"The specified value ($v) for maxStringBytes should be greater that zero")
     this.copy(maxStringBytes = Option(v))
   }
 
