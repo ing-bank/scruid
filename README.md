@@ -168,6 +168,8 @@ query representation.
 For example the following:
 
 ```scala
+import ing.wbaa.druid.dql.DSL._
+
 val query: TopNQuery = DQL
     .from("wikipedia")
     .agg(count as "count")

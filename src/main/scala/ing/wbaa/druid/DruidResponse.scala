@@ -46,10 +46,7 @@ case class DruidResponseTimeseriesImpl(results: List[DruidResult], queryType: Qu
   }
 
   private def decode[T](result: Json)(implicit decoder: Decoder[T]): T =
-    decoder.decodeJson(result) match {
-      case Left(e)      => throw e
-      case Right(value) => value
-    }
+    decoder.decodeJson(result).toTry.get
 
   override def list[T](implicit decoder: Decoder[T]): List[T] = queryType match {
     case QueryType.TopN   => decodeList[List[T]].flatten
@@ -80,10 +77,7 @@ sealed trait BaseResult {
 
 case class DruidResult(timestamp: ZonedDateTime, result: Json) extends BaseResult {
 
-  override def as[T](implicit decoder: Decoder[T]): T = decoder.decodeJson(this.result) match {
-    case Left(e)      => throw e
-    case Right(value) => value
-  }
+  override def as[T](implicit decoder: Decoder[T]): T = decoder.decodeJson(this.result).toTry.get
 }
 
 object DruidResult extends CirceDecoders {
@@ -109,16 +103,10 @@ case class DruidSelectEvent(
 ) extends BaseResult
     with CirceDecoders {
 
-  def as[T](implicit decoder: Decoder[T]): T = decoder.decodeJson(this.event) match {
-    case Left(e)      => throw e
-    case Right(value) => value
-  }
+  def as[T](implicit decoder: Decoder[T]): T = decoder.decodeJson(this.event).toTry.get
 
   override val timestamp: ZonedDateTime =
-    event.hcursor.downField("timestamp").as[ZonedDateTime] match {
-      case Left(error)  => throw error
-      case Right(value) => value
-    }
+    event.hcursor.downField("timestamp").as[ZonedDateTime].toTry.get
 }
 
 object DruidSelectEvent {
@@ -136,7 +124,7 @@ object DruidSelectEvents {
   implicit val decoder = deriveDecoder[DruidSelectEvents]
 }
 
-case class DruidResponseScanImpl(results: List[DruidScanResults]) extends DruidResponse {
+case class DruidScanResponse(results: List[DruidScanResults]) extends DruidResponse {
 
   override def list[T](implicit decoder: Decoder[T]): List[T] = results.flatMap(_.as[T])
 
@@ -188,11 +176,7 @@ case class DruidScanResult(result: Json) extends BaseResult with CirceDecoders {
     }
   }
 
-  def as[T](implicit decoder: Decoder[T]): T =
-    result.as[T] match {
-      case Left(error)  => throw error
-      case Right(value) => value
-    }
+  def as[T](implicit decoder: Decoder[T]): T = result.as[T].toTry.get
 }
 
 object DruidScanResult {

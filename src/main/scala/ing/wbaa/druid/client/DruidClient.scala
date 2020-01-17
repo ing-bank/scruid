@@ -152,7 +152,7 @@ trait DruidResponseHandler extends CirceDecoders {
           queryType match {
             case QueryType.Scan =>
               decode[List[DruidScanResults]](json).right
-                .map(results => DruidResponseScanImpl(results))
+                .map(results => DruidScanResponse(results))
             case _ =>
               decode[List[DruidResult]](json).right
                 .map(results => DruidResponseTimeseriesImpl(results, queryType))
