@@ -28,10 +28,10 @@ import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.stream._
 import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
-import ing.wbaa.druid.{ DruidConfig, DruidQuery, DruidResponse, DruidResult, QueryHost }
+import ing.wbaa.druid.{ BaseResult, DruidConfig, DruidQuery, DruidResponse, QueryHost }
 import akka.pattern.retry
-import scala.reflect.runtime.universe
 
+import scala.reflect.runtime.universe
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
 import scala.util.{ Failure, Success, Try }
@@ -121,7 +121,7 @@ class DruidAdvancedHttpClient private (
 
   override def doQueryAsStream(
       query: DruidQuery
-  )(implicit druidConfig: DruidConfig): Source[DruidResult, NotUsed] = {
+  )(implicit druidConfig: DruidConfig): Source[BaseResult, NotUsed] = {
     val responsePromise = Promise[HttpResponse]()
 
     Source
@@ -133,7 +133,7 @@ class DruidAdvancedHttpClient private (
 
         case (Success(response), _) =>
           responsePromise.future.flatMap(Future.successful)
-          handleResponseAsStream(response)
+          handleResponseAsStream(response, query.queryType)
 
         case (Failure(ex), _) =>
           responsePromise.future.flatMap(_ => Future.failed(ex))

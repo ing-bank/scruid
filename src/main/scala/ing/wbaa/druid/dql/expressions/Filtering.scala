@@ -101,7 +101,7 @@ class Like(dim: Dim, pattern: String) extends FilteringExpression with FilterOnl
   override protected[dql] def createFilter: Filter = LikeFilter(dim.name, pattern)
 }
 
-class Regex(dim: Dim, pattern: String) extends FilteringExpression with FilterOnlyOperator {
+class RegexExp(dim: Dim, pattern: String) extends FilteringExpression with FilterOnlyOperator {
   override protected[dql] def createFilter: Filter = RegexFilter(dim.name, pattern)
 }
 

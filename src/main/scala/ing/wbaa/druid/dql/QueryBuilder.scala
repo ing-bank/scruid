@@ -67,25 +67,6 @@ private[dql] sealed trait QueryBuilderCommons {
   }
 
   /**
-    * Specify one or more aggregations to use
-    */
-  def agg(aggs: AggregationExpression*): this.type = {
-
-    complexAggregationNames ++= aggs.filter(_.isComplex).map(_.getName)
-    aggregations = aggs.foldRight(aggregations)((agg, acc) => agg.build() :: acc)
-
-    this
-  }
-
-  /**
-    * Specify one or more post-aggregations to use
-    */
-  def postAgg(postAggs: PostAggregationExpression*): this.type = {
-    postAggregationExpr = postAggs.foldRight(postAggregationExpr)((agg, acc) => agg :: acc)
-    this
-  }
-
-  /**
     * Specify the time range to run the query over (should be expressed as ISO-8601 interval)
     */
   def interval(interval: String): this.type = {
@@ -132,13 +113,35 @@ private[dql] sealed trait QueryBuilderCommons {
 
 }
 
-/**
-  * This is the default query build, in order to create Timeseries queries
-  */
-final class QueryBuilder private[dql] () extends QueryBuilderCommons {
+private[dql] sealed trait AggregationQueryBuilderCommons {
+  this: QueryBuilderCommons =>
+
+  /**
+    * Specify one or more aggregations to use
+    */
+  def agg(aggs: AggregationExpression*): this.type = {
+
+    complexAggregationNames ++= aggs.filter(_.isComplex).map(_.getName)
+    aggregations = aggs.foldRight(aggregations)((agg, acc) => agg.build() :: acc)
+
+    this
+  }
+
+  /**
+    * Specify one or more post-aggregations to use
+    */
+  def postAgg(postAggs: PostAggregationExpression*): this.type = {
+    postAggregationExpr = postAggs.foldRight(postAggregationExpr)((agg, acc) => agg :: acc)
+    this
+  }
+
+}
+
+trait DescendingOption {
+  this: QueryBuilderCommons =>
 
   // Default is false (ascending)
-  private var descending = false
+  protected var descending = false
 
   /**
     * Define whether to make descending ordered result
@@ -147,28 +150,30 @@ final class QueryBuilder private[dql] () extends QueryBuilderCommons {
     descending = v
     this
   }
+}
+
+/**
+  * This is the default query build, in order to create Timeseries queries
+  */
+final class QueryBuilder private[dql] ()
+    extends QueryBuilderCommons
+    with AggregationQueryBuilderCommons
+    with DescendingOption {
 
   /**
     * Gives the resulting time-series query, wrt. the given query parameters (e.g., where, datasource, etc.)
     *
     * @return the resulting time-series query
     */
-  def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): TimeSeriesQuery = {
+  @deprecated(message = "use timeseries.build()")
+  def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): TimeSeriesQuery =
+    timeseries.build()
 
-    val conf = dataSourceOpt
-      .map(ds => druidConfig.copy(datasource = ds))
-      .getOrElse(druidConfig)
-
-    TimeSeriesQuery(
-      aggregations = this.aggregations,
-      intervals = this.intervals,
-      filter = this.getFilters,
-      granularity = this.granularityOpt.getOrElse(GranularityType.Week),
-      descending = this.descending.toString,
-      postAggregations = this.getPostAggs,
-      context = this.queryContextParams
-    )(conf)
-  }
+  /**
+    * Define that the query will be a timeseries query
+    * @return the builder for timeseries
+    */
+  def timeseries: TimeseriesQueryBuilder = copyTo(new TimeseriesQueryBuilder)
 
   /**
     * Define that the query will be a top-n query
@@ -193,6 +198,54 @@ final class QueryBuilder private[dql] () extends QueryBuilderCommons {
 
   def groupBy(dimensions: Iterable[Dim]): GroupByQueryBuilder =
     copyTo(new GroupByQueryBuilder(dimensions))
+
+  /**
+    * Define that the query will be a select query
+    *
+    * @param pagingSpec the paging specification
+    * @return the builder for select queries
+    */
+  def select(pagingSpec: PagingSpec): SelectQueryBuilder =
+    copyTo(new SelectQueryBuilder(pagingSpec))
+
+  def select(
+      threshold: Int,
+      fromNext: Boolean = true,
+      pagingIdentifiers: Map[String, Int] = Map.empty
+  ): SelectQueryBuilder =
+    copyTo(new SelectQueryBuilder(PagingSpec(threshold, fromNext, pagingIdentifiers)))
+
+  def scan(): ScanQueryBuilder = copyTo(new ScanQueryBuilder())
+
+  def search(q: SearchQuerySpec): SearchQueryBuilder = copyTo(new SearchQueryBuilder(q))
+}
+
+final class TimeseriesQueryBuilder private[dql] ()
+    extends QueryBuilderCommons
+    with AggregationQueryBuilderCommons
+    with DescendingOption {
+
+  /**
+    * Gives the resulting time-series query, wrt. the given query parameters (e.g., where, datasource, etc.)
+    *
+    * @return the resulting time-series query
+    */
+  def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): TimeSeriesQuery = {
+
+    val conf = dataSourceOpt
+      .map(ds => druidConfig.copy(datasource = ds))
+      .getOrElse(druidConfig)
+
+    TimeSeriesQuery(
+      aggregations = this.aggregations,
+      intervals = this.intervals,
+      filter = this.getFilters,
+      granularity = this.granularityOpt.getOrElse(GranularityType.Week),
+      descending = this.descending.toString,
+      postAggregations = this.getPostAggs,
+      context = this.queryContextParams
+    )(conf)
+  }
 }
 
 /**
@@ -203,18 +256,9 @@ final class QueryBuilder private[dql] () extends QueryBuilderCommons {
   * @param n an integer defining the N in the top-n
   */
 final class TopNQueryBuilder private[dql] (dimension: Dim, metric: String, n: Int)
-    extends QueryBuilderCommons {
-
-  // Default is true (descending)
-  protected var isDescending = true
-
-  /**
-    * Define whether to make descending ordered result
-    */
-  def setDescending(v: Boolean): this.type = {
-    isDescending = v
-    this
-  }
+    extends QueryBuilderCommons
+    with AggregationQueryBuilderCommons
+    with DescendingOption {
 
   /**
     * Gives the resulting top-n query, wrt. the given query parameters (e.g., where, datasource, etc.)
@@ -226,6 +270,7 @@ final class TopNQueryBuilder private[dql] (dimension: Dim, metric: String, n: In
     val conf = dataSourceOpt
       .map(ds => druidConfig.copy(datasource = ds))
       .getOrElse(druidConfig)
+
 
     TopNQuery(
       dimension = this.dimension.build(),
@@ -248,7 +293,8 @@ final class TopNQueryBuilder private[dql] (dimension: Dim, metric: String, n: In
   * @param dimensions the dimensions to perform a group-by query
   */
 final class GroupByQueryBuilder private[dql] (dimensions: Iterable[Dim])
-    extends QueryBuilderCommons {
+    extends QueryBuilderCommons
+    with AggregationQueryBuilderCommons {
 
   protected var limitOpt                        = Option.empty[Int]
   protected var limitCols                       = Iterable.empty[OrderByColumnSpec]
@@ -346,5 +392,134 @@ final class GroupByQueryBuilder private[dql] (dimensions: Iterable[Dim])
       context = this.queryContextParams
     )(conf)
   }
+}
 
+final class ScanQueryBuilder private[dql] () extends QueryBuilderCommons {
+
+  private var columns: List[String]     = Nil
+  private var limitOpt: Option[Int]     = None
+  private var batchSizeOpt: Option[Int] = None
+  private var order: Order              = OrderType.None
+
+  def columns(cols: String*): this.type = this.columns(cols)
+
+  def columns(cols: Iterable[String]): this.type = {
+    columns = cols.foldRight(columns)((col, acc) => col :: acc)
+    this
+  }
+
+  def limit(lim: Int): this.type = {
+    limitOpt = Option(lim)
+    this
+  }
+
+  def batchSize(size: Int): this.type = {
+    batchSizeOpt = Option(size)
+    this
+  }
+
+  def order(ord: Order): this.type = {
+    order = ord
+    this
+  }
+
+  def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): ScanQuery = {
+    val conf = dataSourceOpt
+      .map(ds => druidConfig.copy(datasource = ds))
+      .getOrElse(druidConfig)
+
+    ScanQuery(
+      granularity = this.granularityOpt.getOrElse(GranularityType.All),
+      intervals = this.intervals,
+      filter = this.getFilters,
+      columns = this.columns,
+      batchSize = this.batchSizeOpt,
+      limit = this.limitOpt,
+      order = this.order,
+      context = this.queryContextParams
+    )(conf)
+  }
+}
+
+final class SelectQueryBuilder private[dql] (pagingSpec: PagingSpec)
+    extends QueryBuilderCommons
+    with DescendingOption {
+
+  private var allMetrics: List[String] = Nil
+  private var dimensions: List[Dim]    = Nil
+
+  def dimensions(dims: Dim*): this.type = this.dimensions(dims)
+
+  def dimensions(dims: Iterable[Dim]): this.type = {
+    dimensions = dims.foldRight(dimensions)((dim, acc) => dim :: acc)
+    this
+  }
+
+  def metrics(metrics: String*): this.type = this.metrics(metrics)
+
+  def metrics(metrics: Iterable[String]): this.type = {
+    allMetrics = metrics.foldRight(allMetrics)((metric, acc) => metric :: acc)
+    this
+  }
+
+  def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): SelectQuery = {
+    val conf = dataSourceOpt
+      .map(ds => druidConfig.copy(datasource = ds))
+      .getOrElse(druidConfig)
+
+    SelectQuery(
+      granularity = this.granularityOpt.getOrElse(GranularityType.All),
+      intervals = this.intervals,
+      pagingSpec = this.pagingSpec,
+      filter = this.getFilters,
+      descending = this.descending,
+      dimensions = this.dimensions.map(_.build()),
+      metrics = this.allMetrics,
+      context = this.queryContextParams
+    )(conf)
+  }
+}
+
+final class SearchQueryBuilder private[dql] (query: SearchQuerySpec) extends QueryBuilderCommons {
+
+  private var sortOpt: Option[DimensionOrderType] = None
+  private var limitOpt: Option[Int]               = None
+  private var dims: List[String]                  = Nil
+
+  def sort(v: DimensionOrderType): this.type = {
+    sortOpt = Option(v)
+    this
+  }
+
+  def limit(lim: Int): this.type = {
+    limitOpt = Option(lim)
+    this
+  }
+
+  def dimensions(dimNames: String*): this.type = {
+    dims = dimNames.foldRight(dims)((dim, acc) => dim :: acc)
+    this
+  }
+
+  def dimensions(dimNames: Iterable[String]): this.type = {
+    dims = dimNames.foldRight(dims)((dim, acc) => dim :: acc)
+    this
+  }
+
+  def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): SearchQuery = {
+    val conf = dataSourceOpt
+      .map(ds => druidConfig.copy(datasource = ds))
+      .getOrElse(druidConfig)
+
+    SearchQuery(
+      granularity = this.granularityOpt.getOrElse(GranularityType.All),
+      intervals = this.intervals,
+      query = this.query,
+      filter = this.getFilters,
+      limit = this.limitOpt,
+      searchDimensions = this.dims,
+      sort = this.sortOpt.map(DimensionOrder),
+      context = this.queryContextParams
+    )(conf)
+  }
 }

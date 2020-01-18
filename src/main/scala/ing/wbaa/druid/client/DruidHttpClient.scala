@@ -67,11 +67,11 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
 
   override def doQueryAsStream(
       query: DruidQuery
-  )(implicit druidConfig: DruidConfig): Source[DruidResult, NotUsed] =
+  )(implicit druidConfig: DruidConfig): Source[BaseResult, NotUsed] =
     Source
       .fromFuture(createHttpRequest(query))
       .via(connectionFlow)
-      .flatMapConcat(handleResponseAsStream)
+      .flatMapConcat(response => handleResponseAsStream(response, query.queryType))
 
   override def shutdown(): Future[Unit] = Future.successful(())
 

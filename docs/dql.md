@@ -3,16 +3,18 @@
 Scruid provides a rich Scala API for building queries using the fluent pattern.
 
 In order to use DQL, you have to import `ing.wbaa.druid.dql.DSL._` and thereafter build a query using the `DQL` query
-builder. The type of the query can be time-series (default), group-by or top-n.
+builder. The type of the query can be time-series, group-by, top-n, select, scan or search.
 
-For all three types of queries you can define the following:
+For all any type of queries you can define the following:
 
  - The datasource name to perform the query, or defaults to the one that has been defined in the configuration.
  - The granularity of the query, e.g., `Hour`, `Day`, `Week`, etc (default is `Week` for time-series and `All`
  for top-n and group-by).
  - The interval of the query, expressed as [ISO-8601 intervals](https://en.wikipedia.org/wiki/ISO_8601).
- - Filter dimensions
- - Aggregations and post-aggregations
+ - Query context properties
+ - Filters over dimensions.
+
+Additionally, for time-series, group-by and top-n queries you can define aggregations and post-aggregations.
 
 For example, consider the following fragment of a DQL query:
 
@@ -21,7 +23,7 @@ import ing.wbaa.druid.definitions.GranularityType
 import ing.wbaa.druid.dql.DSL._
 
 val query = DQL
-  .from("wikiticker")
+  .from("wikipedia")
   .granularity(GranularityType.Hour)
   .interval("2011-06-01/2017-06-01")
   .where(d"countryName" === "Italy" or d"countryName" === "Greece")
@@ -35,7 +37,7 @@ temporal interval of the data expressed in ISO-8601, `where` defines which rows 
 computation for a query, `agg` defines functions that summarize data (e.g., count of rows) and `postAgg` defines
 specifications of processing that should happen on aggregated values.
 
-In the above example we are performing a query over the datasource `wikiticker`, using hourly granularity, for the
+In the above example we are performing a query over the datasource `wikipedia`, using hourly granularity, for the
 interval `2011-06-01` until `2017-06-01`. We are considering rows of data where the value of dimension `countryName`
 is either `Italy` or `Greece`. Furthermore, we are interested in half counting the rows. To achieve that we define
 the aggregation function `count` we name it as `agg_count` and thereafter we define a post-aggregation function named
@@ -45,7 +47,7 @@ The equivalent fragment of a Druid query expressed in JSON is given below:
 
 ```
 {
-  "dataSource" : "wikiticker",
+  "dataSource" : "wikipedia",
   "granularity" : "hour",
   "intervals" : [ "2011-06-01/2017-06-01"],
   "filter" : {
@@ -642,7 +644,7 @@ For example, the following query is a time-series that counts the number of rows
 case class TimeseriesCount(ts_count: Long)
 
 val query: TimeSeriesQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Hour)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "ts_count")
@@ -659,7 +661,7 @@ The following query computes the Top-5 `countryName` with respect to the aggrega
 case class PostAggregationAnonymous(countryName: Option[String], agg_count: Double, half_count: Double)
 
 val query: TopNQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Week)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "agg_count")
@@ -678,7 +680,7 @@ The following query performs group-by count over the dimension `isAnonymous`:
 case class GroupByIsAnonymous(isAnonymous: String, count: Int)
 
 val query: GroupByQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
@@ -697,7 +699,7 @@ the aggregation `count`.
 case class GroupByIsAnonymous(isAnonymous: String, country: Option[String], count: Int)
 
 val query: GroupByQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
@@ -714,7 +716,7 @@ We can avoid null values in `country` by filtering the dimension `countryName`:
 case class GroupByIsAnonymous(isAnonymous: String, country: String, count: Int)
 
 val query: GroupByQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
@@ -732,7 +734,7 @@ We can also keep only those records that they are having count above 100 and bel
 case class GroupByIsAnonymous(isAnonymous: String, country: String, count: Int)
 
 val query: GroupByQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
@@ -745,6 +747,68 @@ val query: GroupByQuery = DQL
 val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
 ```
 
+#### Select query
+
+The following query performs select over the dimensions `channel`, `cityName`, `countryIsoCode` and `user`:
+
+```scala
+case class SelectResult(channel: Option[String], cityName: Option[String], countryIsoCode: Option[String], user: Option[String])
+
+val query: SelectQuery = DQL
+    .select(threshold = 10)
+    .from("wikipedia")
+    .dimensions(d"channel", d"cityName", d"countryIsoCode", d"user")
+    .granularity(GranularityType.Hour)
+    .interval("2011-06-01/2017-06-01")
+    .build()
+
+val response: Future[List[SelectResult]] = query.execute().map(_.list[SelectResult])
+```
+Select queries support pagination, in the example above the pagination threshold is set to 10 rows per block of 
+paginated results. The resulting response, however, is being flattened to a single list of results 
+(due to `_.list[SelectResult]`). The pagination can be controlled with the parameters of the official 
+[Druid documentation](https://druid.apache.org/docs/latest/querying/select-query.html#result-pagination).
+
+
+#### Scan query
+
+Similar to `SelectQuery`, the following query performs scan over the dimensions `channel`, `cityName`, `countryIsoCode` 
+and `user`:
+
+```scala
+case class ScanResult(channel: Option[String], cityName: Option[String], countryIsoCode: Option[String], user: Option[String])
+
+val query: ScanQuery = DQL
+      .scan()
+      .from("wikipedia")
+      .columns("channel", "cityName", "countryIsoCode", "user")
+      .granularity(GranularityType.Day)
+      .interval("2011-06-01/2017-06-01")
+      .build()
+```
+
+[Scan query](https://druid.apache.org/docs/latest/querying/scan-query.html) is more efficient than 
+[Select query](https://druid.apache.org/docs/latest/querying/select-query.html). The main difference is that it does 
+not support pagination, but is able to return a virtually unlimited number of results.
+
+#### Search query
+
+The following query performs case insensitive [search](https://druid.apache.org/docs/latest/querying/searchquery.html) over the dimensions `countryIsoCode`:
+
+```scala
+val query: SearchQuery = DQL
+    .search(ContainsInsensitive("GR"))
+    .from("wikipedia")
+    .granularity(GranularityType.Hour)
+    .interval("2011-06-01/2017-06-01")
+    .dimensions("countryIsoCode")
+    .build()
+
+val request: Future[List[DruidSearchResult]] = query.execute().map(_.list)
+```
+
+In contrast to rest of queries, Search query does not take type parameters as its results are of type `ing.wbaa.druid.DruidSearchResult`.
+
 ## Query Context
 
 Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html) is used for various query 
@@ -756,7 +820,7 @@ Consider, for example, a group-by query with custom `query id` and `priority`:
 
 ```scala
 val query: GroupByQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")
@@ -773,7 +837,7 @@ Alternatively, context parameters can also be specified one each time by using t
 
 ```scala
 val query: GroupByQuery = DQL
-    .from("wikiticker")
+    .from("wikipedia")
     .granularity(GranularityType.Day)
     .interval("2011-06-01/2017-06-01")
     .agg(count as "count")

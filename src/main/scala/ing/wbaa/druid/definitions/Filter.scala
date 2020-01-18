@@ -165,13 +165,13 @@ case class SearchFilter(dimension: String,
   val `type` = FilterType.Search
 }
 
-sealed trait SearchQuerySpecType extends Enum with CamelCaseEnumStringEncoder
+sealed trait SearchQuerySpecType extends Enum with SnakeCaseEnumStringEncoder
 
 object SearchQuerySpecType extends EnumCodec[SearchQuerySpecType] {
   case object Contains            extends SearchQuerySpecType
   case object InsensitiveContains extends SearchQuerySpecType
   case object Fragment            extends SearchQuerySpecType
-
+  case object Regex               extends SearchQuerySpecType
   val values: Set[SearchQuerySpecType] = sealerate.values[SearchQuerySpecType]
 }
 
@@ -186,6 +186,7 @@ object SearchQuerySpec {
         case x: ContainsCaseSensitive => x.asJsonObject
         case x: ContainsInsensitive   => x.asJsonObject
         case x: Fragment              => x.asJsonObject
+        case x: Regex                 => x.asJsonObject
       }).add("type", contains.`type`.asJson).asJson
   }
 }
@@ -202,6 +203,10 @@ case class ContainsInsensitive(value: String) extends SearchQuerySpec {
 case class Fragment(values: Iterable[String], caseSensitive: Option[Boolean] = None)
     extends SearchQuerySpec {
   val `type` = SearchQuerySpecType.Fragment
+}
+
+case class Regex(pattern: String) extends SearchQuerySpec {
+  val `type` = SearchQuerySpecType.Regex
 }
 
 case class SpatialFilter(dimension: String, bound: SpatialBound) extends Filter {

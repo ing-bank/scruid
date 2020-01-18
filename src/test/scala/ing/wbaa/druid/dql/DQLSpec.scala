@@ -17,7 +17,9 @@
 
 package ing.wbaa.druid.dql
 
-import ing.wbaa.druid.{ DruidQuery, GroupByQuery, TimeSeriesQuery, TopNQuery }
+import akka.stream.scaladsl.Sink
+import ing.wbaa.druid.client.DruidHttpClient
+import ing.wbaa.druid._
 import ing.wbaa.druid.definitions._
 import org.scalatest.{ Matchers, WordSpec }
 import org.scalatest.concurrent._
@@ -31,6 +33,10 @@ import scala.language.postfixOps
 class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(1 minute, 100 millis)
+
+  implicit val config = DruidConfig(clientBackend = classOf[DruidHttpClient])
+
+  implicit val mat = config.client.actorMaterializer
 
   private val totalNumberOfEntries = 39244
 
@@ -46,10 +52,20 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
   case class AggregatedCardinality(cardinalityValue: Double)
 
+  case class SelectResult(channel: Option[String],
+                          cityName: Option[String],
+                          countryIsoCode: Option[String],
+                          user: Option[String])
+
+  case class ScanResult(channel: Option[String],
+                        cityName: Option[String],
+                        countryIsoCode: Option[String],
+                        user: Option[String])
+
   "DQL TimeSeriesQuery" should {
     "successfully be interpreted by Druid" in {
 
-      val query: TimeSeriesQuery = DQL
+      val query: TimeSeriesQuery = DQL.timeseries
         .granularity(GranularityType.Hour)
         .interval("2011-06-01/2017-06-01")
         .agg(count as "count")
@@ -63,7 +79,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     }
 
     "extract the data and return a map with the timestamps as keys" in {
-      val query: TimeSeriesQuery = DQL
+      val query: TimeSeriesQuery = DQL.timeseries
         .granularity(GranularityType.Hour)
         .interval("2011-06-01/2017-06-01")
         .agg(count as "count")
@@ -219,7 +235,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
       val expectedValue = 1148.0
 
-      val query = DQL
+      val query = DQL.timeseries
         .agg(cardinality("cardinalityValue", d"countryName", d"cityName").setRound(true))
         .interval("2011-06-01/2017-06-01")
         .build()
@@ -236,7 +252,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
       val expectedValue = 1152.0
 
-      val query = DQL
+      val query = DQL.timeseries
         .agg(
           cardinality("cardinalityValue", d"countryName", d"cityName")
             .set(byRow = true, round = true)
@@ -256,7 +272,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
       val expectedValue = 509.0
 
-      val query = DQL
+      val query = DQL.timeseries
         .agg(
           cardinality(
             "cardinalityValue",
@@ -330,7 +346,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
 
     "withQueryContext produce the desired JSON" in {
 
-      val query = DQL
+      val query = DQL.timeseries
         .granularity(GranularityType.Hour)
         .interval("2011-06-01/2017-06-01")
         .setDescending(true)
@@ -357,7 +373,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     }
 
     "setQueryContextParam produce the desired JSON" in {
-      val query = DQL
+      val query = DQL.timeseries
         .granularity(GranularityType.Hour)
         .interval("2011-06-01/2017-06-01")
         .agg(count as "count")
@@ -385,7 +401,7 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     "successfully be interpreted by Druid" in {
       val expectedValue = 22642.0
 
-      val query: DruidQuery = DQL
+      val query: TimeSeriesQuery = DQL.timeseries
         .agg(
           javascript(
             name = "value",
@@ -409,6 +425,120 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
         val result = response.list[AggregationJavascript]
         result.size shouldBe 1
         result.head.value shouldBe expectedValue
+      }
+    }
+  }
+
+  "DQL also work with 'select' queries" should {
+    val resultsThreshold = 10
+    val numberOfResults  = resultsThreshold * 24
+
+    val query: SelectQuery = DQL
+      .select(resultsThreshold)
+      .dimensions(d"channel", d"cityName", d"countryIsoCode", d"user")
+      .granularity(GranularityType.Hour)
+      .interval("2011-06-01/2017-06-01")
+      .build()
+
+    "successfully be interpreted by Druid" in {
+
+      val request = query.execute()
+      whenReady(request) { response =>
+        val resultList = response.list[SelectResult]
+        resultList.size shouldBe numberOfResults
+
+        val resultSeries = response.series[SelectResult]
+        resultSeries.size shouldBe 24
+        resultSeries.map { case (_, results) => results.size }.sum shouldBe numberOfResults
+      }
+    }
+
+    "successfully be streamed" in {
+      val requestSeq = query.streamAs[SelectResult].runWith(Sink.seq)
+      whenReady(requestSeq) { response =>
+        response.size shouldBe numberOfResults
+      }
+
+      val requestSeries = query.streamSeriesAs[SelectResult].runWith(Sink.seq)
+      whenReady(requestSeries) { response =>
+        response.size shouldBe numberOfResults
+      }
+    }
+  }
+
+  "DQL also work with 'scan' queries" should {
+    val numberOfResults = 100
+
+    val query: ScanQuery = DQL
+      .scan()
+      .columns("channel", "cityName", "countryIsoCode", "user")
+      .granularity(GranularityType.Day)
+      .interval("2011-06-01/2017-06-01")
+      .batchSize(10)
+      .limit(numberOfResults)
+      .build()
+
+    "successfully be interpreted by Druid" in {
+
+      val request = query.execute()
+      whenReady(request) { response =>
+        val resultList = response.list[ScanResult]
+        resultList.size shouldBe numberOfResults
+
+        val resultSeries = response.series[ScanResult]
+        resultSeries.size shouldBe numberOfResults
+      }
+    }
+
+    "successfully be streamed" in {
+      val requestSeq = query.streamAs[ScanResult].runWith(Sink.seq)
+      whenReady(requestSeq) { response =>
+        response.size shouldBe numberOfResults
+      }
+
+      val requestSeries = query.streamSeriesAs[ScanResult].runWith(Sink.seq)
+      whenReady(requestSeries) { response =>
+        response.size shouldBe numberOfResults
+      }
+    }
+  }
+
+  "DQL also work with 'search' queries" should {
+
+    val query: SearchQuery = DQL
+      .granularity(GranularityType.Hour)
+      .interval("2011-06-01/2017-06-01")
+      .search(ContainsInsensitive("GR"))
+      .dimensions("countryIsoCode")
+      .build()
+
+    "successfully be interpreted by Druid" in {
+      val request = query.execute()
+
+      whenReady(request) { response =>
+        val resultList = response.list
+        resultList.size shouldBe 1
+
+        val result = resultList.head
+
+        result.dimension shouldBe "countryIsoCode"
+        result.value shouldBe "GR"
+        result.count shouldBe 19
+      }
+
+    }
+
+    "successfully be streamed" in {
+      val request = query.stream().runWith(Sink.seq)
+
+      whenReady(request) { results =>
+        results.size shouldBe 1
+
+        val result = results.head
+
+        result.dimension shouldBe "countryIsoCode"
+        result.value shouldBe "GR"
+        result.count shouldBe 19
       }
     }
   }
