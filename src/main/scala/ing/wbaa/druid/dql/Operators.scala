@@ -54,6 +54,27 @@ trait AggregationOps {
   def doubleLast(dimName: String): DoubleLastAgg = new DoubleLastAgg(dimName)
   def doubleLast(dim: Dim): DoubleLastAgg        = doubleLast(dim.name)
 
+  def floatSum(dimName: String): FloatSumAgg = new FloatSumAgg(dimName)
+  def floatSum(dim: Dim): FloatSumAgg        = floatSum(dim.name)
+
+  def floatMax(dimName: String): FloatMaxAgg = new FloatMaxAgg(dimName)
+  def floatMax(dim: Dim): FloatMaxAgg        = floatMax(dim.name)
+
+  def floatMin(dimName: String): FloatMinAgg = new FloatMinAgg(dimName)
+  def floatMin(dim: Dim): FloatMinAgg        = floatMin(dim.name)
+
+  def floatFirst(dimName: String): FloatFirstAgg = new FloatFirstAgg(dimName)
+  def floatFirst(dim: Dim): FloatFirstAgg        = floatFirst(dim.name)
+
+  def floatLast(dimName: String): FloatLastAgg = new FloatLastAgg(dimName)
+  def floatLast(dim: Dim): FloatLastAgg        = floatLast(dim.name)
+
+  def stringFirst(dimName: String): StringFirstAgg = StringFirstAgg(dimName)
+  def stringFirst(dim: Dim): StringFirstAgg        = stringFirst(dim.name)
+
+  def stringLast(dimName: String): StringLastAgg = StringLastAgg(dimName)
+  def stringLast(dim: Dim): StringLastAgg        = stringLast(dim.name)
+
   def thetaSketch(dimName: String): ThetaSketchAgg = ThetaSketchAgg(dimName)
   def thetaSketch(dim: Dim): ThetaSketchAgg        = thetaSketch(dim.name)
 
@@ -108,12 +129,23 @@ trait AggregationOps {
 
   def count: CountAgg = new CountAgg()
 
+  def javascript(fields: Iterable[Dim], fnAggregate: String, fnCombine: String, fnReset: String)(
+      implicit classTag: ClassTag[Dim]
+  ): JavascriptAgg =
+    JavascriptAgg(fields.map(_.name).toSeq, fnAggregate, fnCombine, fnReset)
+
   def javascript(name: String,
                  fields: Iterable[Dim],
                  fnAggregate: String,
                  fnCombine: String,
                  fnReset: String)(implicit classTag: ClassTag[Dim]): JavascriptAgg =
     JavascriptAgg(fields.map(_.name).toSeq, fnAggregate, fnCombine, fnReset, Option(name))
+
+  def javascript(fields: Iterable[String],
+                 fnAggregate: String,
+                 fnCombine: String,
+                 fnReset: String): JavascriptAgg =
+    JavascriptAgg(fields.toSeq, fnAggregate, fnCombine, fnReset)
 
   def javascript(name: String,
                  fields: Iterable[String],
@@ -152,6 +184,9 @@ trait PostAggregationOps {
 
   def hyperUniqueCardinality(dim: Dim): PostAggregationExpression =
     HyperUniqueCardinalityPostAgg(dim.name, dim.outputNameOpt)
+
+  def javascript(fields: Iterable[String], function: String): PostAggregationExpression =
+    JavascriptPostAgg(fields.toSeq, function)
 
   def javascript(name: String,
                  fields: Iterable[String],

@@ -151,6 +151,118 @@ final class DoubleLastAgg(fieldName: String, name: Option[String] = None)
   override def getName: String = name.getOrElse(s"double_last_$fieldName")
 }
 
+final class FloatSumAgg(fieldName: String, name: Option[String] = None)
+    extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    FloatSumAggregation(this.getName, fieldName)
+
+  override def alias(name: String): AggregationExpression =
+    new FloatSumAgg(fieldName, Option(name))
+
+  override def getName: String = name.getOrElse(s"float_sum_$fieldName")
+}
+
+final class FloatMaxAgg(fieldName: String, name: Option[String] = None)
+    extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    FloatMaxAggregation(this.getName, fieldName)
+
+  override def alias(name: String): AggregationExpression =
+    new FloatMaxAgg(fieldName, Option(name))
+
+  override def getName: String = name.getOrElse(s"float_max_$fieldName")
+}
+
+final class FloatMinAgg(fieldName: String, name: Option[String] = None)
+    extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    FloatMinAggregation(this.getName, fieldName)
+
+  override def alias(name: String): AggregationExpression =
+    new FloatMinAgg(fieldName, Option(name))
+
+  override def getName: String = name.getOrElse(s"float_min_$fieldName")
+}
+
+final class FloatFirstAgg(fieldName: String, name: Option[String] = None)
+    extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    FloatFirstAggregation(this.getName, fieldName)
+
+  override def alias(name: String): AggregationExpression =
+    new FloatFirstAgg(fieldName, Option(name))
+
+  override def getName: String = name.getOrElse(s"float_first_$fieldName")
+}
+
+final class FloatLastAgg(fieldName: String, name: Option[String] = None)
+    extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    FloatLastAggregation(this.getName, fieldName)
+
+  override def alias(name: String): AggregationExpression =
+    new FloatLastAgg(fieldName, Option(name))
+
+  override def getName: String = name.getOrElse(s"float_last_$fieldName")
+}
+
+final case class StringFirstAgg(
+    fieldName: String,
+    name: Option[String] = None,
+    maxStringBytes: Option[Int] = None,
+    filterNullValues: Boolean = false
+) extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    StringFirstAggregation(this.getName, fieldName, maxStringBytes, filterNullValues)
+
+  override def alias(name: String): AggregationExpression = this.copy(name = Option(name))
+
+  override def getName: String = name.getOrElse(s"string_first_${fieldName}")
+
+  def maxStringBytes(v: Int): StringFirstAgg = {
+    require(v > 0, s"The specified value ($v) for maxStringBytes should be greater that zero")
+    this.copy(maxStringBytes = Option(v))
+  }
+
+  def filterNullValues(v: Boolean): StringFirstAgg =
+    this.copy(filterNullValues = v)
+
+  def set(maxStringBytes: Int = 0, filterNullValues: Boolean = false): StringFirstAgg =
+    this.copy(maxStringBytes = if (maxStringBytes > 0) Some(maxStringBytes) else None,
+              filterNullValues = filterNullValues)
+}
+
+final case class StringLastAgg(
+    fieldName: String,
+    name: Option[String] = None,
+    maxStringBytes: Option[Int] = None,
+    filterNullValues: Boolean = false
+) extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    StringLastAggregation(this.getName, fieldName, maxStringBytes, filterNullValues)
+
+  override def alias(name: String): AggregationExpression = this.copy(name = Option(name))
+
+  override def getName: String = name.getOrElse(s"string_last_${fieldName}")
+
+  def maxStringBytes(v: Int): StringLastAgg =
+    this.copy(maxStringBytes = if (v > 1) Some(v) else None)
+
+  def filterNullValues(v: Boolean): StringLastAgg =
+    this.copy(filterNullValues = v)
+
+  def set(maxStringBytes: Int = 0, filterNullValues: Boolean = false): StringLastAgg =
+    this.copy(maxStringBytes = if (maxStringBytes > 0) Some(maxStringBytes) else None,
+              filterNullValues = filterNullValues)
+}
+
 final case class ThetaSketchAgg(fieldName: String,
                                 name: Option[String] = None,
                                 isInputThetaSketch: Boolean = false,
