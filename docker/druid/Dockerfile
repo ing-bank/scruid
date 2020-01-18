@@ -9,21 +9,24 @@ ENV DRUID_VERSION=$ARG_DRUID_VERSION
 ENV ZOOKEEPER_VERSION=$ARG_ZOOKEEPER_VERSION
 ENV LANG C.UTF-8
 
-RUN apk add --no-cache bash perl python curl
+RUN set -ex; apk add --no-cache bash perl python curl
 
 # druid
-RUN curl -fsLS "https://www.apache.org/dyn/closer.cgi?filename=/incubator/druid/$DRUID_VERSION/apache-druid-$DRUID_VERSION-bin.tar.gz&action=download" | gunzip | tar x -C /opt \
-    && mv /opt/apache-druid-${DRUID_VERSION} /opt/druid
+RUN set -ex; \
+    curl -fsLS "https://www.apache.org/dyn/closer.cgi?filename=/incubator/druid/$DRUID_VERSION/apache-druid-$DRUID_VERSION-bin.tar.gz&action=download" | gunzip | tar x -C /opt; \
+    mv /opt/apache-druid-${DRUID_VERSION} /opt/druid
 
 # zookeeper
-RUN curl -fsLS "https://www.apache.org/dyn/closer.cgi?filename=/zookeeper/zookeeper-$ZOOKEEPER_VERSION/zookeeper-$ZOOKEEPER_VERSION.tar.gz&action=download" | gunzip | tar x -C /opt \
-    && mv /opt/zookeeper-${ZOOKEEPER_VERSION} /opt/druid/zk
+RUN set -ex; \
+    curl -fsLS "https://www.apache.org/dyn/closer.cgi?filename=/zookeeper/zookeeper-$ZOOKEEPER_VERSION/apache-zookeeper-$ZOOKEEPER_VERSION.tar.gz&action=download" | gunzip | tar x -C /opt; \
+    mv /opt/apache-zookeeper-${ZOOKEEPER_VERSION} /opt/druid/zk
 
 WORKDIR /opt/druid/
 
 ADD config/common.runtime.properties conf/druid/single-server/micro-quickstart/_common/common.runtime.properties
 
-RUN bash -c "./bin/start-micro-quickstart &" && \
+RUN set -ex; \
+    bash -c "./bin/start-micro-quickstart &"; \
     ./bin/post-index-task --file quickstart/tutorial/wikipedia-index.json --url http://localhost:8081 --submit-timeout 600
 
 # Expose ports:

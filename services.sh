@@ -3,6 +3,7 @@
 : ${TRY_LOOP:="20"}
 : ${DRUID_HOST:="localhost"}
 : ${DRUID_PORT:="8082"}
+: ${REPOSITORY_OWNER:="${USER}/scruid"}
 
 set -e
 
@@ -21,7 +22,7 @@ wait_for_port() {
 }
 
 build_images(){
-  (cd docker; make image)
+  (cd docker; REPOSITORY_OWNER=${REPOSITORY_OWNER} make image)
 }
 
 
@@ -39,22 +40,22 @@ usage() {
 case "$1" in
   start)
     # pull images if they exist, otherwise try to build any missing locally
-    docker-compose pull || build_images
-    docker-compose up -d
+    REPOSITORY_OWNER=${REPOSITORY_OWNER} docker-compose pull || build_images
+    REPOSITORY_OWNER=${REPOSITORY_OWNER} docker-compose up -d
     wait_for_port "druid" ${DRUID_HOST} ${DRUID_PORT}
   ;;
   stop)
-    docker-compose stop
+    REPOSITORY_OWNER=${REPOSITORY_OWNER} docker-compose stop
   ;;
   restart)
-    docker-compose restart 
+    REPOSITORY_OWNER=${REPOSITORY_OWNER} docker-compose restart
     wait_for_port "druid" ${DRUID_HOST} ${DRUID_PORT} 
   ;;    
   down)
-    docker-compose down -v
+    REPOSITORY_OWNER=${REPOSITORY_OWNER} docker-compose down -v
   ;;
   status)
-    docker-compose ps
+    REPOSITORY_OWNER=${REPOSITORY_OWNER} docker-compose ps
   ;;
   build)
     build_images

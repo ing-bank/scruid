@@ -84,7 +84,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
       s"git@github.com:${bintrayOrganization.value.get}/${name.value}.git"
     )
   ),
-  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.9", "2.13.1"),
+  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.10", "2.13.1"),
   scalaVersion in ThisBuild := "2.12.9",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= unusedWarnings(scalaVersion.value),

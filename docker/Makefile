@@ -9,7 +9,7 @@ export
 
 # Registry of the docker images
 REGISTRY=docker.pkg.github.com
-REPOSITORY_OWNER ?= ing-bank/scruid
+REPOSITORY_OWNER ?=${USER}/scruid
 # Base docker image with openjdk jre
 OPENJDK_IMAGE=openjdk:8-jre-alpine
 
