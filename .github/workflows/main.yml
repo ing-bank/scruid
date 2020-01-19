@@ -1,4 +1,4 @@
-name: Build project
+name: build
 
 on: [push, pull_request]
 
@@ -47,6 +47,7 @@ jobs:
       - name: Shutdown dockerized services
         run: ./services.sh down
       - name: Push docker images
+        if: github.event_name != 'pull_request'
         run: (cd docker; make push)
     env:
       _JAVA_OPTIONS: "-Xms512m -Xmx4g"
