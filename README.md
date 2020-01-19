@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/ing-bank/scruid.svg?style=svg)](https://circleci.com/gh/ing-bank/scruid)
+[![Build](https://github.com/ing-bank/scruid/workflows/build/badge.svg?branch=master)](https://github.com/ing-bank/scruid/actions)
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/9b7c4adf8ad447efa9c7ea8a9ffda6b2)](https://www.codacy.com/app/fokko/scruid?utm_source=github.com&utm_medium=referral&utm_content=ing-bank/scruid&utm_campaign=Badge_Coverage)
 [![Download](https://api.bintray.com/packages/ing-bank/maven-releases/scruid/images/download.svg)](https://bintray.com/ing-bank/maven-releases/scruid/_latestVersion)
 
