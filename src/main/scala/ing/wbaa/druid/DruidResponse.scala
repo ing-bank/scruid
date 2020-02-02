@@ -32,11 +32,15 @@ sealed trait DruidResponse extends CirceDecoders {
 
   def list[T](implicit decoder: Decoder[T]): List[T]
 
+}
+
+sealed trait DruidResponseSeries extends DruidResponse {
   def series[T](implicit decoder: Decoder[T]): ListMap[ZonedDateTime, List[T]]
 }
 
 case class DruidResponseTimeseriesImpl(results: List[DruidResult], queryType: QueryType)
-    extends DruidResponse {
+    extends DruidResponse
+    with DruidResponseSeries {
 
   private def decodeList[T](implicit decoder: Decoder[T]): List[T] = results.map { result =>
     result.as[T](decoder)
@@ -52,21 +56,26 @@ case class DruidResponseTimeseriesImpl(results: List[DruidResult], queryType: Qu
 
   override def series[T](implicit decoder: Decoder[T]): ListMap[ZonedDateTime, List[T]] =
     results.foldLeft[ListMap[ZonedDateTime, List[T]]](ListMap.empty) {
-      case (acc, DruidResult(timestamp, result)) =>
+      case (acc, DruidResult(timestampOpt, result)) =>
         val elements = List(decode(result)(decoder))
 
-        acc ++ ListMap(
-          timestamp -> (acc.getOrElse(timestamp, List.empty[T]) ++ elements)
-        )
+        timestampOpt
+          .map { timestamp =>
+            acc ++ ListMap(
+              timestamp -> (acc.getOrElse(timestamp, List.empty[T]) ++ elements)
+            )
+          }
+          .getOrElse(acc)
+
     }
 }
 
 sealed trait BaseResult {
   def as[T](implicit decoder: Decoder[T]): T
-  val timestamp: ZonedDateTime
+  val timestamp: Option[ZonedDateTime]
 }
 
-case class DruidResult(timestamp: ZonedDateTime, result: Json) extends BaseResult {
+case class DruidResult(timestamp: Option[ZonedDateTime], result: Json) extends BaseResult {
 
   override def as[T](implicit decoder: Decoder[T]): T = decoder.decodeJson(this.result).toTry.get
 }
@@ -81,13 +90,15 @@ object DruidResult extends CirceDecoders {
   implicit val decoder: Decoder[DruidResult] = new Decoder[DruidResult] {
     final def apply(c: HCursor): Decoder.Result[DruidResult] =
       for {
-        timestamp <- c.downField("timestamp").as[ZonedDateTime]
+        timestamp <- c.downField("timestamp").as[ZonedDateTime].map(Option(_))
         result    <- extractResultField(c).as[Json]
       } yield DruidResult(timestamp, result)
   }
 }
 
-case class DruidScanResponse(results: List[DruidScanResults]) extends DruidResponse {
+case class DruidScanResponse(results: List[DruidScanResults])
+    extends DruidResponse
+    with DruidResponseSeries {
 
   override def list[T](implicit decoder: Decoder[T]): List[T] = results.flatMap(_.as[T])
 
@@ -97,11 +108,16 @@ case class DruidScanResponse(results: List[DruidScanResults]) extends DruidRespo
         .map(event => event.timestamp -> event.as[T])
         .groupBy { case (timestamp, _) => timestamp }
         .foldLeft(acc) { (internalAcc, record) =>
-          val (timestamp, entries) = record
-          val elements             = entries.map { case (_, event) => event }
-          internalAcc ++ ListMap(
-            timestamp -> (internalAcc.getOrElse(timestamp, List.empty[T]) ++ elements)
-          )
+          val (timestampOpt, entries) = record
+          val elements                = entries.map { case (_, event) => event }
+          timestampOpt
+            .map { timestamp =>
+              internalAcc ++ ListMap(
+                timestamp -> (internalAcc.getOrElse(timestamp, List.empty[T]) ++ elements)
+              )
+            }
+            .getOrElse(internalAcc)
+
         }
     }
 }
@@ -122,12 +138,13 @@ object DruidScanResults {
 
 case class DruidScanResult(result: Json) extends BaseResult with CirceDecoders {
 
-  override val timestamp: ZonedDateTime = {
+  override val timestamp: Option[ZonedDateTime] = {
     val timestampField = result.hcursor.downField("timestamp")
 
     if (timestampField.succeeded) {
       timestampField
         .as[ZonedDateTime]
+        .map(Option(_))
         .getOrElse(throw new IllegalStateException("Failed to parse JSON field 'timestamp'"))
     } else {
       val milliseconds = result.hcursor
@@ -135,7 +152,7 @@ case class DruidScanResult(result: Json) extends BaseResult with CirceDecoders {
         .as[Long]
         .getOrElse(throw new IllegalStateException(s"Failed to parse JSON field '__time'"))
 
-      ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZoneId.of("UTC"))
+      Option(ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZoneId.of("UTC")))
     }
   }
 
@@ -150,7 +167,7 @@ object DruidScanResult {
 
 }
 
-case class DruidResponseSearch(response: DruidResponse) {
+case class DruidResponseSearch(response: DruidResponseSeries) {
   def list: List[DruidSearchResult] = response.list[List[DruidSearchResult]].flatten
   def series: ListMap[ZonedDateTime, List[DruidSearchResult]] =
     response.series[List[DruidSearchResult]].map {
@@ -162,4 +179,18 @@ case class DruidSearchResult(dimension: String, value: String, count: Long)
 
 object DruidSearchResult {
   implicit val decoder: Decoder[DruidSearchResult] = deriveDecoder[DruidSearchResult]
+}
+
+case class DruidSQLResults(results: List[Json]) extends DruidResponse {
+
+  override def list[T](implicit decoder: Decoder[T]): List[T] = results.map(_.as[T].toTry.get)
+
+}
+
+case class DruidSQLResult(result: Json) extends BaseResult {
+
+  def as[T](implicit decoder: Decoder[T]): T =
+    result.as[T].toTry.get
+
+  override val timestamp: Option[ZonedDateTime] = None
 }

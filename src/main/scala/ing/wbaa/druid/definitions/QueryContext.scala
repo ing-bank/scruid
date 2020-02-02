@@ -70,4 +70,9 @@ object QueryContext {
   final val MaxResults          = "maxResults"
   final val UseOffheap          = "useOffheap"
 
+  // sql parameters
+  final val SqlQueryId                  = "sqlQueryId"
+  final val SqlTimeZone                 = "sqlTimeZone"
+  final val UseApproximateCountDistinct = "useApproximateCountDistinct"
+  final val UseApproximateTopN          = "useApproximateTopN"
 }

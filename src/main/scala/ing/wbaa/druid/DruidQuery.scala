@@ -17,11 +17,13 @@
 
 package ing.wbaa.druid
 
-import java.time.ZonedDateTime
+import java.time.{ LocalDateTime, ZonedDateTime }
+import java.time.format.DateTimeFormatter
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import ca.mrvisser.sealerate
+import ing.wbaa.druid.SQLQuery.Parameterized
 import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
 import ing.wbaa.druid.definitions._
 import io.circe.generic.auto._
@@ -37,13 +39,12 @@ object QueryType extends EnumCodec[QueryType] {
   case object Timeseries extends QueryType
   case object Scan       extends QueryType
   case object Search     extends QueryType
+  case object SQL        extends QueryType
   val values: Set[QueryType] = sealerate.values[QueryType]
 }
 
 sealed trait DruidQuery {
-
   val queryType: QueryType
-  val dataSource: String
   val context: Map[String, String]
 
   /**
@@ -52,13 +53,29 @@ sealed trait DruidQuery {
     * @return corresponding JSON representation of the query
     */
   def toDebugString: String = this.asInstanceOf[DruidQuery].asJson.toString()
-
 }
 
 object DruidQuery {
 
   implicit val encoder: Encoder[DruidQuery] = new Encoder[DruidQuery] {
     final def apply(query: DruidQuery): Json =
+      query match {
+        case q: DruidNativeQuery => q.asJson
+        case q: SQLQuery         => q.asJsonObject.add("resultFormat", q.resultFormat.asJson).asJson
+      }
+  }
+
+}
+
+sealed trait DruidNativeQuery extends DruidQuery {
+
+  val dataSource: String
+
+}
+
+object DruidNativeQuery {
+  implicit val encoder: Encoder[DruidNativeQuery] = new Encoder[DruidNativeQuery] {
+    final def apply(query: DruidNativeQuery): Json =
       (query match {
         case x: GroupByQuery    => x.asJsonObject
         case x: TimeSeriesQuery => x.asJsonObject
@@ -68,14 +85,15 @@ object DruidQuery {
       }).add("queryType", query.queryType.asJson)
         .add("dataSource", query.dataSource.asJson)
         .asJson
+
   }
 }
 
-sealed trait DruidQueryFunctions {
+sealed trait DruidQueryFunctions[R <: DruidResponse] {
   this: DruidQuery =>
 
-  def execute()(implicit config: DruidConfig = DruidConfig.DefaultConfig): Future[DruidResponse] =
-    config.client.doQuery(this)
+  def execute()(implicit config: DruidConfig = DruidConfig.DefaultConfig): Future[R] =
+    config.client.doQuery[R](this)
 
   def stream()(
       implicit config: DruidConfig = DruidConfig.DefaultConfig
@@ -103,8 +121,13 @@ sealed trait DruidQueryFunctions {
 
     queryType match {
       case QueryType.TopN =>
-        source.mapConcat(result => result.as[List[T]].map(entry => (result.timestamp, entry)))
-      case _ => source.map(result => (result.timestamp, result.as[T]))
+        source.mapConcat(
+          result => result.as[List[T]].flatMap(entry => result.timestamp.map(ts => (ts, entry)))
+        )
+      case _ =>
+        //source.map(result => (result.timestamp, result.as[T]))
+        source.mapConcat(result => result.timestamp.map(ts => (ts, result.as[T])).toList)
+
     }
   }
 }
@@ -120,8 +143,8 @@ case class GroupByQuery(
     postAggregations: Iterable[PostAggregation] = Iterable.empty,
     context: Map[QueryContextParam, QueryContextValue] = Map.empty
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
-    extends DruidQuery
-    with DruidQueryFunctions {
+    extends DruidNativeQuery
+    with DruidQueryFunctions[DruidResponseSeries] {
   val queryType          = QueryType.GroupBy
   val dataSource: String = config.datasource
 }
@@ -169,8 +192,8 @@ case class TimeSeriesQuery(
     postAggregations: Iterable[PostAggregation] = Iterable.empty,
     context: Map[QueryContextParam, QueryContextValue] = Map.empty
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
-    extends DruidQuery
-    with DruidQueryFunctions {
+    extends DruidNativeQuery
+    with DruidQueryFunctions[DruidResponseSeries] {
   val queryType          = QueryType.Timeseries
   val dataSource: String = config.datasource
 }
@@ -186,8 +209,8 @@ case class TopNQuery(
     postAggregations: Iterable[PostAggregation] = Iterable.empty,
     context: Map[QueryContextParam, QueryContextValue] = Map.empty
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
-    extends DruidQuery
-    with DruidQueryFunctions {
+    extends DruidNativeQuery
+    with DruidQueryFunctions[DruidResponseSeries] {
   val queryType          = QueryType.TopN
   val dataSource: String = config.datasource
 
@@ -204,8 +227,8 @@ case class ScanQuery private (
     legacy: Option[Boolean],
     context: Map[QueryContextParam, QueryContextValue]
 )(implicit val config: DruidConfig)
-    extends DruidQuery
-    with DruidQueryFunctions {
+    extends DruidNativeQuery
+    with DruidQueryFunctions[DruidResponseSeries] {
 
   val queryType: QueryType = QueryType.Scan
   val dataSource: String   = config.datasource
@@ -260,7 +283,7 @@ case class SearchQuery(
     sort: Option[DimensionOrder] = None,
     context: Map[QueryContextParam, QueryContextValue] = Map.empty
 )(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
-    extends DruidQuery {
+    extends DruidNativeQuery {
 
   val queryType          = QueryType.Search
   val dataSource: String = config.datasource
@@ -282,6 +305,132 @@ case class SearchQuery(
       .mapConcat { response =>
         response
           .as[List[DruidSearchResult]]
-          .map(result => response.timestamp -> result)
+          .flatMap(result => response.timestamp.map(ts => ts -> result))
       }
+}
+
+sealed trait SQLQueryParameterType extends Enum with UpperCaseEnumStringEncoder
+object SQLQueryParameterType extends EnumCodec[SQLQueryParameterType] {
+
+  case object Char      extends SQLQueryParameterType
+  case object Varchar   extends SQLQueryParameterType
+  case object Decimal   extends SQLQueryParameterType
+  case object Float     extends SQLQueryParameterType
+  case object Real      extends SQLQueryParameterType
+  case object Double    extends SQLQueryParameterType
+  case object Boolean   extends SQLQueryParameterType
+  case object Tinyint   extends SQLQueryParameterType
+  case object Smallint  extends SQLQueryParameterType
+  case object Integer   extends SQLQueryParameterType
+  case object Bigint    extends SQLQueryParameterType
+  case object Timestamp extends SQLQueryParameterType
+  case object Date      extends SQLQueryParameterType
+  case object Other     extends SQLQueryParameterType
+
+  val values: Set[SQLQueryParameterType] = sealerate.values[SQLQueryParameterType]
+}
+
+case class SQLQueryParameter(`type`: SQLQueryParameterType, value: String)
+object SQLQueryParameter {
+  final val TimestampFormatter = DateTimeFormatter.ofPattern("y-MM-dd HH:mm:ss")
+}
+
+case class SQLQuery(query: String,
+                    context: Map[QueryContextParam, QueryContextValue] = Map.empty,
+                    parameters: Seq[SQLQueryParameter] = Seq.empty)(
+    implicit val config: DruidConfig = DruidConfig.DefaultConfig
+) extends DruidQuery {
+
+  val queryType    = QueryType.SQL
+  val resultFormat = "object"
+
+  def execute()(
+      implicit config: DruidConfig = DruidConfig.DefaultConfig,
+      ec: ExecutionContext = config.client.actorSystem.dispatcher
+  ): Future[DruidSQLResults] =
+    config.client.doQuery[DruidSQLResults](this)
+
+  def stream()(implicit config: DruidConfig): Source[DruidSQLResult, NotUsed] =
+    config.client.doQueryAsStream(this).map(_.asInstanceOf[DruidSQLResult])
+
+  def streamAs[T]()(
+      implicit config: DruidConfig = DruidConfig.DefaultConfig,
+      decoder: Decoder[T]
+  ): Source[T, NotUsed] = config.client.doQueryAsStream(this).map(_.as[T])
+
+  def stripMargin: SQLQuery = copy(query.stripMargin)
+
+  def setContext(contextParams: Map[QueryContextParam, QueryContextValue]): SQLQuery =
+    copy(context = contextParams)
+
+  def parameterized: Parameterized =
+    new Parameterized(query, context, parameters)
+}
+
+object SQLQuery {
+
+  class Parameterized private[druid] (
+      private val query: String,
+      private val context: Map[QueryContextParam, QueryContextValue] = Map.empty,
+      private var parameters: Seq[SQLQueryParameter] = Seq.empty
+  ) {
+
+    def withParameter(value: Char): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Char, value.toString)
+      this
+    }
+
+    def withParameter(value: String): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Varchar, value)
+      this
+    }
+
+    def withParameter(value: Byte): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Tinyint, value.toString)
+      this
+    }
+
+    def withParameter(value: Short): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Smallint, value.toString)
+      this
+    }
+
+    def withParameter(value: Int): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Integer, value.toString)
+      this
+    }
+
+    def withParameter(value: Long): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Bigint, value.toString)
+      this
+    }
+
+    def withParameter(value: Float): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Float, value.toString)
+      this
+    }
+
+    def withParameter(value: Double): this.type = {
+      parameters :+= SQLQueryParameter(SQLQueryParameterType.Double, value.toString)
+      this
+    }
+
+    def withParameter(value: LocalDateTime): this.type = {
+
+      val resultingParameter =
+        SQLQueryParameter(SQLQueryParameterType.Timestamp,
+                          value.format(SQLQueryParameter.TimestampFormatter))
+
+      parameters :+= resultingParameter
+      this
+    }
+
+    def withParameter(`type`: SQLQueryParameterType, value: String): this.type = {
+      parameters :+= SQLQueryParameter(`type`, value)
+      this
+    }
+
+    def create(): SQLQuery = SQLQuery(query, context, parameters)
+
+  }
 }

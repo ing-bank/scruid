@@ -28,7 +28,7 @@ import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.stream._
 import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
-import ing.wbaa.druid.{ BaseResult, DruidConfig, DruidQuery, DruidResponse, QueryHost }
+import ing.wbaa.druid.{ BaseResult, DruidConfig, DruidQuery, DruidResponse, QueryHost, QueryType }
 import akka.pattern.retry
 import ing.wbaa.druid.client.DruidAdvancedHttpClient.ConnectionFlow
 
@@ -101,14 +101,17 @@ class DruidAdvancedHttpClient private (
     checksF.map(_.toMap)
   }
 
-  override def doQuery(
+  override def doQuery[T <: DruidResponse](
       query: DruidQuery
-  )(implicit druidConfig: DruidConfig): Future[DruidResponse] =
+  )(implicit druidConfig: DruidConfig): Future[T] =
     Marshal(query)
       .to[RequestEntity]
       .flatMap { entity =>
+        val requestURL = if (query.queryType == QueryType.SQL) s"${url}/sql/" else url
+
         val request =
-          HttpRequest(HttpMethods.POST, url).withEntity(entity.withContentType(`application/json`))
+          HttpRequest(HttpMethods.POST, requestURL)
+            .withEntity(entity.withContentType(`application/json`))
         retry(
           () =>
             executeRequest(request).flatMap { response =>
@@ -212,7 +215,9 @@ class DruidAdvancedHttpClient private (
     Marshal(query)
       .to[RequestEntity]
       .map { entity =>
-        HttpRequest(HttpMethods.POST, uri = druidConfig.url)
+        val requestURL =
+          if (query.queryType == QueryType.SQL) s"${druidConfig.url}/sql/" else druidConfig.url
+        HttpRequest(HttpMethods.POST, uri = requestURL)
           .withEntity(entity.withContentType(`application/json`))
       }
 }

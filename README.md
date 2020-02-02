@@ -210,6 +210,21 @@ To process the results with Akka Stream, you can call one of the following metho
 
 All the methods above can be applied to any timeseries, group-by or top-N query created either directly by using query constructors or by DQL.
 
+## Druid SQL support
+
+Instead of using the Druid native API, Scruid also supports Druid queries 
+via [SQL](https://druid.apache.org/docs/latest/querying/sql.html).
+
+```scala
+import ing.wbaa.druid.SQL._
+
+val query = sql"""SELECT SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+
+val response = query.execute()
+```
+
+For details see the [SQL documentation](docs/sql.md).
+
 ### Example
 
 ```scala

@@ -58,7 +58,7 @@ trait EnumStringEncoder { this: Enum =>
 }
 
 trait UpperCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
-  def encode() = toString
+  def encode() = toString.toUpperCase
 }
 
 trait LowerCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>

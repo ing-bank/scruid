@@ -65,13 +65,16 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
   override def healthCheck(implicit druidConfig: DruidConfig): Future[Map[QueryHost, Boolean]] =
     isHealthy.map(outcome => Map(queryHost -> outcome))
 
-  override def doQuery(
+  override def doQuery[T <: DruidResponse](
       query: DruidQuery
-  )(implicit druidConfig: DruidConfig): Future[DruidResponse] =
+  )(implicit druidConfig: DruidConfig): Future[T] =
     Marshal(query)
       .to[RequestEntity]
       .map { entity =>
-        HttpRequest(HttpMethods.POST, uri = druidConfig.url)
+        val requestURL =
+          if (query.queryType == QueryType.SQL) s"${druidConfig.url}sql/" else druidConfig.url
+        logger.info(s"requestURL = ${requestURL}")
+        HttpRequest(HttpMethods.POST, uri = requestURL)
           .withEntity(entity.withContentType(`application/json`))
       }
       .flatMap(request => executeRequest(query.queryType, request))
@@ -86,10 +89,10 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
 
   override def shutdown(): Future[Unit] = Future.successful(())
 
-  private def executeRequest(
+  private def executeRequest[T <: DruidResponse](
       queryType: QueryType,
       request: HttpRequest
-  )(implicit druidConfig: DruidConfig): Future[DruidResponse] = {
+  )(implicit druidConfig: DruidConfig): Future[T] = {
     logger.debug(
       s"Executing api ${request.method} request to ${request.uri} with entity: ${request.entity}"
     )
@@ -107,7 +110,10 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
     Marshal(q)
       .to[RequestEntity]
       .map { entity =>
-        HttpRequest(HttpMethods.POST, uri = druidConfig.url)
+        val requestURL =
+          if (q.queryType == QueryType.SQL) s"${druidConfig.url}sql/" else druidConfig.url
+        logger.info(s"requestURL = ${requestURL}")
+        HttpRequest(HttpMethods.POST, uri = requestURL)
           .withEntity(entity.withContentType(`application/json`))
       }
 }
