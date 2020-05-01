@@ -199,22 +199,6 @@ final class QueryBuilder private[dql] ()
   def groupBy(dimensions: Iterable[Dim]): GroupByQueryBuilder =
     copyTo(new GroupByQueryBuilder(dimensions))
 
-  /**
-    * Define that the query will be a select query
-    *
-    * @param pagingSpec the paging specification
-    * @return the builder for select queries
-    */
-  def select(pagingSpec: PagingSpec): SelectQueryBuilder =
-    copyTo(new SelectQueryBuilder(pagingSpec))
-
-  def select(
-      threshold: Int,
-      fromNext: Boolean = true,
-      pagingIdentifiers: Map[String, Int] = Map.empty
-  ): SelectQueryBuilder =
-    copyTo(new SelectQueryBuilder(PagingSpec(threshold, fromNext, pagingIdentifiers)))
-
   def scan(): ScanQueryBuilder = copyTo(new ScanQueryBuilder())
 
   def search(q: SearchQuerySpec): SearchQueryBuilder = copyTo(new SearchQueryBuilder(q))
@@ -270,7 +254,6 @@ final class TopNQueryBuilder private[dql] (dimension: Dim, metric: String, n: In
     val conf = dataSourceOpt
       .map(ds => druidConfig.copy(datasource = ds))
       .getOrElse(druidConfig)
-
 
     TopNQuery(
       dimension = this.dimension.build(),
@@ -436,45 +419,6 @@ final class ScanQueryBuilder private[dql] () extends QueryBuilderCommons {
       batchSize = this.batchSizeOpt,
       limit = this.limitOpt,
       order = this.order,
-      context = this.queryContextParams
-    )(conf)
-  }
-}
-
-final class SelectQueryBuilder private[dql] (pagingSpec: PagingSpec)
-    extends QueryBuilderCommons
-    with DescendingOption {
-
-  private var allMetrics: List[String] = Nil
-  private var dimensions: List[Dim]    = Nil
-
-  def dimensions(dims: Dim*): this.type = this.dimensions(dims)
-
-  def dimensions(dims: Iterable[Dim]): this.type = {
-    dimensions = dims.foldRight(dimensions)((dim, acc) => dim :: acc)
-    this
-  }
-
-  def metrics(metrics: String*): this.type = this.metrics(metrics)
-
-  def metrics(metrics: Iterable[String]): this.type = {
-    allMetrics = metrics.foldRight(allMetrics)((metric, acc) => metric :: acc)
-    this
-  }
-
-  def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): SelectQuery = {
-    val conf = dataSourceOpt
-      .map(ds => druidConfig.copy(datasource = ds))
-      .getOrElse(druidConfig)
-
-    SelectQuery(
-      granularity = this.granularityOpt.getOrElse(GranularityType.All),
-      intervals = this.intervals,
-      pagingSpec = this.pagingSpec,
-      filter = this.getFilters,
-      descending = this.descending,
-      dimensions = this.dimensions.map(_.build()),
-      metrics = this.allMetrics,
       context = this.queryContextParams
     )(conf)
   }

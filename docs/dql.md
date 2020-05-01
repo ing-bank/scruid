@@ -3,7 +3,7 @@
 Scruid provides a rich Scala API for building queries using the fluent pattern.
 
 In order to use DQL, you have to import `ing.wbaa.druid.dql.DSL._` and thereafter build a query using the `DQL` query
-builder. The type of the query can be time-series, group-by, top-n, select, scan or search.
+builder. The type of the query can be time-series, group-by, top-n, scan or search.
 
 For all any type of queries you can define the following:
 
@@ -747,33 +747,9 @@ val query: GroupByQuery = DQL
 val response: Future[List[GroupByIsAnonymous]] = query.execute().map(_.list[GroupByIsAnonymous])
 ```
 
-#### Select query
-
-The following query performs select over the dimensions `channel`, `cityName`, `countryIsoCode` and `user`:
-
-```scala
-case class SelectResult(channel: Option[String], cityName: Option[String], countryIsoCode: Option[String], user: Option[String])
-
-val query: SelectQuery = DQL
-    .select(threshold = 10)
-    .from("wikipedia")
-    .dimensions(d"channel", d"cityName", d"countryIsoCode", d"user")
-    .granularity(GranularityType.Hour)
-    .interval("2011-06-01/2017-06-01")
-    .build()
-
-val response: Future[List[SelectResult]] = query.execute().map(_.list[SelectResult])
-```
-Select queries support pagination, in the example above the pagination threshold is set to 10 rows per block of 
-paginated results. The resulting response, however, is being flattened to a single list of results 
-(due to `_.list[SelectResult]`). The pagination can be controlled with the parameters of the official 
-[Druid documentation](https://druid.apache.org/docs/latest/querying/select-query.html#result-pagination).
-
-
 #### Scan query
 
-Similar to `SelectQuery`, the following query performs scan over the dimensions `channel`, `cityName`, `countryIsoCode` 
-and `user`:
+The following query performs scan over the dimensions `channel`, `cityName`, `countryIsoCode` and `user`:
 
 ```scala
 case class ScanResult(channel: Option[String], cityName: Option[String], countryIsoCode: Option[String], user: Option[String])
@@ -786,10 +762,6 @@ val query: ScanQuery = DQL
       .interval("2011-06-01/2017-06-01")
       .build()
 ```
-
-[Scan query](https://druid.apache.org/docs/latest/querying/scan-query.html) is more efficient than 
-[Select query](https://druid.apache.org/docs/latest/querying/select-query.html). The main difference is that it does 
-not support pagination, but is able to return a virtually unlimited number of results.
 
 #### Search query
 

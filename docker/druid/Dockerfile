@@ -13,7 +13,7 @@ RUN set -ex; apk add --no-cache bash perl python curl
 
 # druid
 RUN set -ex; \
-    curl -fsLS "https://www.apache.org/dyn/closer.cgi?filename=/incubator/druid/$DRUID_VERSION/apache-druid-$DRUID_VERSION-bin.tar.gz&action=download" | gunzip | tar x -C /opt; \
+    curl -fsLS "https://www.apache.org/dyn/closer.cgi?filename=/druid/$DRUID_VERSION/apache-druid-$DRUID_VERSION-bin.tar.gz&action=download" | gunzip | tar x -C /opt; \
     mv /opt/apache-druid-${DRUID_VERSION} /opt/druid
 
 # zookeeper

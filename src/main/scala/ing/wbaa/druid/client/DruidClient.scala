@@ -178,11 +178,6 @@ trait DruidResponseHandler extends CirceDecoders {
             CirceStreamSupport
               .decode[List[DruidScanResults]](AsyncParser.ValueStream)
               .mapConcat(_.flatMap(_.events))
-          case QueryType.Select =>
-            CirceStreamSupport
-              .decode[DruidResult](AsyncParser.UnwrapArray)
-              .mapConcat(_.as[DruidSelectEvents].events)
-
           case _ =>
             CirceStreamSupport.decode[DruidResult](AsyncParser.UnwrapArray)
         }

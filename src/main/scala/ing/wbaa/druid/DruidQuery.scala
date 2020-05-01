@@ -36,7 +36,6 @@ object QueryType extends EnumCodec[QueryType] {
   case object GroupBy    extends QueryType
   case object Timeseries extends QueryType
   case object Scan       extends QueryType
-  case object Select     extends QueryType
   case object Search     extends QueryType
   val values: Set[QueryType] = sealerate.values[QueryType]
 }
@@ -65,7 +64,6 @@ object DruidQuery {
         case x: TimeSeriesQuery => x.asJsonObject
         case x: TopNQuery       => x.asJsonObject
         case x: ScanQuery       => x.asJsonObject
-        case x: SelectQuery     => x.asJsonObject
         case x: SearchQuery     => x.asJsonObject
       }).add("queryType", query.queryType.asJson)
         .add("dataSource", query.dataSource.asJson)
@@ -250,33 +248,6 @@ object ScanQuery {
                   Option(config.scanQueryLegacyMode),
                   context)
   }
-}
-
-case class SelectQuery(
-    granularity: Granularity,
-    intervals: Iterable[String],
-    pagingSpec: PagingSpec,
-    filter: Option[Filter] = None,
-    descending: Boolean = false,
-    dimensions: Iterable[Dimension] = Iterable.empty,
-    metrics: Iterable[String] = Iterable.empty,
-    context: Map[QueryContextParam, QueryContextValue] = Map.empty
-)(implicit val config: DruidConfig = DruidConfig.DefaultConfig)
-    extends DruidQuery
-    with DruidQueryFunctions {
-  val queryType          = QueryType.Select
-  val dataSource: String = config.datasource
-}
-
-case class PagingSpec(
-    threshold: Int,
-    fromNext: Boolean = true,
-    pagingIdentifiers: Map[String, Int] = Map.empty
-)
-
-object PagingSpec {
-  def legacy(threshold: Int, pagingIdentifiers: Map[String, Int] = Map.empty): PagingSpec =
-    new PagingSpec(threshold, false, pagingIdentifiers)
 }
 
 case class SearchQuery(

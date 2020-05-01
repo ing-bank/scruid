@@ -142,7 +142,7 @@ class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
         case exception: HttpStatusException =>
           exception.status shouldBe StatusCodes.InternalServerError
           exception.entity.isFailure shouldBe false
-          exception.entity.get.data.utf8String shouldBe "{\"error\":\"Unknown exception\",\"errorMessage\":\"Instantiation of [simple type, class org.apache.druid.query.spec.LegacySegmentSpec] value failed: Format requires a '/' separator: invalid interval (through reference chain: org.apache.druid.query.timeseries.TimeseriesQuery[\\\"intervals\\\"])\",\"errorClass\":\"com.fasterxml.jackson.databind.JsonMappingException\",\"host\":null}"
+          exception.entity.get.data.utf8String shouldBe "{\"error\":\"Unknown exception\",\"errorMessage\":\"Cannot construct instance of `org.apache.druid.query.spec.LegacySegmentSpec`, problem: Format requires a '/' separator: invalid interval\\n at [Source: (org.eclipse.jetty.server.HttpInputOverHTTP); line: 1, column: 186] (through reference chain: org.apache.druid.query.timeseries.TimeseriesQuery[\\\"intervals\\\"])\",\"errorClass\":\"com.fasterxml.jackson.databind.exc.ValueInstantiationException\",\"host\":null}"
         case response => fail(s"expected HttpStatusException, got $response")
       }
 

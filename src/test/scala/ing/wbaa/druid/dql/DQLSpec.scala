@@ -429,43 +429,6 @@ class DQLSpec extends WordSpec with Matchers with ScalaFutures {
     }
   }
 
-  "DQL also work with 'select' queries" should {
-    val resultsThreshold = 10
-    val numberOfResults  = resultsThreshold * 24
-
-    val query: SelectQuery = DQL
-      .select(resultsThreshold)
-      .dimensions(d"channel", d"cityName", d"countryIsoCode", d"user")
-      .granularity(GranularityType.Hour)
-      .interval("2011-06-01/2017-06-01")
-      .build()
-
-    "successfully be interpreted by Druid" in {
-
-      val request = query.execute()
-      whenReady(request) { response =>
-        val resultList = response.list[SelectResult]
-        resultList.size shouldBe numberOfResults
-
-        val resultSeries = response.series[SelectResult]
-        resultSeries.size shouldBe 24
-        resultSeries.map { case (_, results) => results.size }.sum shouldBe numberOfResults
-      }
-    }
-
-    "successfully be streamed" in {
-      val requestSeq = query.streamAs[SelectResult].runWith(Sink.seq)
-      whenReady(requestSeq) { response =>
-        response.size shouldBe numberOfResults
-      }
-
-      val requestSeries = query.streamSeriesAs[SelectResult].runWith(Sink.seq)
-      whenReady(requestSeries) { response =>
-        response.size shouldBe numberOfResults
-      }
-    }
-  }
-
   "DQL also work with 'scan' queries" should {
     val numberOfResults = 100
 
