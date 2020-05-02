@@ -76,7 +76,8 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   developers in ThisBuild := List(
     Developer("fokko", "Fokko Driesprong", "@fokkodriesprong", url("https://github.com/fokko")),
     Developer("bjgbeelen", "Bas Beelen", "", url("https://github.com/bjgbeelen")),
-    Developer("krisgeus", "Kris Geusebroek", "", url("https://github.com/krisgeus"))
+    Developer("krisgeus", "Kris Geusebroek", "", url("https://github.com/krisgeus")),
+    Developer("anskarl", "Anastasios Skarlatidis", "", url("https://github.com/anskarl"))
   ),
   scmInfo in ThisBuild := Some(
     ScmInfo(

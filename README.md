@@ -6,7 +6,7 @@
 
 Scruid (Scala+Druid) is an open source library that allows you to compose Druid queries easily in Scala. The library will take care of the translation of the query into json, parse the result in the case class that you define.
 
-Currently the API is under heavy development, so changes might occur.
+Currently, the API is under heavy development, so changes might occur.
 
 ## Example queries:
 
@@ -312,7 +312,7 @@ All parameters of `DruidConfig` are optional, and in case that some parameter is
 ## Druid Clients
 
 Scruid provides two client implementations, one for simple requests over a single Druid query host (default) and
-an advanced one with queue, cached pool connections and a load balancer when multiple Druid query hosts are provided.
+an advanced one with a queue, cached pool connections and, a load balancer when multiple Druid query hosts are provided.
 Depending on your use case, it is also possible to create a custom client. For details regarding clients, their
 configuration, as well the creation of a custom one see the [Scruid Clients](docs/scruid_clients.md) documentation.
 

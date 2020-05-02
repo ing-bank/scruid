@@ -38,9 +38,6 @@ sealed trait DruidResponse extends CirceDecoders {
 case class DruidResponseTimeseriesImpl(results: List[DruidResult], queryType: QueryType)
     extends DruidResponse {
 
-  private implicit val decoderDruidSelectEvent  = DruidSelectEvent.decoder
-  private implicit val decoderDruidSelectResult = DruidSelectEvents.decoder
-
   private def decodeList[T](implicit decoder: Decoder[T]): List[T] = results.map { result =>
     result.as[T](decoder)
   }
@@ -49,20 +46,14 @@ case class DruidResponseTimeseriesImpl(results: List[DruidResult], queryType: Qu
     decoder.decodeJson(result).toTry.get
 
   override def list[T](implicit decoder: Decoder[T]): List[T] = queryType match {
-    case QueryType.TopN   => decodeList[List[T]].flatten
-    case QueryType.Select => decodeList[DruidSelectEvents].flatMap(_.events.map(_.as[T]))
-    case _                => decodeList[T]
+    case QueryType.TopN => decodeList[List[T]].flatten
+    case _              => decodeList[T]
   }
 
   override def series[T](implicit decoder: Decoder[T]): ListMap[ZonedDateTime, List[T]] =
     results.foldLeft[ListMap[ZonedDateTime, List[T]]](ListMap.empty) {
       case (acc, DruidResult(timestamp, result)) =>
-        val elements = queryType match {
-          case QueryType.Select =>
-            decode[DruidSelectEvents](result).events.map(_.as[T])
-          case _ =>
-            List(decode(result)(decoder))
-        }
+        val elements = List(decode(result)(decoder))
 
         acc ++ ListMap(
           timestamp -> (acc.getOrElse(timestamp, List.empty[T]) ++ elements)
@@ -94,34 +85,6 @@ object DruidResult extends CirceDecoders {
         result    <- extractResultField(c).as[Json]
       } yield DruidResult(timestamp, result)
   }
-}
-
-case class DruidSelectEvent(
-    segmentId: String,
-    offset: Long,
-    event: Json
-) extends BaseResult
-    with CirceDecoders {
-
-  def as[T](implicit decoder: Decoder[T]): T = decoder.decodeJson(this.event).toTry.get
-
-  override val timestamp: ZonedDateTime =
-    event.hcursor.downField("timestamp").as[ZonedDateTime].toTry.get
-}
-
-object DruidSelectEvent {
-  implicit val decoder = deriveDecoder[DruidSelectEvent]
-}
-
-case class DruidSelectEvents(
-    pagingIdentifiers: Map[String, Long],
-    dimensions: Seq[String],
-    metrics: Seq[String],
-    events: List[DruidSelectEvent]
-)
-
-object DruidSelectEvents {
-  implicit val decoder = deriveDecoder[DruidSelectEvents]
 }
 
 case class DruidScanResponse(results: List[DruidScanResults]) extends DruidResponse {
