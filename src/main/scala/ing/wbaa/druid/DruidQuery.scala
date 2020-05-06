@@ -125,7 +125,6 @@ sealed trait DruidQueryFunctions[R <: DruidResponse] {
           result => result.as[List[T]].flatMap(entry => result.timestamp.map(ts => (ts, entry)))
         )
       case _ =>
-        //source.map(result => (result.timestamp, result.as[T]))
         source.mapConcat(result => result.timestamp.map(ts => (ts, result.as[T])).toList)
 
     }

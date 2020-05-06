@@ -218,7 +218,7 @@ via [SQL](https://druid.apache.org/docs/latest/querying/sql.html).
 ```scala
 import ing.wbaa.druid.SQL._
 
-val query = sql"""SELECT SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+val query = sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
 
 val response = query.execute()
 ```

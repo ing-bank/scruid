@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import ing.wbaa.druid.SQL._
 import ing.wbaa.druid.DruidSQLResults
 
-val query = sql"""SELECT SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+val query = sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
 
 val response: Future[DruidSQLResults] = query.execute()
 
@@ -24,7 +24,7 @@ Function `sql`, allows multiline queries:
 import ing.wbaa.druid.SQL._
 
 val query = sql"""
-    |SELECT SELECT COUNT(*) as "count" 
+    |SELECT COUNT(*) as "count" 
     |FROM wikipedia 
     |WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'
     """.stripMargin
@@ -40,7 +40,7 @@ val dataSourceName = "wikipedia"
 val dateTime = "2015-09-12 00:00:00"
 
 val query = sql"""
-    |SELECT SELECT COUNT(*) as "${countColumnName}" 
+    |SELECT COUNT(*) as "${countColumnName}" 
     |FROM ${dataSourceName} 
     |WHERE "__time" >= TIMESTAMP '${dateTime}'
     """.stripMargin
@@ -86,7 +86,7 @@ val contextParameters = Map(
   QueryContext.SqlTimeZone -> "America/Los_Angeles"
 )
 val query =
-  sql"""SELECT SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+  sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
       .setContext(contextParameters)
 ```
 
@@ -100,7 +100,7 @@ import akka.stream.scaladsl.Source
 import ing.wbaa.druid.SQL._
 import ing.wbaa.druid.{DruidSQLResult, DruidSQLResults}
 
-val query = sql"""SELECT SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+val query = sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
 
 val source: Source[DruidSQLResult, NotUsed] = query.stream()
 
