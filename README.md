@@ -10,7 +10,7 @@ Currently, the API is under heavy development, so changes might occur.
 
 ## Example queries:
 
-Scruid provides query constructors for `TopNQuery`, `GroupByQuery`, `TimeSeriesQuery`, `ScanQuery`, `SelectQuery` and `SearchQuery` (see below for details). You can call the `execute` method on a query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
+Scruid provides query constructors for `TopNQuery`, `GroupByQuery`, `TimeSeriesQuery`, `ScanQuery` and `SearchQuery` (see below for details). You can call the `execute` method on a query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
 
 - `.list[T](implicit decoder: Decoder[T]): List[T]` : This decodes the JSON to a list with items of type `T`.
 - `.series[T](implicit decoder: Decoder[T]): Map[ZonedDateTime, T]` : This decodes the JSON to a timeseries map with the timestamp as key and `T` as value.
@@ -69,21 +69,6 @@ val response = TimeSeriesQuery(
 ).execute
 
 val series: Future[Map[ZonedDateTime, TimeseriesCount]] = response.map(_.series[TimeseriesCount])
-```
-
-### Select query
-
-```scala
-case class SelectResult(channel: Option[String], cityName: Option[String], countryIsoCode: Option[String], user: Option[String])
-
-val response = SelectQuery(
-    granularity = GranularityType.Hour
-    intervals = List("2011-06-01/2017-06-01")
-    pagingSpec = PagingSpec(10),
-    dimensions = List("channel", "cityName", "countryIsoCode", "user")
-).execute()
-
-val result: Future[List[SelectResult]] = response.map(_.list[SelectResult])
 ```
 
 ### Scan query
