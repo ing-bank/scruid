@@ -73,7 +73,9 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
       .map { entity =>
         val requestURL =
           if (query.queryType == QueryType.SQL) s"${druidConfig.url}sql/" else druidConfig.url
-        logger.info(s"requestURL = ${requestURL}")
+
+        logger.debug("requestURL = {}", requestURL)
+
         HttpRequest(HttpMethods.POST, uri = requestURL)
           .withEntity(entity.withContentType(`application/json`))
       }
@@ -93,9 +95,10 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
       queryType: QueryType,
       request: HttpRequest
   )(implicit druidConfig: DruidConfig): Future[T] = {
-    logger.debug(
-      s"Executing api ${request.method} request to ${request.uri} with entity: ${request.entity}"
-    )
+    logger.debug("Executing api {} request to {} with entity: {}",
+                 request.method,
+                 request.uri,
+                 request.entity)
 
     Source
       .single(request)
@@ -112,7 +115,9 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
       .map { entity =>
         val requestURL =
           if (q.queryType == QueryType.SQL) s"${druidConfig.url}sql/" else druidConfig.url
-        logger.info(s"requestURL = ${requestURL}")
+
+        logger.debug("requestURL = {}", requestURL)
+
         HttpRequest(HttpMethods.POST, uri = requestURL)
           .withEntity(entity.withContentType(`application/json`))
       }

@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import ing.wbaa.druid.SQL._
 import ing.wbaa.druid.DruidSQLResults
 
-val query = sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+val query = dsql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
 
 val response: Future[DruidSQLResults] = query.execute()
 
@@ -23,7 +23,7 @@ Function `sql`, allows multiline queries:
 ```scala
 import ing.wbaa.druid.SQL._
 
-val query = sql"""
+val query = dsql"""
     |SELECT COUNT(*) as "count" 
     |FROM wikipedia 
     |WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'
@@ -39,7 +39,7 @@ val countColumnName = "count"
 val dataSourceName = "wikipedia"
 val dateTime = "2015-09-12 00:00:00"
 
-val query = sql"""
+val query = dsql"""
     |SELECT COUNT(*) as "${countColumnName}" 
     |FROM ${dataSourceName} 
     |WHERE "__time" >= TIMESTAMP '${dateTime}'
@@ -60,7 +60,7 @@ val fromDateTime  = LocalDateTime.of(2015, 9, 12, 0, 0, 0, 0)
 val untilDateTime = fromDateTime.plusDays(1)
 
 val queryParameterized: SQLQuery.Parameterized =
-  sql"""
+  dsql"""
   |SELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS "count"
   |FROM wikipedia
   |WHERE "__time" BETWEEN ? AND ?
@@ -86,7 +86,7 @@ val contextParameters = Map(
   QueryContext.SqlTimeZone -> "America/Los_Angeles"
 )
 val query =
-  sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+  dsql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
       .setContext(contextParameters)
 ```
 
@@ -100,7 +100,7 @@ import akka.stream.scaladsl.Source
 import ing.wbaa.druid.SQL._
 import ing.wbaa.druid.{DruidSQLResult, DruidSQLResults}
 
-val query = sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+val query = dsql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
 
 val source: Source[DruidSQLResult, NotUsed] = query.stream()
 

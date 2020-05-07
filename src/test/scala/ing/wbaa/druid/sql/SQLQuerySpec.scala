@@ -25,7 +25,7 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
 
   "SQL query" should {
 
-    val query: SQLQuery = sql"""
+    val query: SQLQuery = dsql"""
       |SELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS "count"
       |FROM wikipedia
       |WHERE "__time" BETWEEN TIMESTAMP '2015-09-12 00:00:00' AND TIMESTAMP '2015-09-13 00:00:00'
@@ -57,7 +57,7 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
     val untilDateTime = fromDateTime.plusDays(1)
 
     val queryParameterized: SQLQuery.Parameterized =
-      sql"""
+      dsql"""
       |SELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS "count"
       |FROM wikipedia
       |WHERE "__time" BETWEEN ? AND ?

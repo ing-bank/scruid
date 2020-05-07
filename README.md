@@ -212,13 +212,12 @@ All the methods above can be applied to any timeseries, group-by or top-N query 
 
 ## Druid SQL support
 
-Instead of using the Druid native API, Scruid also supports Druid queries 
-via [SQL](https://druid.apache.org/docs/latest/querying/sql.html).
+Instead of using the Druid native API, Scruid also supports Druid queries via [SQL](https://druid.apache.org/docs/latest/querying/sql.html).
 
 ```scala
 import ing.wbaa.druid.SQL._
 
-val query = sql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
+val query = dsql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
 
 val response = query.execute()
 ```
