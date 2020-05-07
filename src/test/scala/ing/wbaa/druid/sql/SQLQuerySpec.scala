@@ -16,7 +16,8 @@ import io.circe.syntax._
 class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDecoders {
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(20, Seconds), interval = Span(5, Millis))
-  private val totalNumberOfEntries = 39244
+  private val totalNumberOfEntries  = 39244
+  private val usOnlyNumberOfEntries = 528
 
   implicit val config = DruidConfig()
   implicit val mat    = config.client.actorMaterializer
@@ -37,7 +38,6 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
       whenReady(resultsF) { response =>
         response.list[Result].map(_.count).sum shouldBe totalNumberOfEntries
       }
-
     }
 
     "support streaming" in {
@@ -46,33 +46,27 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
       whenReady(resultsF) { results =>
         results.map(_.count).sum shouldBe totalNumberOfEntries
       }
-
     }
-
   }
 
   "SQL parameterized query" should {
 
-    val fromDateTime  = LocalDateTime.of(2015, 9, 12, 0, 0, 0, 0)
-    val untilDateTime = fromDateTime.plusDays(1)
+    val fromDateTime   = LocalDateTime.of(2015, 9, 12, 0, 0, 0, 0)
+    val untilDateTime  = fromDateTime.plusDays(1)
+    val countryIsoCode = "US"
 
-    val queryParameterized: SQLQuery.Parameterized =
+    val query: SQLQuery =
       dsql"""
       |SELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS "count"
       |FROM wikipedia
-      |WHERE "__time" BETWEEN ? AND ?
+      |WHERE "__time" BETWEEN ${fromDateTime} AND ${untilDateTime} AND countryIsoCode = ${countryIsoCode}
       |GROUP BY 1
-      |""".stripMargin.parameterized
-
-    val query: SQLQuery = queryParameterized
-      .withParameter(fromDateTime)
-      .withParameter(untilDateTime)
-      .create()
+      |""".stripMargin
 
     "successfully be interpreted by Druid" in {
       val resultsF = query.execute()
       whenReady(resultsF) { response =>
-        response.list[Result].map(_.count).sum shouldBe totalNumberOfEntries
+        response.list[Result].map(_.count).sum shouldBe usOnlyNumberOfEntries
       }
     }
 
@@ -80,7 +74,7 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
       val resultsF = query.streamAs[Result]().runWith(Sink.seq)
 
       whenReady(resultsF) { results =>
-        results.map(_.count).sum shouldBe totalNumberOfEntries
+        results.map(_.count).sum shouldBe usOnlyNumberOfEntries
       }
 
     }

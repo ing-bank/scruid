@@ -1,7 +1,7 @@
 # Druid SQL
 
 Scruid provides querying via [Druid SQL](https://druid.apache.org/docs/latest/querying/sql.html) by using the 
-processed string function `sql`. 
+processed string function `dsql`. 
 
 ```scala
 import scala.concurrent.Future
@@ -30,25 +30,12 @@ val query = dsql"""
     """.stripMargin
 ```
 
-Supports standard string interpolation:
-
-```scala
-import ing.wbaa.druid.SQL._
-
-val countColumnName = "count"
-val dataSourceName = "wikipedia"
-val dateTime = "2015-09-12 00:00:00"
-
-val query = dsql"""
-    |SELECT COUNT(*) as "${countColumnName}" 
-    |FROM ${dataSourceName} 
-    |WHERE "__time" >= TIMESTAMP '${dateTime}'
-    """.stripMargin
-```
-
 ### Parameterized Queries
 
 Supports [Druid SQL Parameterized Queries](https://druid.apache.org/docs/latest/querying/sql.html#http-post):
+
+For example, we would like to query for a specific range of time which is expressed using LocalDateTime instances and
+filter for a specific country ISO code.
 
 ```scala
 import java.time.LocalDateTime
@@ -56,22 +43,69 @@ import ing.wbaa.druid.SQLQuery
 
 import ing.wbaa.druid.SQL._
 
-val fromDateTime  = LocalDateTime.of(2015, 9, 12, 0, 0, 0, 0)
-val untilDateTime = fromDateTime.plusDays(1)
+val fromDateTime: LocalDateTime = LocalDateTime.of(2015, 9, 12, 0, 0, 0, 0)
+val untilDateTime: LocalDateTime = fromDateTime.plusDays(1)
+val countryIsoCode: String = "US"
 
-val queryParameterized: SQLQuery.Parameterized =
+val query: SQLQuery =
   dsql"""
   |SELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS "count"
   |FROM wikipedia
-  |WHERE "__time" BETWEEN ? AND ?
+  |WHERE "__time" BETWEEN ${fromDateTime} AND ${untilDateTime} AND countryIsoCode = ${countryIsoCode}
   |GROUP BY 1
-  |""".stripMargin.parameterized
-
-val query: SQLQuery = queryParameterized
-  .withParameter(fromDateTime)
-  .withParameter(untilDateTime)
-  .create()
+  |""".stripMargin
 ```
+
+Any variable or expression injected into a query gets turned into a parameter. It is not inserted directly into 
+the query string and therefore there is no danger of SQL injection attacks. 
+
+For example, the query above is a parameterized query and will be represented by the following JSON request:
+
+```json
+{
+  "query" : "\nSELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS \"count\"\nFROM wikipedia\nWHERE \"__time\" BETWEEN ? AND ? AND countryIsoCode = ?\nGROUP BY 1\n",
+  "context" : {
+
+  },
+  "parameters" : [
+    {
+      "type" : "TIMESTAMP",
+      "value" : "2015-09-12 00:00:00"
+    },
+    {
+      "type" : "TIMESTAMP",
+      "value" : "2015-09-13 00:00:00"
+    },
+    {
+      "type" : "VARCHAR",
+      "value" : "US"
+    }
+  ],
+  "resultFormat" : "object"
+}
+```
+
+Each interpolated variable has been replaced by the symbol `?` and added to the list of `parameters` with 
+its corresponding `type` and format. For instance, the variables `fromDateTime` and `untilDateTime` are 
+instances of `LocalDateTime` and appear as types of SQL `TIMESTAMP` with values in formatted as `y-MM-dd HH:mm:ss`.
+
+`dsql` supports the following types:
+
+| Scala type              | Druid SQL type |
+|-------------------------|----------------|
+| Char                    | CHAR           |
+| String                  | VARCHAR        |
+| Byte                    | TINYINT        |
+| Short                   | SMALLINT       |
+| Int                     | INTEGER        |
+| Long                    | BIGINT         |
+| Float                   | FLOAT          |
+| Double                  | DOUBLE         |
+| Boolean                 | BOOLEAN        |
+| java.time.LocalDate     | DATE           |
+| java.time.LocalDateTime | TIMESTAMP      |
+| java.sql.Timestamp      | TIMESTAMP      |
+
 
 ### Context parameters
 

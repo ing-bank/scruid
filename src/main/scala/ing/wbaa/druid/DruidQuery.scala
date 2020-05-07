@@ -17,13 +17,12 @@
 
 package ing.wbaa.druid
 
-import java.time.{ LocalDateTime, ZonedDateTime }
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import ca.mrvisser.sealerate
-import ing.wbaa.druid.SQLQuery.Parameterized
 import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
 import ing.wbaa.druid.definitions._
 import io.circe.generic.auto._
@@ -330,13 +329,18 @@ object SQLQueryParameterType extends EnumCodec[SQLQueryParameterType] {
 }
 
 case class SQLQueryParameter(`type`: SQLQueryParameterType, value: String)
+
 object SQLQueryParameter {
-  final val TimestampFormatter = DateTimeFormatter.ofPattern("y-MM-dd HH:mm:ss")
+  final val PatternDate     = "y-MM-dd"
+  final val PatternDateTime = "y-MM-dd HH:mm:ss"
+
+  final val FormatterDate     = DateTimeFormatter.ofPattern(PatternDate)
+  final val FormatterDateTime = DateTimeFormatter.ofPattern(PatternDateTime)
 }
 
-case class SQLQuery(query: String,
-                    context: Map[QueryContextParam, QueryContextValue] = Map.empty,
-                    parameters: Seq[SQLQueryParameter] = Seq.empty)(
+case class SQLQuery private[druid] (query: String,
+                                    context: Map[QueryContextParam, QueryContextValue] = Map.empty,
+                                    parameters: Seq[SQLQueryParameter] = Seq.empty)(
     implicit val config: DruidConfig = DruidConfig.DefaultConfig
 ) extends DruidQuery {
 
@@ -362,74 +366,4 @@ case class SQLQuery(query: String,
   def setContext(contextParams: Map[QueryContextParam, QueryContextValue]): SQLQuery =
     copy(context = contextParams)
 
-  def parameterized: Parameterized =
-    new Parameterized(query, context, parameters)
-}
-
-object SQLQuery {
-
-  class Parameterized private[druid] (
-      private val query: String,
-      private val context: Map[QueryContextParam, QueryContextValue] = Map.empty,
-      private var parameters: Seq[SQLQueryParameter] = Seq.empty
-  ) {
-
-    def withParameter(value: Char): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Char, value.toString)
-      this
-    }
-
-    def withParameter(value: String): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Varchar, value)
-      this
-    }
-
-    def withParameter(value: Byte): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Tinyint, value.toString)
-      this
-    }
-
-    def withParameter(value: Short): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Smallint, value.toString)
-      this
-    }
-
-    def withParameter(value: Int): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Integer, value.toString)
-      this
-    }
-
-    def withParameter(value: Long): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Bigint, value.toString)
-      this
-    }
-
-    def withParameter(value: Float): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Float, value.toString)
-      this
-    }
-
-    def withParameter(value: Double): this.type = {
-      parameters :+= SQLQueryParameter(SQLQueryParameterType.Double, value.toString)
-      this
-    }
-
-    def withParameter(value: LocalDateTime): this.type = {
-
-      val resultingParameter =
-        SQLQueryParameter(SQLQueryParameterType.Timestamp,
-                          value.format(SQLQueryParameter.TimestampFormatter))
-
-      parameters :+= resultingParameter
-      this
-    }
-
-    def withParameter(`type`: SQLQueryParameterType, value: String): this.type = {
-      parameters :+= SQLQueryParameter(`type`, value)
-      this
-    }
-
-    def create(): SQLQuery = SQLQuery(query, context, parameters)
-
-  }
 }
