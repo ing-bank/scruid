@@ -36,6 +36,8 @@ import scala.util.{ Failure, Success, Try }
 trait DruidClient extends CirceHttpSupport with CirceDecoders {
 
   protected val logger: Logger = LoggerFactory.getLogger(getClass)
+  // Execute health checks on a separate logger category so they can be filtered easily
+  protected val healthLogger: Logger = LoggerFactory.getLogger(s"${getClass.getName}.HealthCheck")
 
   logger.info(s"Using '${this.getClass.getName}' as http client")
 
