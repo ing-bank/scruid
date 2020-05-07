@@ -85,18 +85,19 @@ class DruidAdvancedHttpClient private (
             s"healthcheck of ${queryHost.host}:${queryHost.port} started: $request"
           )
           executeRequest(flow)(request)
-            .transform {
-              case Success(response) =>
-                healthLogger.debug(
-                  s"healthcheck of ${queryHost.host}:${queryHost.port} success: ${response.status}"
-                )
-                response.discardEntityBytes()
-                Success(queryHost -> (response.status == StatusCodes.OK))
-              case Failure(ex) =>
+            .map { response =>
+              healthLogger.debug(
+                s"healthcheck of ${queryHost.host}:${queryHost.port} success: ${response.status}"
+              )
+              response.discardEntityBytes()
+              queryHost -> (response.status == StatusCodes.OK)
+            }
+            .recover {
+              case ex =>
                 healthLogger.info(
                   s"healthcheck of ${queryHost.host} on port ${queryHost.port} failed: $ex"
                 )
-                Success(queryHost -> false)
+                queryHost -> false
             }
       }
     }
