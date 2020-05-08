@@ -17,7 +17,6 @@
 package ing.wbaa.druid.client
 
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpProtocol, HttpResponse, StatusCode }
-import akka.http.scaladsl.unmarshalling.Unmarshal
 
 import scala.collection.immutable.Seq
 import scala.util.Try

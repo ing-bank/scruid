@@ -17,7 +17,7 @@
 
 package ing.wbaa.druid
 
-import java.time.{ ZoneId, ZonedDateTime }
+import java.time.ZonedDateTime
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
