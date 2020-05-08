@@ -323,8 +323,12 @@ The Advanced client can be configured to authenticate with the Druid cluster. Se
 
 ## Tests
 
+The test suite relies on a docker-compose with supporting services. The dockerfiles for the images it uses are in the `docker/` subdirectory. Dependency versions of the dockerized resources are defined in `./env`.
+
 To run the tests, please make sure that you have the Druid instance running:
 
 ```
 ./services.sh start
 ```
+
+This command will build the local images as needed. You can manually build these using the `./services.sh build_images` command or the Makefile in `./docker`.
