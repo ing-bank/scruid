@@ -56,7 +56,7 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
       .recover {
         case ex =>
           healthLogger.warn(
-            s"healthcheck of ${queryHost.host} on port ${queryHost.port} failed: $ex"
+            s"healthcheck of ${queryHost.host} on port ${queryHost.port} failed: ${ex.toString}"
           )
           false
       }
