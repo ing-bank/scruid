@@ -81,12 +81,9 @@ class DruidAdvancedHttpClient private (
     val checksF: Future[Iterable[(QueryHost, Boolean)]] = Future.sequence {
       brokerConnections.map {
         case (queryHost, flow) =>
-          healthLogger.debug(
-            s"healthcheck of ${queryHost.host}:${queryHost.port} started: $request"
-          )
           executeRequest(flow)(request)
             .map { response =>
-              healthLogger.debug(
+              healthLogger.info(
                 s"healthcheck of ${queryHost.host}:${queryHost.port} success: ${response.status}"
               )
               response.discardEntityBytes()
@@ -94,7 +91,7 @@ class DruidAdvancedHttpClient private (
             }
             .recover {
               case ex =>
-                healthLogger.info(
+                healthLogger.warn(
                   s"healthcheck of ${queryHost.host} on port ${queryHost.port} failed: $ex"
                 )
                 queryHost -> false
