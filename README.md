@@ -8,6 +8,18 @@ Scruid (Scala+Druid) is an open source library that allows you to compose Druid 
 
 Currently, the API is under heavy development, so changes might occur.
 
+## Release Notes
+
+Please view the [Releases](https://github.com/ing-bank/scruid/releases) page on GitHub.
+
+## Installation
+
+The binaries are hosted on Bintray. We publish builds for Scala 2.11, 2.12 and 2.13.
+
+```sbt
+libraryDependencies += "ing.wbaa.druid" %% "scruid" % "2.4.0"
+```
+
 ## Example queries:
 
 Scruid provides query constructors for `TopNQuery`, `GroupByQuery`, `TimeSeriesQuery`, `ScanQuery` and `SearchQuery` (see below for details). You can call the `execute` method on a query to send the query to Druid. This will return a `Future[DruidResponse]`. This response contains the [Circe](http://circe.io) JSON data without having it parsed to a specific case class yet. To interpret this JSON data you can run two methods on a `DruidResponse`:
