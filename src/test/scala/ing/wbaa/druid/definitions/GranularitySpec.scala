@@ -4,8 +4,10 @@ import org.scalatest._
 
 import io.circe._
 import io.circe.syntax._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class GranularitySpec extends WordSpec with Matchers {
+class GranularitySpec extends AnyWordSpec with Matchers {
   "Granularities" should {
     "be able to encode to json" in {
       implicit val granularityEncoder: Encoder[Granularity] = GranularityType.encoder

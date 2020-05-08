@@ -4,12 +4,13 @@ import ing.wbaa.druid.GroupByQuery
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class HavingSpec extends Matchers with WordSpecLike with ScalaFutures {
+class HavingSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(10 seconds, 100 millis)
 

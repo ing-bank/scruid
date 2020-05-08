@@ -28,8 +28,10 @@ import org.scalatest.concurrent._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class DruidClientSpec extends WordSpec with Matchers with ScalaFutures {
+class DruidClientSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(10 seconds, 100 millis)
 
