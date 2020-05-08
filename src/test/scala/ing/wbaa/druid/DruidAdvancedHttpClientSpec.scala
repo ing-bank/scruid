@@ -31,7 +31,12 @@ import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.language.postfixOps
 import scala.util.Random
 
-class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutures with Inspectors {
+class DruidAdvancedHttpClientSpec
+    extends WordSpec
+    with Matchers
+    with ScalaFutures
+    with Inspectors
+    with DiagrammedAssertions {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(5 minutes, 100 millis)
 
@@ -115,21 +120,16 @@ class DruidAdvancedHttpClientSpec extends WordSpec with Matchers with ScalaFutur
 
       val client = config.client
 
+      whenReady(client.healthCheck) { outcome =>
+        outcome shouldEqual expectedHealthCheck
+      }
+
       // since localhost:8086 is always failing the health status should be false
       whenReady(client.isHealthy()) { result =>
         result shouldBe false
       }
 
-      whenReady(client.healthCheck) { outcome =>
-        forAll(expectedHealthCheck) {
-          case (broker, expectedResult) =>
-            outcome(broker) shouldBe expectedResult
-        }
-
-      }
-
       config.client.shutdown().futureValue
-
     }
 
     "throw HttpStatusException for non-200 status codes" in {

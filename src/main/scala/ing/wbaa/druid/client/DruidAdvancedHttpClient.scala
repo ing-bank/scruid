@@ -30,6 +30,7 @@ import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
 import ing.wbaa.druid.{ BaseResult, DruidConfig, DruidQuery, DruidResponse, QueryHost }
 import akka.pattern.retry
+import ing.wbaa.druid.client.DruidAdvancedHttpClient.ConnectionFlow
 
 import scala.reflect.runtime.universe
 import scala.concurrent.duration._
@@ -77,27 +78,26 @@ class DruidAdvancedHttpClient private (
 
     val request = HttpRequest(HttpMethods.GET, uri = druidConfig.healthEndpoint)
 
-    val checksF = Future.sequence {
+    val checksF: Future[Iterable[(QueryHost, Boolean)]] = Future.sequence {
       brokerConnections.map {
         case (queryHost, flow) =>
-          val responsePromise = Promise[HttpResponse]()
-
-          Source
-            .single(request -> responsePromise)
-            .via(flow)
-            .runWith(Sink.head)
-            .flatMap {
-              case (Success(response), _) =>
-                Future {
-                  response.discardEntityBytes()
-                  queryHost -> (response.status == StatusCodes.OK)
-                }
-              case (Failure(ex), _) => Future.failed(ex)
+          executeRequest(flow)(request)
+            .map { response =>
+              healthLogger.info(
+                s"healthcheck of ${queryHost.host}:${queryHost.port} success: ${response.status}"
+              )
+              response.discardEntityBytes()
+              queryHost -> (response.status == StatusCodes.OK)
             }
-            .recover { case _ => queryHost -> false }
+            .recover {
+              case ex =>
+                healthLogger.warn(
+                  s"healthcheck of ${queryHost.host} on port ${queryHost.port} failed: $ex"
+                )
+                queryHost -> false
+            }
       }
     }
-
     checksF.map(_.toMap)
   }
 
@@ -181,6 +181,30 @@ class DruidAdvancedHttpClient private (
           )
       }
   }
+
+  /**
+    * Executes the specified HttpRequest on a specific Druid connection, bypassing the load balancer
+    *
+    * @param flow the connection flow for the specific Druid host.
+    * @param request the Http request for Druid
+    *
+    * @return a future with the corresponding Http response from Druid.
+    */
+  private def executeRequest(flow: ConnectionFlow)(request: HttpRequest): Future[HttpResponse] =
+    Source
+      .single(requestInterceptor.interceptRequest(request) -> Promise[HttpResponse]())
+      .via(flow)
+      .runWith(Sink.head)
+      .flatMap {
+        case (Success(response), responsePromise) =>
+          responsePromise.success(response)
+          requestInterceptor.interceptResponse(
+            request,
+            responsePromise.future,
+            executeRequest(flow)
+          )
+        case (Failure(e), responsePromise) => responsePromise.failure(e).future
+      }
 
   private def createHttpRequest(
       query: DruidQuery
