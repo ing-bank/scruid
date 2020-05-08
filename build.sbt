@@ -21,6 +21,7 @@ val mdedetrichVersion       = "0.4.0"
 val scalacticVersion        = "3.0.8"
 val scalatestVersion        = "3.0.8"
 val typesafeConfigVersion   = "1.3.3"
+val typesafeLoggingVersion  = "3.9.2"
 val akkaHttpVersion         = "10.1.9"
 val sealerateVersion        = "0.0.6"
 val logbackVersion          = "1.2.3"
@@ -102,17 +103,18 @@ lazy val root = (project in file("."))
     version := "2.3.1-SNAPSHOT",
     resolvers += Resolver.sonatypeRepo("releases"),
     libraryDependencies ++= Seq(
-      "com.typesafe"           % "config"                   % typesafeConfigVersion,
-      "org.mdedetrich"         %% "akka-stream-json"        % mdedetrichVersion,
-      "org.mdedetrich"         %% "akka-http-json"          % mdedetrichVersion,
-      "org.mdedetrich"         %% "akka-stream-circe"       % mdedetrichVersion,
-      "org.mdedetrich"         %% "akka-http-circe"         % mdedetrichVersion,
-      "com.typesafe.akka"      %% "akka-http"               % akkaHttpVersion,
-      "ca.mrvisser"            %% "sealerate"               % sealerateVersion,
-      "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatVersion,
-      "ch.qos.logback"         % "logback-classic"          % logbackVersion % Provided,
-      "org.scalactic"          %% "scalactic"               % scalacticVersion,
-      "org.scalatest"          %% "scalatest"               % scalatestVersion % Test
+      "com.typesafe"               % "config"                   % typesafeConfigVersion,
+      "com.typesafe.scala-logging" %% "scala-logging"           % typesafeLoggingVersion,
+      "org.mdedetrich"             %% "akka-stream-json"        % mdedetrichVersion,
+      "org.mdedetrich"             %% "akka-http-json"          % mdedetrichVersion,
+      "org.mdedetrich"             %% "akka-stream-circe"       % mdedetrichVersion,
+      "org.mdedetrich"             %% "akka-http-circe"         % mdedetrichVersion,
+      "com.typesafe.akka"          %% "akka-http"               % akkaHttpVersion,
+      "ca.mrvisser"                %% "sealerate"               % sealerateVersion,
+      "org.scala-lang.modules"     %% "scala-collection-compat" % collectionCompatVersion,
+      "ch.qos.logback"             % "logback-classic"          % logbackVersion % Provided,
+      "org.scalactic"              %% "scalactic"               % scalacticVersion,
+      "org.scalatest"              %% "scalatest"               % scalatestVersion % Test
     )
   )
   .settings(libraryDependencies ++= scalaVersionSpecificDependencies(scalaVersion.value))
