@@ -23,6 +23,7 @@ import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, StatusCodes }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import ing.wbaa.druid._
+import io.circe.Json
 import org.mdedetrich.akka.http.support.CirceHttpSupport
 import org.slf4j.{ Logger, LoggerFactory }
 import io.circe.parser.decode
@@ -77,7 +78,7 @@ trait DruidClient extends CirceHttpSupport with CirceDecoders {
     * @param druidConfig the configuration options
     * @return a Future holding the resulting response
     */
-  def doQuery(query: DruidQuery)(implicit druidConfig: DruidConfig): Future[DruidResponse]
+  def doQuery[T <: DruidResponse](query: DruidQuery)(implicit druidConfig: DruidConfig): Future[T]
 
   /**
     * Perform a query to Druid and get its result as an Akka Stream
@@ -124,12 +125,11 @@ trait DruidClientBuilder {
 trait DruidResponseHandler extends CirceDecoders {
   self: DruidClient =>
 
-  protected def handleResponse(
+  protected def handleResponse[T <: DruidResponse](
       response: HttpResponse,
       queryType: QueryType,
       responseParsingTimeout: FiniteDuration
-  )(implicit materializer: ActorMaterializer,
-    ec: ExecutionContextExecutor): Future[DruidResponse] = {
+  )(implicit materializer: ActorMaterializer, ec: ExecutionContextExecutor): Future[T] = {
 
     val body =
       response.entity
@@ -155,6 +155,9 @@ trait DruidResponseHandler extends CirceDecoders {
             case QueryType.Scan =>
               decode[List[DruidScanResults]](json).right
                 .map(results => DruidScanResponse(results))
+            case QueryType.SQL =>
+              decode[List[Json]](json).right
+                .map(results => DruidSQLResults(results))
             case _ =>
               decode[List[DruidResult]](json).right
                 .map(results => DruidResponseTimeseriesImpl(results, queryType))
@@ -162,7 +165,7 @@ trait DruidResponseHandler extends CirceDecoders {
         }
         .map {
           case Left(error)  => throw error
-          case Right(value) => value
+          case Right(value) => value.asInstanceOf[T]
         }
     }
   }
@@ -180,6 +183,8 @@ trait DruidResponseHandler extends CirceDecoders {
             CirceStreamSupport
               .decode[List[DruidScanResults]](AsyncParser.ValueStream)
               .mapConcat(_.flatMap(_.events))
+          case QueryType.SQL =>
+            CirceStreamSupport.decode[Json](AsyncParser.UnwrapArray).map(row => DruidSQLResult(row))
           case _ =>
             CirceStreamSupport.decode[DruidResult](AsyncParser.UnwrapArray)
         }
