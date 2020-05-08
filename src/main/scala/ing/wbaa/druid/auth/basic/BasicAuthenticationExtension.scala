@@ -19,12 +19,12 @@ package ing.wbaa.druid.auth.basic
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import akka.http.scaladsl.model.HttpRequest
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
+import com.typesafe.scalalogging.LazyLogging
 import ing.wbaa.druid.client.{
   NoopRequestInterceptor,
   RequestInterceptor,
   RequestInterceptorBuilder
 }
-import org.slf4j.LoggerFactory
 
 /**
   * Adds a basic authentication header with static credentials to every outgoing request. Does not
@@ -45,8 +45,7 @@ class BasicAuthenticationExtension(username: String, password: String)
       .withValue("password", ConfigValueFactory.fromAnyRef(password))
 }
 
-object BasicAuthenticationExtension extends RequestInterceptorBuilder {
-  private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationExtension])
+object BasicAuthenticationExtension extends RequestInterceptorBuilder with LazyLogging {
 
   override def apply(config: Config): RequestInterceptor = {
 

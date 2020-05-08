@@ -22,10 +22,10 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, StatusCodes }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
+import com.typesafe.scalalogging.{ LazyLogging, Logger }
 import ing.wbaa.druid._
 import io.circe.Json
 import org.mdedetrich.akka.http.support.CirceHttpSupport
-import org.slf4j.{ Logger, LoggerFactory }
 import io.circe.parser.decode
 import org.mdedetrich.akka.stream.support.CirceStreamSupport
 import org.typelevel.jawn.AsyncParser
@@ -34,11 +34,10 @@ import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{ Failure, Success, Try }
 
-trait DruidClient extends CirceHttpSupport with CirceDecoders {
+trait DruidClient extends CirceHttpSupport with CirceDecoders with LazyLogging {
 
-  protected val logger: Logger = LoggerFactory.getLogger(getClass)
   // Execute health checks on a separate logger category so they can be filtered easily
-  protected val healthLogger: Logger = LoggerFactory.getLogger(s"${getClass.getName}.HealthCheck")
+  protected val healthLogger: Logger = Logger(s"${getClass.getName}.HealthCheck")
 
   logger.info(s"Using '${this.getClass.getName}' as http client")
 
