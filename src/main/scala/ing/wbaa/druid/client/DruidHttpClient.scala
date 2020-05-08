@@ -47,8 +47,19 @@ class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowTyp
       .single(request)
       .via(connectionFlow)
       .runWith(Sink.head)
-      .map(_.status == StatusCodes.OK)
-      .recover { case _ => false }
+      .map { response =>
+        healthLogger.info(
+          s"healthcheck of ${queryHost.host}:${queryHost.port} success: ${response.status}"
+        )
+        response.status == StatusCodes.OK
+      }
+      .recover {
+        case ex =>
+          healthLogger.warn(
+            s"healthcheck of ${queryHost.host} on port ${queryHost.port} failed: $ex"
+          )
+          false
+      }
   }
 
   override def healthCheck(implicit druidConfig: DruidConfig): Future[Map[QueryHost, Boolean]] =
