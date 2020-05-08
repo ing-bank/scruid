@@ -1,7 +1,7 @@
 package ing.wbaa.druid
 
 import java.sql.Timestamp
-import java.time.{ LocalDate, LocalDateTime }
+import java.time.{ Instant, LocalDate, LocalDateTime }
 
 import scala.language.implicitConversions
 
@@ -34,16 +34,23 @@ object SQL {
   implicit def boolean2Param(v: Boolean): SQLQueryParameter =
     SQLQueryParameter(SQLQueryParameterType.Boolean, v.toString)
 
-  implicit def localDate2Param(v: LocalDate): SQLQueryParameter =
-    SQLQueryParameter(SQLQueryParameterType.Date, v.format(SQLQueryParameter.FormatterDate))
+  implicit def localDate2Param(v: LocalDate)(implicit config: DruidConfig =
+                                               DruidConfig.DefaultConfig): SQLQueryParameter =
+    SQLQueryParameter(SQLQueryParameterType.Date, v.format(config.FormatterDate))
 
-  implicit def localDateTime2Param(v: LocalDateTime): SQLQueryParameter =
-    SQLQueryParameter(SQLQueryParameterType.Timestamp,
-                      v.format(SQLQueryParameter.FormatterDateTime))
+  implicit def localDateTime2Param(
+      v: LocalDateTime
+  )(implicit config: DruidConfig = DruidConfig.DefaultConfig): SQLQueryParameter =
+    SQLQueryParameter(SQLQueryParameterType.Timestamp, v.format(config.FormatterDateTime))
 
-  implicit def timestamp2Param(v: Timestamp): SQLQueryParameter =
-    SQLQueryParameter(SQLQueryParameterType.Timestamp,
-                      v.formatted(SQLQueryParameter.PatternDateTime))
+  implicit def timestamp2Param(v: Timestamp)(implicit config: DruidConfig =
+                                               DruidConfig.DefaultConfig): SQLQueryParameter =
+    SQLQueryParameter(SQLQueryParameterType.Timestamp, config.FormatterDateTime.format(v.toInstant))
+
+  implicit def instant2Param(
+      v: Instant
+  )(implicit config: DruidConfig = DruidConfig.DefaultConfig): SQLQueryParameter =
+    SQLQueryParameter(SQLQueryParameterType.Timestamp, config.FormatterDateTime.format(v))
 
   implicit class StringToSQL(val sc: StringContext) extends AnyVal {
 

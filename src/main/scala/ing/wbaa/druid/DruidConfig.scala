@@ -18,6 +18,8 @@
 package ing.wbaa.druid
 
 import java.net.URI
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 import akka.actor.ActorSystem
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory }
@@ -40,6 +42,7 @@ class DruidConfig(val hosts: Seq[QueryHost],
                   val clientBackend: Class[_ <: DruidClient],
                   val clientConfig: Config,
                   val scanQueryLegacyMode: Boolean,
+                  val zoneId: ZoneId,
                   val system: ActorSystem) {
   def copy(
       hosts: Seq[QueryHost] = this.hosts,
@@ -50,7 +53,8 @@ class DruidConfig(val hosts: Seq[QueryHost],
       responseParsingTimeout: FiniteDuration = this.responseParsingTimeout,
       clientBackend: Class[_ <: DruidClient] = this.clientBackend,
       clientConfig: Config = this.clientConfig,
-      scanQueryLegacyMode: Boolean = this.scanQueryLegacyMode
+      scanQueryLegacyMode: Boolean = this.scanQueryLegacyMode,
+      zoneId: ZoneId = this.zoneId
   ): DruidConfig =
     new DruidConfig(hosts,
                     secure,
@@ -61,6 +65,7 @@ class DruidConfig(val hosts: Seq[QueryHost],
                     clientBackend,
                     clientConfig,
                     scanQueryLegacyMode,
+                    zoneId,
                     system)
 
   lazy val client: DruidClient = {
@@ -76,11 +81,24 @@ class DruidConfig(val hosts: Seq[QueryHost],
 
     clientConstructor(this)
   }
+
+  lazy val FormatterDate: DateTimeFormatter = DateTimeFormatter
+    .ofPattern(DruidConfig.PatternDate)
+    .withZone(zoneId)
+
+  lazy val FormatterDateTime: DateTimeFormatter = DateTimeFormatter
+    .ofPattern(DruidConfig.PatternDateTime)
+    .withZone(zoneId)
 }
 
 case class QueryHost(host: String, port: Int)
 
 object DruidConfig {
+
+  final val PatternDate = "y-MM-dd"
+
+  final val PatternDateTime = "y-MM-dd HH:mm:ss"
+
   private final val URISchemeSepPattern = "://".r
 
   private val config = ConfigFactory.load()
@@ -103,6 +121,7 @@ object DruidConfig {
         Class.forName(druidConfig.getString("client-backend")).asInstanceOf[Class[DruidClient]],
       clientConfig: Config = druidConfig.getConfig("client-config"),
       scanQueryLegacyMode: Boolean = druidConfig.getBoolean("scan-query-legacy-mode"),
+      zoneId: ZoneId = extractZoneIdFromConfig,
       system: ActorSystem = ActorSystem("scruid-actor-system")
   ): DruidConfig =
     new DruidConfig(hosts,
@@ -114,7 +133,14 @@ object DruidConfig {
                     clientBackend,
                     clientConfig,
                     scanQueryLegacyMode,
+                    zoneId,
                     system)
+
+  private def extractZoneIdFromConfig: ZoneId =
+    try ZoneId.of(druidConfig.getString("zone-id"))
+    catch {
+      case _: com.typesafe.config.ConfigException.Missing => ZoneId.systemDefault()
+    }
 
   /**
     * Extract query node hosts with their ports from the specified configuration

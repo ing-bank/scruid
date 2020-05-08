@@ -17,8 +17,7 @@
 
 package ing.wbaa.druid
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import java.time.{ ZoneId, ZonedDateTime }
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
@@ -329,14 +328,6 @@ object SQLQueryParameterType extends EnumCodec[SQLQueryParameterType] {
 }
 
 case class SQLQueryParameter(`type`: SQLQueryParameterType, value: String)
-
-object SQLQueryParameter {
-  final val PatternDate     = "y-MM-dd"
-  final val PatternDateTime = "y-MM-dd HH:mm:ss"
-
-  final val FormatterDate     = DateTimeFormatter.ofPattern(PatternDate)
-  final val FormatterDateTime = DateTimeFormatter.ofPattern(PatternDateTime)
-}
 
 case class SQLQuery private[druid] (query: String,
                                     context: Map[QueryContextParam, QueryContextValue] = Map.empty,

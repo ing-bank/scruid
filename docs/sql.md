@@ -18,7 +18,7 @@ case class Result(count: Double)
 val result: Future[Result] = response.map(_.list[Result])
 ```
 
-Function `sql`, allows multiline queries:
+Function `dsql`, allows multiline queries:
 
 ```scala
 import ing.wbaa.druid.SQL._
@@ -104,8 +104,28 @@ instances of `LocalDateTime` and appear as types of SQL `TIMESTAMP` with values 
 | Boolean                 | BOOLEAN        |
 | java.time.LocalDate     | DATE           |
 | java.time.LocalDateTime | TIMESTAMP      |
+| java.time.Instant       | TIMESTAMP      |
 | java.sql.Timestamp      | TIMESTAMP      |
 
+For all temporal types (`LocalDate`, `LocalDateTime`, `Instant` and `Timestamp`) the default zone id is the one that is
+defined in the configuration.
+
+```
+zone-id = "UTC"
+```
+
+By default `zone-id` parameter is set to `UTC`. The parameter is optional and when is null or not-set, 
+Scruid defaults to `ZoneId.systemDefault()`. 
+
+Similar to any other configuration parameter of Scruid, `zone-id` can be specified either from `application.conf` or 
+overridden programmatically:
+
+```scala
+
+implicit val druidConf = DruidConfig(
+  zoneId = ZoneId.of("GMT+2")
+)
+```  
 
 ### Context parameters
 

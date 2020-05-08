@@ -1,16 +1,14 @@
-package ing.wbaa.druid.sql
+package ing.wbaa.druid
 
 import java.time.{ LocalDateTime, ZonedDateTime }
 
 import akka.stream.scaladsl.Sink
-import ing.wbaa.druid.{ DruidConfig, SQLQuery }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.{ Matchers, WordSpec }
 import ing.wbaa.druid.SQL._
 import ing.wbaa.druid.client.CirceDecoders
 import io.circe.generic.auto._
-import io.circe.syntax._
 
 //noinspection SqlNoDataSourceInspection
 class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDecoders {
@@ -26,7 +24,7 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
 
   "SQL query" should {
 
-    val query: SQLQuery = dsql"""
+    val sqlQuery: SQLQuery = dsql"""
       |SELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS "count"
       |FROM wikipedia
       |WHERE "__time" BETWEEN TIMESTAMP '2015-09-12 00:00:00' AND TIMESTAMP '2015-09-13 00:00:00'
@@ -34,14 +32,14 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
       |""".stripMargin
 
     "successfully be interpreted by Druid" in {
-      val resultsF = query.execute()
+      val resultsF = sqlQuery.execute()
       whenReady(resultsF) { response =>
         response.list[Result].map(_.count).sum shouldBe totalNumberOfEntries
       }
     }
 
     "support streaming" in {
-      val resultsF = query.streamAs[Result]().runWith(Sink.seq)
+      val resultsF = sqlQuery.streamAs[Result]().runWith(Sink.seq)
 
       whenReady(resultsF) { results =>
         results.map(_.count).sum shouldBe totalNumberOfEntries
@@ -55,7 +53,7 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
     val untilDateTime  = fromDateTime.plusDays(1)
     val countryIsoCode = "US"
 
-    val query: SQLQuery =
+    val sqlQuery: SQLQuery =
       dsql"""
       |SELECT FLOOR(__time to HOUR) AS hourTime, count(*) AS "count"
       |FROM wikipedia
@@ -63,15 +61,26 @@ class SQLQuerySpec extends WordSpec with Matchers with ScalaFutures with CirceDe
       |GROUP BY 1
       |""".stripMargin
 
+    "be expressed as a parameterized query with three parameters" in {
+      sqlQuery.query.count(_ == '?') shouldBe 3
+      sqlQuery.parameters.size shouldBe 3
+
+      sqlQuery.parameters(0) shouldBe SQLQueryParameter(SQLQueryParameterType.Timestamp,
+                                                        "2015-09-12 00:00:00")
+      sqlQuery.parameters(1) shouldBe SQLQueryParameter(SQLQueryParameterType.Timestamp,
+                                                        "2015-09-13 00:00:00")
+      sqlQuery.parameters(2) shouldBe SQLQueryParameter(SQLQueryParameterType.Varchar, "US")
+    }
+
     "successfully be interpreted by Druid" in {
-      val resultsF = query.execute()
+      val resultsF = sqlQuery.execute()
       whenReady(resultsF) { response =>
         response.list[Result].map(_.count).sum shouldBe usOnlyNumberOfEntries
       }
     }
 
     "support streaming" in {
-      val resultsF = query.streamAs[Result]().runWith(Sink.seq)
+      val resultsF = sqlQuery.streamAs[Result]().runWith(Sink.seq)
 
       whenReady(resultsF) { results =>
         results.map(_.count).sum shouldBe usOnlyNumberOfEntries
