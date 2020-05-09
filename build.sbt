@@ -87,7 +87,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
     )
   ),
   crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.11", "2.13.2"),
-  scalaVersion in ThisBuild := "2.12.9",
+  scalaVersion in ThisBuild := "2.12.11",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= unusedWarnings(scalaVersion.value),
   publishArtifact in Test := false,
