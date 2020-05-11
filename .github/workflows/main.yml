@@ -32,11 +32,11 @@ jobs:
       - name: Wait Druid to become available
         run: wget localhost:8082/status
       - name: Build for Scala 2.11
-        run: sbt ++2.11.12 compile
+        run: sbt ++2.11.12 compile test:compile
       - name: Build for Scala 2.12
-        run: sbt ++2.12.10 compile
+        run: sbt ++2.12.11 compile test:compile
       - name: Build for Scala 2.13
-        run: sbt ++2.13.1 compile
+        run: sbt ++2.13.2 compile test:compile
       - name: Code coverage report (Scala 2.12)
         run: sbt coverage test coverageReport
       - name: Archive code coverage report (Scala 2.12)

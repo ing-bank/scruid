@@ -30,13 +30,16 @@ import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.language.postfixOps
 import scala.util.Random
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 class DruidAdvancedHttpClientSpec
-    extends WordSpec
+    extends AnyWordSpec
     with Matchers
     with ScalaFutures
     with Inspectors
-    with DiagrammedAssertions {
+    with Diagrams {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(5 minutes, 100 millis)
 

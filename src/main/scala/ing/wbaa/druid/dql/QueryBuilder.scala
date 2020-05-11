@@ -165,7 +165,7 @@ final class QueryBuilder private[dql] ()
     *
     * @return the resulting time-series query
     */
-  @deprecated(message = "use timeseries.build()")
+  @deprecated(message = "use timeseries.build()", since = "2.4.0")
   def build()(implicit druidConfig: DruidConfig = DruidConfig.DefaultConfig): TimeSeriesQuery =
     timeseries.build()
 

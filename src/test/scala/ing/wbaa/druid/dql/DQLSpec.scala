@@ -21,7 +21,6 @@ import akka.stream.scaladsl.Sink
 import ing.wbaa.druid.client.DruidHttpClient
 import ing.wbaa.druid._
 import ing.wbaa.druid.definitions._
-import org.scalatest.{ Matchers, WordSpec }
 import org.scalatest.concurrent._
 import ing.wbaa.druid.dql.DSL._
 import io.circe.generic.auto._
@@ -29,8 +28,10 @@ import io.circe.syntax._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class DQLSpec extends WordSpec with Matchers with ScalaFutures {
+class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(1 minute, 100 millis)
 

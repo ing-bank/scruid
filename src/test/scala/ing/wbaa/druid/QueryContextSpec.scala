@@ -23,8 +23,10 @@ import io.circe.syntax._
 import org.scalatest._
 import org.scalatest.concurrent._
 import org.scalatest.time._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class QueryContextSpec extends WordSpec with Matchers with ScalaFutures {
+class QueryContextSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(20, Seconds), interval = Span(5, Millis))

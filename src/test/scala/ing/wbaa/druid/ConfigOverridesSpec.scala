@@ -18,11 +18,12 @@
 package ing.wbaa.druid
 
 import ing.wbaa.druid.client.DruidAdvancedHttpClient
-import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ConfigOverridesSpec extends WordSpec with Matchers {
+class ConfigOverridesSpec extends AnyWordSpec with Matchers {
 
   def asFiniteDuration(d: java.time.Duration): FiniteDuration =
     scala.concurrent.duration.Duration.fromNanos(d.toNanos)

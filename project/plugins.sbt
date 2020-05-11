@@ -21,14 +21,14 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 
 resolvers += "Sbt plugins" at "https://dl.bintray.com/sbt/sbt-plugin-releases"
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.12")
+addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "3.0.3")
 
-addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.6")
 
-addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.15")
+addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
 
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.4")
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.0")
 
-addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "0.2.4")
+addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "2.0.0")
