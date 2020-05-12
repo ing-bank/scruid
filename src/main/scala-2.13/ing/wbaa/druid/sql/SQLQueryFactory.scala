@@ -15,19 +15,21 @@
  * limitations under the License.
  */
 
-package ing.wbaa.druid
+package ing.wbaa.druid.sql
 
-import ing.wbaa.druid.sql.SQLQueryFactory
-import ing.wbaa.druid.sql.ParameterConversions
+import ing.wbaa.druid.{DruidConfig, SQLQuery, SQLQueryParameter}
 
-object SQL extends SQLQueryFactory with ParameterConversions {
+trait SQLQueryFactory {
 
-  implicit class StringToSQL(val sc: StringContext) extends AnyVal {
-
-    def dsql(parameters: SQLQueryParameter*)(
-        implicit context: Map[String, String] = Map.empty,
-        config: DruidConfig = DruidConfig.DefaultConfig
-    ): SQLQuery = createSQLQuery(sc, parameters, context, config)
-
+  protected def createSQLQuery(
+    sc: StringContext,
+    parameters: Seq[SQLQueryParameter],
+    context: Map[String, String],
+    config: DruidConfig
+  ): SQLQuery = {
+    StringContext.checkLengths(parameters, sc.parts)
+    val query = sc.parts.map(StringContext.processEscapes).mkString("?")
+    SQLQuery(query, context, parameters)(config)
   }
+
 }
