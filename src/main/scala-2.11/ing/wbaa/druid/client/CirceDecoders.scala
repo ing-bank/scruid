@@ -19,4 +19,11 @@ package ing.wbaa.druid.client
 
 import io.circe.java8.time._
 
-trait CirceDecoders extends JavaTimeDecoders
+trait CirceDecoders extends JavaTimeDecoders {
+
+  protected def mapRightProjection[L, R, R1](either: Either[L,R])(f: R => R1): Either[L,R1] = either match {
+    case Right(value) => Right(f(value))
+    case _ => either.asInstanceOf[Either[L, R1]]
+  }
+
+}

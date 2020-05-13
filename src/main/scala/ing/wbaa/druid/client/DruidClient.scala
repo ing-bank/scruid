@@ -147,19 +147,19 @@ trait DruidResponseHandler extends CirceDecoders {
           )
         }
     } else {
+
       body
         .map(_.data.decodeString("UTF-8"))
         .map { json =>
           queryType match {
             case QueryType.Scan =>
-              decode[List[DruidScanResults]](json).right
-                .map(results => DruidScanResponse(results))
+              mapRightProjection(decode[List[DruidScanResults]](json))(DruidScanResponse)
             case QueryType.SQL =>
-              decode[List[Json]](json).right
-                .map(results => DruidSQLResults(results))
+              mapRightProjection(decode[List[Json]](json))(DruidSQLResults)
             case _ =>
-              decode[List[DruidResult]](json).right
-                .map(results => DruidResponseTimeseriesImpl(results, queryType))
+              mapRightProjection(decode[List[DruidResult]](json))(
+                results => DruidResponseTimeseriesImpl(results, queryType)
+              )
           }
         }
         .map {
