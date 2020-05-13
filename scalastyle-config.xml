@@ -164,6 +164,8 @@ This file is divided into 3 sections:
         </parameters>
     </check>
 
+    <check level="error" class="org.scalastyle.scalariform.NumberOfMethodsInTypeChecker" enabled="true"/>
+
     <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"/>
 
     <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"/>
@@ -241,14 +243,6 @@ This file is divided into 3 sections:
     <check level="error" class="org.scalastyle.file.FileLengthChecker" enabled="false"/>
 
     <check level="error" class="org.scalastyle.scalariform.NumberOfTypesChecker" enabled="false"/>
-
-    <!-- Not exactly feasible to enforce this right now. -->
-    <!-- It is also infrequent that somebody introduces a new class with a lot of methods. -->
-    <check level="error" class="org.scalastyle.scalariform.NumberOfMethodsInTypeChecker" enabled="false">
-        <parameters>
-            <parameter name="maxMethods"><![CDATA[30]]></parameter>
-        </parameters>
-    </check>
 
     <check level="error" class="org.scalastyle.scalariform.MagicNumberChecker" enabled="false"/>
 

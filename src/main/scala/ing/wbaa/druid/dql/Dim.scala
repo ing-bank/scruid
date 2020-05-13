@@ -31,6 +31,7 @@ import ing.wbaa.druid.{ DimensionOrder, DimensionOrderType, Direction, OrderByCo
   * @param outputTypeOpt The resulting output type
   * @param extractionFnOpt An extraction function to apply in this dimension
   */
+// scalastyle:off number.of.methods
 case class Dim private[dql] (name: String,
                              outputNameOpt: Option[String] = None,
                              outputTypeOpt: Option[String] = None,
@@ -685,6 +686,7 @@ case class Dim private[dql] (name: String,
   def hyperUniqueCardinality: HyperUniqueCardinalityPostAgg =
     HyperUniqueCardinalityPostAgg(this.name)
 }
+// scalastyle:on number.of.methods
 
 object Dim {
 
