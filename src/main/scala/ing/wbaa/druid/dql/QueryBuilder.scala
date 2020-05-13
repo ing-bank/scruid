@@ -22,6 +22,8 @@ import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContext
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.expressions._
 
+// scalastyle:off var.field
+
 /**
   * Collection of common functions for all query builders
   */
@@ -467,3 +469,5 @@ final class SearchQueryBuilder private[dql] (query: SearchQuerySpec) extends Que
     )(conf)
   }
 }
+
+// scalastyle:on var.field

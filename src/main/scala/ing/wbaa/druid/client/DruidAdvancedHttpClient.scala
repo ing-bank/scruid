@@ -235,6 +235,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     final val RequestInterceptorConfig   = "request-interceptor-config"
   }
 
+  // scalastyle:off var.field
   class ConfigBuilder {
 
     private var queueSize: Option[Int]                                = None
@@ -307,6 +308,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
         .withFallback(DruidConfig.DefaultConfig.clientConfig)
     }
   }
+  // scalastyle:on var.field
+
   object ConfigBuilder {
     def apply(): ConfigBuilder = new ConfigBuilder()
   }
