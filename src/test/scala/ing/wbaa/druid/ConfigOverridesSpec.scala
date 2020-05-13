@@ -17,9 +17,9 @@
 
 package ing.wbaa.druid
 
-import ing.wbaa.druid.client.DruidAdvancedHttpClient
-
 import scala.concurrent.duration._
+
+import ing.wbaa.druid.client.DruidAdvancedHttpClient
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

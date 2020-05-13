@@ -249,6 +249,7 @@ You can also disable only one rule, by specifying its rule id, as specified in:
             <parameter name="groups"><![CDATA[java,scala,other]]></parameter>
             <parameter name="group.java"><![CDATA[javax?\..*]]></parameter>
             <parameter name="group.scala"><![CDATA[scala\..*]]></parameter>
+            <parameter name="group.other"><![CDATA[.*]]></parameter>
         </parameters>
     </check>
 

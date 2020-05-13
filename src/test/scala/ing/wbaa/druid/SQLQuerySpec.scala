@@ -20,12 +20,12 @@ package ing.wbaa.druid
 import java.time.{ LocalDateTime, ZonedDateTime }
 
 import akka.stream.scaladsl.Sink
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Seconds, Span }
 import ing.wbaa.druid.SQL._
 import ing.wbaa.druid.client.CirceDecoders
 import io.circe.generic.auto._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpec
 
 class SQLQuerySpec extends AnyWordSpec with Matchers with ScalaFutures with CirceDecoders {

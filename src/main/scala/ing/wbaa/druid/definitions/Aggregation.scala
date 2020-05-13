@@ -19,11 +19,10 @@ package ing.wbaa.druid
 package definitions
 
 import ca.mrvisser.sealerate
+import definitions.Filter.{ encoder => filterEncoder }
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
-
-import definitions.Filter.{ encoder => filterEncoder }
 
 sealed trait AggregationType extends Enum with CamelCaseEnumStringEncoder
 object AggregationType extends EnumCodec[AggregationType] {

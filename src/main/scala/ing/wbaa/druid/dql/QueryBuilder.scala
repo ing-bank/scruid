@@ -18,8 +18,8 @@
 package ing.wbaa.druid.dql
 
 import ing.wbaa.druid._
-import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
 import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
 import ing.wbaa.druid.dql.expressions._
 
 // scalastyle:off var.field

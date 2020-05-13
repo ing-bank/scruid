@@ -17,8 +17,8 @@
 package ing.wbaa.druid
 package definitions
 
-import io.circe._
 import ca.mrvisser.sealerate
+import io.circe._
 
 sealed trait Order extends Enum with LowerCaseEnumStringEncoder
 

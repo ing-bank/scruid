@@ -16,8 +16,8 @@
  */
 package ing.wbaa.druid.auth.basic
 
-import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import com.typesafe.scalalogging.LazyLogging
 import ing.wbaa.druid.client.{

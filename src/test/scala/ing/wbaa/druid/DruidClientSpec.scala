@@ -19,15 +19,15 @@ package ing.wbaa.druid
 
 import java.util.concurrent.TimeoutException
 
-import akka.http.scaladsl.model.headers.RawHeader
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
+import akka.http.scaladsl.model.headers.RawHeader
 import ing.wbaa.druid.client.{ DruidHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions.{ CountAggregation, GranularityType }
 import ing.wbaa.druid.util._
 import org.scalatest.concurrent._
-
-import scala.concurrent.duration._
-import scala.language.postfixOps
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

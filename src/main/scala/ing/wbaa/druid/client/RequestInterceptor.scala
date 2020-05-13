@@ -16,10 +16,10 @@
  */
 package ing.wbaa.druid.client
 
+import scala.concurrent._
+
 import akka.http.scaladsl.model._
 import com.typesafe.config.{ Config, ConfigFactory }
-
-import scala.concurrent._
 
 /**
   * Customization hook for altering the request flow in `DruidAdvancedHttpClient`. This is primarily intended to handle

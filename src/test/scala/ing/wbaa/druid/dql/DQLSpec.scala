@@ -17,18 +17,18 @@
 
 package ing.wbaa.druid.dql
 
-import akka.stream.scaladsl.Sink
-import ing.wbaa.druid.client.DruidHttpClient
-import ing.wbaa.druid._
-import ing.wbaa.druid.definitions._
-import ing.wbaa.druid.util._
-import org.scalatest.concurrent._
-import ing.wbaa.druid.dql.DSL._
-import io.circe.generic.auto._
-import io.circe.syntax._
-
 import scala.concurrent.duration._
 import scala.language.postfixOps
+
+import akka.stream.scaladsl.Sink
+import ing.wbaa.druid._
+import ing.wbaa.druid.client.DruidHttpClient
+import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.dql.DSL._
+import ing.wbaa.druid.util._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.scalatest.concurrent._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

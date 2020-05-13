@@ -17,6 +17,10 @@
 
 package ing.wbaa.druid.client
 
+import scala.concurrent.{ ExecutionContextExecutor, Future }
+import scala.concurrent.duration.FiniteDuration
+import scala.util.{ Failure, Success, Try }
+
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, StatusCodes }
@@ -25,14 +29,10 @@ import akka.stream.scaladsl._
 import com.typesafe.scalalogging.{ LazyLogging, Logger }
 import ing.wbaa.druid._
 import io.circe.Json
-import org.mdedetrich.akka.http.support.CirceHttpSupport
 import io.circe.parser.decode
+import org.mdedetrich.akka.http.support.CirceHttpSupport
 import org.mdedetrich.akka.stream.support.CirceStreamSupport
 import org.typelevel.jawn.AsyncParser
-
-import scala.concurrent.{ ExecutionContextExecutor, Future }
-import scala.concurrent.duration.FiniteDuration
-import scala.util.{ Failure, Success, Try }
 
 trait DruidClient extends CirceHttpSupport with CirceDecoders with LazyLogging {
 

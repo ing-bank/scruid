@@ -19,16 +19,16 @@ package ing.wbaa.druid
 
 import java.time.ZonedDateTime
 
+import scala.concurrent.{ ExecutionContext, Future }
+
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import ca.mrvisser.sealerate
-import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
 import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
+import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import io.circe._
-
-import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait QueryType extends Enum with CamelCaseEnumStringEncoder
 object QueryType extends EnumCodec[QueryType] {

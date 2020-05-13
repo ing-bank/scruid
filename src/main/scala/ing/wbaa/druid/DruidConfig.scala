@@ -21,14 +21,14 @@ import java.net.URI
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-import akka.actor.ActorSystem
-import com.typesafe.config.{ Config, ConfigException, ConfigFactory }
-import ing.wbaa.druid.client.{ DruidClient, DruidClientBuilder }
-
 import scala.annotation.switch
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 import scala.reflect.runtime.universe
+
+import akka.actor.ActorSystem
+import com.typesafe.config.{ Config, ConfigException, ConfigFactory }
+import ing.wbaa.druid.client.{ DruidClient, DruidClientBuilder }
 
 /*
  * Druid API Config Immutable

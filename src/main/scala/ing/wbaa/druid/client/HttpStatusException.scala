@@ -16,10 +16,10 @@
  */
 package ing.wbaa.druid.client
 
-import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpProtocol, HttpResponse, StatusCode }
-
 import scala.collection.immutable.Seq
 import scala.util.Try
+
+import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpProtocol, HttpResponse, StatusCode }
 
 /**
   * Indicates that Druid returned a non-OK HTTP status code.

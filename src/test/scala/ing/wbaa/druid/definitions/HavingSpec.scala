@@ -17,14 +17,14 @@
 
 package ing.wbaa.druid.definitions
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import ing.wbaa.druid.GroupByQuery
 import ing.wbaa.druid.util._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures
-
-import scala.concurrent.duration._
-import scala.language.postfixOps
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 

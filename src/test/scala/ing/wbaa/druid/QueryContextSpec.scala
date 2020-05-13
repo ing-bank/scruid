@@ -21,10 +21,9 @@ import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.util._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.scalatest._
 import org.scalatest.concurrent._
-import org.scalatest.time._
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time._
 import org.scalatest.wordspec.AnyWordSpec
 
 class QueryContextSpec extends AnyWordSpec with Matchers with ScalaFutures {

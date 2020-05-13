@@ -17,16 +17,15 @@
 
 package ing.wbaa.druid.auth.basic
 
-import akka.http.scaladsl.model.StatusCodes
-import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
-import ing.wbaa.druid.definitions._
-import ing.wbaa.druid.{ DruidConfig, QueryHost, TimeSeriesQuery }
-import io.circe.generic.auto._
-import org.scalatest._
-import org.scalatest.concurrent._
-
 import scala.concurrent.duration._
 import scala.language.postfixOps
+
+import akka.http.scaladsl.model.StatusCodes
+import ing.wbaa.druid.{ DruidConfig, QueryHost, TimeSeriesQuery }
+import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
+import ing.wbaa.druid.definitions._
+import io.circe.generic.auto._
+import org.scalatest.concurrent._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

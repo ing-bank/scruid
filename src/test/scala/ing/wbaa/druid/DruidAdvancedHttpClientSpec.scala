@@ -19,18 +19,18 @@ package ing.wbaa.druid
 
 import java.util.concurrent.TimeoutException
 
-import akka.http.scaladsl.model.headers.RawHeader
+import scala.concurrent.{ ExecutionContextExecutor, Future }
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import scala.util.Random
+
 import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
+import akka.http.scaladsl.model.headers.RawHeader
 import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.util._
 import org.scalatest._
 import org.scalatest.concurrent._
-
-import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContextExecutor, Future }
-import scala.language.postfixOps
-import scala.util.Random
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

@@ -17,10 +17,10 @@
 
 package ing.wbaa.druid.dql
 
+import ing.wbaa.druid.{ DimensionOrder, DimensionOrderType, Direction, OrderByColumnSpec }
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.Dim.DimType
 import ing.wbaa.druid.dql.expressions._
-import ing.wbaa.druid.{ DimensionOrder, DimensionOrderType, Direction, OrderByColumnSpec }
 
 /**
   * This class represents a single dimension in a Druid datasource, along with all operations that can be

@@ -17,8 +17,6 @@
 
 package ing.wbaa.druid.definitions
 
-import org.scalatest._
-
 import io.circe._
 import io.circe.syntax._
 import org.scalatest.matchers.should.Matchers

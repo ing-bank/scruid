@@ -17,10 +17,10 @@
 
 package ing.wbaa.druid.dql
 
+import scala.reflect.ClassTag
+
 import ing.wbaa.druid.definitions.{ ExtractionFn, Filter }
 import ing.wbaa.druid.dql.expressions._
-
-import scala.reflect.ClassTag
 
 // scalastyle:off number.of.methods
 trait AggregationOps {

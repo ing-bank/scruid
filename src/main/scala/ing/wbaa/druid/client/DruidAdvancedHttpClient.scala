@@ -17,24 +17,24 @@
 
 package ing.wbaa.druid.client
 
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
+import scala.concurrent.duration._
+import scala.reflect.runtime.universe
+import scala.util.{ Failure, Success, Try }
+
 import akka.NotUsed
 import akka.actor.{ ActorSystem, Scheduler }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
+import akka.pattern.retry
 import akka.stream._
 import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
 import ing.wbaa.druid.{ BaseResult, DruidConfig, DruidQuery, DruidResponse, QueryHost, QueryType }
-import akka.pattern.retry
 import ing.wbaa.druid.client.DruidAdvancedHttpClient.ConnectionFlow
-
-import scala.reflect.runtime.universe
-import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
-import scala.util.{ Failure, Success, Try }
 
 class DruidAdvancedHttpClient private (
     connectionFlow: DruidAdvancedHttpClient.ConnectionFlow,
