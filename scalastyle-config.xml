@@ -158,6 +158,12 @@ This file is divided into 3 sections:
         </parameters>
     </check>
 
+    <check level="error" class="org.scalastyle.scalariform.MethodNamesChecker" enabled="true">
+        <parameters>
+            <parameter name="regex"><![CDATA[^([A-Z]+|[a-z][A-Za-z0-9]*|[\+\-\*/<>]|<=|>=|===|=!=|&&|\|\||unary_!)$]]></parameter>
+        </parameters>
+    </check>
+
     <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"/>
 
     <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"/>
@@ -226,37 +232,15 @@ This file is divided into 3 sections:
     <check level="error" class="org.scalastyle.scalariform.DeprecatedJavaChecker" enabled="true"/>
 
     <!-- ================================================================================ -->
-    <!--       rules we'd like to enforce, but haven't cleaned up the codebase yet        -->
-    <!-- ================================================================================ -->
-
-    <!-- This breaks symbolic method names so we don't turn it on. -->
-    <!-- Maybe we should update it to allow basic symbolic names, and then we are good to go. -->
-    <check level="error" class="org.scalastyle.scalariform.MethodNamesChecker" enabled="false">
-        <parameters>
-            <parameter name="regex"><![CDATA[^[a-z][A-Za-z0-9]*$]]></parameter>
-        </parameters>
-    </check>
-
-    <!-- ================================================================================ -->
     <!--                               rules we don't want                                -->
     <!-- ================================================================================ -->
 
     <!-- We want the opposite of this: NewLineAtEofChecker -->
     <check level="error" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="false"/>
 
-    <!-- Doesn't seem super big deal here ... -->
-    <check level="error" class="org.scalastyle.file.FileLengthChecker" enabled="false">
-        <parameters>
-            <parameter name="maxFileLength">800></parameter>
-        </parameters>
-    </check>
+    <check level="error" class="org.scalastyle.file.FileLengthChecker" enabled="false"/>
 
-    <!-- Doesn't seem super big deal here ... -->
-    <check level="error" class="org.scalastyle.scalariform.NumberOfTypesChecker" enabled="false">
-        <parameters>
-            <parameter name="maxTypes">30</parameter>
-        </parameters>
-    </check>
+    <check level="error" class="org.scalastyle.scalariform.NumberOfTypesChecker" enabled="false"/>
 
     <!-- Not exactly feasible to enforce this right now. -->
     <!-- It is also infrequent that somebody introduces a new class with a lot of methods. -->
@@ -266,11 +250,6 @@ This file is divided into 3 sections:
         </parameters>
     </check>
 
-    <!-- Doesn't seem super big deal here, and we have a lot of magic numbers ... -->
-    <check level="error" class="org.scalastyle.scalariform.MagicNumberChecker" enabled="false">
-        <parameters>
-            <parameter name="ignore">-1,0,1,2,3</parameter>
-        </parameters>
-    </check>
+    <check level="error" class="org.scalastyle.scalariform.MagicNumberChecker" enabled="false"/>
 
 </scalastyle>

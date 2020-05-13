@@ -308,7 +308,18 @@ case class Dim private[dql] (name: String,
     * @return a bound filtering expression, with lexicographic ordering, specifying that the value of
     *         the dimension should be less than, or equal to the given number.
     */
-  def =<(value: String): Bound =
+  // scalastyle:off method.name
+  @deprecated(s"use <=", "2.4.0")
+  def =<(value: String): Bound = <=(value)
+  // scalastyle:on method.name
+
+  /**
+    * Filter based on a strict upper bound of dimension values, using lexicographic ordering.
+    *
+    * @return a bound filtering expression, with lexicographic ordering, specifying that the value of
+    *         the dimension should be less than, or equal to the given number.
+    */
+  def <=(value: String): Bound =
     Bound(dimension = name,
           lower = None,
           upper = Option(value),
