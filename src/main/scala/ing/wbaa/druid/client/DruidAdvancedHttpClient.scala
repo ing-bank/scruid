@@ -19,7 +19,6 @@ package ing.wbaa.druid.client
 
 import akka.NotUsed
 import akka.actor.{ ActorSystem, Scheduler }
-import akka.event.LoggingAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.ContentTypes._
@@ -467,28 +466,11 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
 
     val settings: ConnectionPoolSettings = ConnectionPoolSettings(connectionPoolConfig)
     val parallelism                      = settings.pipeliningLimit * settings.maxConnections
-    val log: LoggingAdapter              = system.log
 
     brokers.map { queryHost =>
       val flow = Flow[ConnectionIn]
         .log("scruid-load-balancer", _ => s"Sending query to ${queryHost.host}:${queryHost.port}")
-        .via {
-          if (secureConnection) {
-            Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](
-              host = queryHost.host,
-              port = queryHost.port,
-              settings = settings,
-              log = log
-            )
-          } else {
-            Http().cachedHostConnectionPool[Promise[HttpResponse]](
-              host = queryHost.host,
-              port = queryHost.port,
-              settings = settings,
-              log = log
-            )
-          }
-        }
+        .via(createConnectionFlow(queryHost, secureConnection, settings))
         .mapAsyncUnordered(parallelism) {
           // consider any response with HTTP Code different from StatusCodes.OK as a failure
           case (triedResponse, responsePromise) =>
@@ -521,4 +503,34 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       queryHost -> flow.async
     }.toMap
   }
+
+  /**
+    * Creates cached connection flow for the specified Druid Broker
+    *
+    * @param broker the Druid Broker to perform queries
+    * @param secureConnection specify if the connection is secure or not (i.e., HTTPS or HTTP)
+    * @param settings the Akka settings for the connection pool
+    * @param system the actor system to use
+    * @return a flow which dispatches incoming requests to the pool of outgoing connections to the given Druid broker
+    */
+  private def createConnectionFlow(
+      broker: QueryHost,
+      secureConnection: Boolean,
+      settings: ConnectionPoolSettings
+  )(implicit system: ActorSystem): Flow[ConnectionIn, ConnectionOut, Http.HostConnectionPool] =
+    if (secureConnection) {
+      Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](
+        host = broker.host,
+        port = broker.port,
+        settings = settings,
+        log = system.log
+      )
+    } else {
+      Http().cachedHostConnectionPool[Promise[HttpResponse]](
+        host = broker.host,
+        port = broker.port,
+        settings = settings,
+        log = system.log
+      )
+    }
 }

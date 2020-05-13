@@ -416,8 +416,7 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
           javascript(
             name = "value",
             fields = Seq(d"cityName", d"countryIsoCode"),
-            fnAggregate =
-              """
+            fnAggregate = """
                 |function(current, countryIsoCode, cityName) {
                 |  return ((countryIsoCode != null && cityName != null) ?
                 |    cityName.length + countryIsoCode.length + current : current);
