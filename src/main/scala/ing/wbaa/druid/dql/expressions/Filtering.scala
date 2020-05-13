@@ -80,7 +80,7 @@ class EqLong(dim: Dim, value: Long) extends FilteringExpression {
     SelectFilter(dim.name, Option(value.toString), dim.extractionFnOpt)
   override protected[dql] def createHaving: Having =
     if (dim.extractionFnOpt.isDefined) FilterHaving(this.createFilter)
-    else EqualToHaving(dim.name, value)
+    else EqualToHaving(dim.name, value.toDouble)
 }
 
 trait FilterOnlyOperator extends FilteringExpression {

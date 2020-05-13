@@ -17,4 +17,8 @@
 
 package ing.wbaa.druid.client
 
-trait CirceDecoders
+trait CirceDecoders {
+
+  protected def mapRightProjection[L, R, R1](either: Either[L,R])(f: R => R1): Either[L,R1] = either.map(f(_))
+
+}

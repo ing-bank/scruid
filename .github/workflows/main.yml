@@ -37,13 +37,13 @@ jobs:
         run: sbt ++2.12.11 compile test:compile
       - name: Build for Scala 2.13
         run: sbt ++2.13.2 compile test:compile
-      - name: Code coverage report (Scala 2.12)
+      - name: Code coverage report (Scala 2.13)
         run: sbt coverage test coverageReport
-      - name: Archive code coverage report (Scala 2.12)
+      - name: Archive code coverage report (Scala 2.13)
         uses: actions/upload-artifact@v1
         with:
           name: code-coverage-report
-          path: target/scala-2.12/scoverage-report
+          path: target/scala-2.13/scoverage-report
       - name: Shutdown dockerized services
         run: ./services.sh down
       - name: Push docker images

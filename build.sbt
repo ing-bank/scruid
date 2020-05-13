@@ -1,3 +1,5 @@
+import sbt.CrossVersion
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,13 +18,13 @@
  */
 
 val circeForScala211Version = "0.11.1" // Only for Scala v2.11
-val circeLatestVersion      = "0.12.1" // for Scala v2.12+
+val circeLatestVersion      = "0.13.0" // for Scala v2.12+
 val mdedetrichVersion       = "0.5.0"
 val scalacticVersion        = "3.1.1"
 val scalatestVersion        = "3.1.1"
-val typesafeConfigVersion   = "1.4.0"
+val typesafeConfigVersion   = "1.3.3"
 val typesafeLoggingVersion  = "3.9.2"
-val akkaHttpVersion         = "10.1.11"
+val akkaHttpVersion         = "10.1.12"
 val sealerateVersion        = "0.0.6"
 val logbackVersion          = "1.2.3"
 val collectionCompatVersion = "2.1.6"
@@ -87,7 +89,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
     )
   ),
   crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.11", "2.13.2"),
-  scalaVersion in ThisBuild := "2.12.11",
+  scalaVersion in ThisBuild := "2.13.2",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
   scalacOptions ++= unusedWarnings(scalaVersion.value),
   publishArtifact in Test := false,
@@ -115,6 +117,9 @@ lazy val root = (project in file("."))
       "ch.qos.logback"             % "logback-classic"          % logbackVersion % Provided,
       "org.scalactic"              %% "scalactic"               % scalacticVersion % Test,
       "org.scalatest"              %% "scalatest"               % scalatestVersion % Test
-    )
+    ).map(_ exclude ("org.scala-lang", "scala-library"))
   )
-  .settings(libraryDependencies ++= scalaVersionSpecificDependencies(scalaVersion.value))
+  .settings(
+    libraryDependencies ++= scalaVersionSpecificDependencies(scalaVersion.value)
+      .map(_ exclude ("org.scala-lang", "scala-library"))
+  )

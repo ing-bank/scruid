@@ -15,13 +15,20 @@
  * limitations under the License.
  */
 
-package ing.wbaa.druid.client
+package ing.wbaa.druid.sql
 
-trait CirceDecoders {
+import ing.wbaa.druid.{DruidConfig, SQLQuery, SQLQueryParameter}
 
-  protected def mapRightProjection[L, R, R1](either: Either[L,R])(f: R => R1): Either[L,R1] = either match {
-    case Right(value) => Right(f(value))
-    case _ => either.asInstanceOf[Either[L, R1]]
+trait SQLQueryFactory {
+
+  protected def createSQLQuery(
+    sc: StringContext,
+    parameters: Seq[SQLQueryParameter],
+    context: Map[String, String],
+    config: DruidConfig
+  ): SQLQuery = {
+    sc.checkLengths(parameters)
+    val query = sc.parts.map(StringContext.treatEscapes).mkString("?")
+    SQLQuery(query, context, parameters)(config)
   }
-
 }

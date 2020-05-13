@@ -339,8 +339,7 @@ case class SQLQuery private[druid] (query: String,
   val resultFormat = "object"
 
   def execute()(
-      implicit config: DruidConfig = DruidConfig.DefaultConfig,
-      ec: ExecutionContext = config.client.actorSystem.dispatcher
+      implicit config: DruidConfig = DruidConfig.DefaultConfig
   ): Future[DruidSQLResults] =
     config.client.doQuery[DruidSQLResults](this)
 
