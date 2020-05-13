@@ -18,6 +18,7 @@
 package ing.wbaa.druid
 
 import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.util._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest._
@@ -57,7 +58,15 @@ class QueryContextSpec extends AnyWordSpec with Matchers with ScalaFutures {
       val requestJson = query.asJson.noSpaces
 
       requestJson shouldBe
-      """{"aggregations":[{"name":"count","type":"count"}],"intervals":["2011-06-01/2017-06-01"],"filter":null,"granularity":"hour","descending":"true","postAggregations":[],"context":{"queryId":"some_custom_id","priority":"100","useCache":"false","skipEmptyBuckets":"true"}}"""
+      """{
+          |"aggregations":[{"name":"count","type":"count"}],
+          |"intervals":["2011-06-01/2017-06-01"],
+          |"filter":null,
+          |"granularity":"hour",
+          |"descending":"true",
+          |"postAggregations":[],
+          |"context":{"queryId":"some_custom_id","priority":"100","useCache":"false","skipEmptyBuckets":"true"}
+          |}""".toOneLine
 
       val resultF = query.execute()
 

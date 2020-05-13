@@ -1,6 +1,6 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreement  See the NOTICE file distributed with
+ * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
@@ -158,13 +158,13 @@ case class Dim private[dql] (name: String,
   def in(value: String, values: String*): FilteringExpression =
     new In(this, value +: values)
 
-  def in(values: Iterable[String]) =
+  def in(values: Iterable[String]): In =
     new In(this, values)
 
   def in[T: Numeric](value: T, values: T*): FilteringExpression =
     new InNumeric(this, value +: values)
 
-  def in[T: Numeric](values: Iterable[T]) =
+  def in[T: Numeric](values: Iterable[T]): InNumeric[T] =
     new InNumeric(this, values)
 
   /**

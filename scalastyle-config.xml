@@ -24,7 +24,7 @@ before and after the section, with the following syntax:
   // scalastyle:on
 
 You can also disable only one rule, by specifying its rule id, as specified in:
-  http://www.scalastyle.org/rules-0.7.0.html
+  http://www.scalastyle.org/rules-1.0.0.html
 
   // scalastyle:off no.finalize
   override def finalize(): Unit = ...
@@ -44,7 +44,7 @@ This file is divided into 3 sections:
     <!--                               rules we enforce                                   -->
     <!-- ================================================================================ -->
 
-    <check level="error" class="org.scalastyle.file.FileTabChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.file.FileTabChecker" enabled="true"/>
 
     <check level="error" class="org.scalastyle.file.HeaderMatchesChecker" enabled="true">
         <parameters>
@@ -67,11 +67,11 @@ This file is divided into 3 sections:
         </parameters>
     </check>
 
-    <check level="error" class="org.scalastyle.scalariform.SpacesAfterPlusChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.SpacesAfterPlusChecker" enabled="true"/>
 
-    <check level="error" class="org.scalastyle.scalariform.SpacesBeforePlusChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.SpacesBeforePlusChecker" enabled="true"/>
 
-    <check level="error" class="org.scalastyle.file.WhitespaceEndOfLineChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.file.WhitespaceEndOfLineChecker" enabled="true"/>
 
     <check level="error" class="org.scalastyle.file.FileLineLengthChecker" enabled="true">
         <parameters>
@@ -105,13 +105,13 @@ This file is divided into 3 sections:
         </parameters>
     </check>
 
-    <check level="error" class="org.scalastyle.scalariform.NoFinalizeChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.NoFinalizeChecker" enabled="true"/>
 
-    <check level="error" class="org.scalastyle.scalariform.CovariantEqualsChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.CovariantEqualsChecker" enabled="true"/>
 
-    <check level="error" class="org.scalastyle.scalariform.StructuralTypeChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.StructuralTypeChecker" enabled="true"/>
 
-    <check level="error" class="org.scalastyle.scalariform.UppercaseLChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.UppercaseLChecker" enabled="true"/>
 
     <check level="error" class="org.scalastyle.scalariform.IfBraceChecker" enabled="true">
         <parameters>
@@ -120,18 +120,18 @@ This file is divided into 3 sections:
         </parameters>
     </check>
 
-    <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"/>
 
-    <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"/>
 
     <check customId="nonascii" level="error" class="org.scalastyle.scalariform.NonASCIICharacterChecker"
-           enabled="true"></check>
+           enabled="true"/>
 
-    <check level="error" class="org.scalastyle.scalariform.SpaceAfterCommentStartChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.SpaceAfterCommentStartChecker" enabled="true"/>
 
     <check level="error" class="org.scalastyle.scalariform.EnsureSingleSpaceBeforeTokenChecker" enabled="true">
         <parameters>
-            <parameter name="tokens">ARROW, EQUALS, ELSE, TRY, CATCH, FINALLY, LARROW, RARROW</parameter>
+            <parameter name="tokens">ELSE, TRY, CATCH, FINALLY, RARROW</parameter>
         </parameters>
     </check>
 
@@ -144,7 +144,7 @@ This file is divided into 3 sections:
     </check>
 
     <!-- ??? usually shouldn't be checked into the code base. -->
-    <check level="error" class="org.scalastyle.scalariform.NotImplementedErrorUsage" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.NotImplementedErrorUsage" enabled="true"/>
 
     <check customId="runtimeaddshutdownhook" level="error" class="org.scalastyle.file.RegexChecker" enabled="true">
         <parameters>
@@ -285,7 +285,7 @@ This file is divided into 3 sections:
         <customMessage>override modifier should be used instead of @java.lang.Override.</customMessage>
     </check>
 
-    <check level="error" class="org.scalastyle.scalariform.DeprecatedJavaChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.DeprecatedJavaChecker" enabled="true"/>
 
     <!-- ================================================================================ -->
     <!--       rules we'd like to enforce, but haven't cleaned up the codebase yet        -->
@@ -294,8 +294,8 @@ This file is divided into 3 sections:
     <!-- We cannot turn the following two on, because it'd fail a lot of string interpolation use cases. -->
     <!-- Ideally the following two rules should be configurable to rule out string interpolation. -->
     <check level="error" class="org.scalastyle.scalariform.NoWhitespaceBeforeLeftBracketChecker"
-           enabled="false"></check>
-    <check level="error" class="org.scalastyle.scalariform.NoWhitespaceAfterLeftBracketChecker" enabled="false"></check>
+           enabled="false"/>
+    <check level="error" class="org.scalastyle.scalariform.NoWhitespaceAfterLeftBracketChecker" enabled="false"/>
 
     <!-- This breaks symbolic method names so we don't turn it on. -->
     <!-- Maybe we should update it to allow basic symbolic names, and then we are good to go. -->
@@ -306,7 +306,7 @@ This file is divided into 3 sections:
     </check>
 
     <!-- Should turn this on, but we have a few places that need to be fixed first -->
-    <check level="error" class="org.scalastyle.scalariform.EqualsHashCodeChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.EqualsHashCodeChecker" enabled="true"/>
 
     <!-- ================================================================================ -->
     <!--                               rules we don't want                                -->
@@ -319,19 +319,19 @@ This file is divided into 3 sections:
     </check>
 
     <!-- We want the opposite of this: NewLineAtEofChecker -->
-    <check level="error" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="false"></check>
+    <check level="error" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="false"/>
 
     <!-- This one complains about all kinds of random things. Disable. -->
-    <check level="error" class="org.scalastyle.scalariform.SimplifyBooleanExpressionChecker" enabled="false"></check>
+    <check level="error" class="org.scalastyle.scalariform.SimplifyBooleanExpressionChecker" enabled="false"/>
 
     <!-- We use return quite a bit for control flows and guards -->
-    <check level="error" class="org.scalastyle.scalariform.ReturnChecker" enabled="false"></check>
+    <check level="error" class="org.scalastyle.scalariform.ReturnChecker" enabled="false"/>
 
     <!-- We use null a lot in low level code and to interface with 3rd party code -->
-    <check level="error" class="org.scalastyle.scalariform.NullChecker" enabled="false"></check>
+    <check level="error" class="org.scalastyle.scalariform.NullChecker" enabled="false"/>
 
     <!-- Doesn't seem super big deal here ... -->
-    <check level="error" class="org.scalastyle.scalariform.NoCloneChecker" enabled="false"></check>
+    <check level="error" class="org.scalastyle.scalariform.NoCloneChecker" enabled="false"/>
 
     <!-- Doesn't seem super big deal here ... -->
     <check level="error" class="org.scalastyle.file.FileLengthChecker" enabled="false">

@@ -87,14 +87,14 @@ object FilterOperators {
         case (Some(filterA), Some(filterB)) => Some(operator(filterA, filterB))
         case _                              => filter orElse other
       }
-    def &&(otherFilter: Option[Filter]) = apply(FilterOperators.&&, otherFilter)
-    def ||(otherFilter: Option[Filter]) = apply(FilterOperators.||, otherFilter)
+    def &&(otherFilter: Option[Filter]): Option[Filter] = apply(FilterOperators.&&, otherFilter)
+    def ||(otherFilter: Option[Filter]): Option[Filter] = apply(FilterOperators.||, otherFilter)
   }
 
   implicit class FilterExtensions(filter: Filter) {
-    def &&(otherFilter: Filter) = FilterOperators.&&(filter, otherFilter)
-    def ||(otherFilter: Filter) = FilterOperators.||(filter, otherFilter)
-    def unary_!()               = NotFilter(field = filter)
+    def &&(otherFilter: Filter): AndFilter = FilterOperators.&&(filter, otherFilter)
+    def ||(otherFilter: Filter): OrFilter  = FilterOperators.||(filter, otherFilter)
+    def unary_!(): NotFilter               = NotFilter(field = filter)
   }
 }
 

@@ -28,7 +28,6 @@ import io.circe.generic.auto._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-//noinspection SqlNoDataSourceInspection
 class SQLQuerySpec extends AnyWordSpec with Matchers with ScalaFutures with CirceDecoders {
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(20, Seconds), interval = Span(5, Millis))

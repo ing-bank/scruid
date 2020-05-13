@@ -19,6 +19,7 @@ package ing.wbaa.druid.definitions
 
 import ing.wbaa.druid.GroupByQuery
 import ing.wbaa.druid.definitions.FilterOperators._
+import ing.wbaa.druid.util._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures
@@ -39,7 +40,7 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
   final case class GroupByAddedAndCountryName(added: Int, countryName: Option[String], count: Int)
 
   sealed trait TestContext {
-    def baseRequest(dimensions: Dimension*) = GroupByQuery(
+    protected def baseRequest(dimensions: Dimension*) = GroupByQuery(
       aggregations = List(CountAggregation(name = "count")),
       intervals = List("2015-09-12T21:00:00/2015-09-12T22:00:00"),
       granularity = GranularityType.Hour,
@@ -53,7 +54,13 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
       "be encoded properly" in {
         val fn1: ExtractionFn = RegexExtractionFn("(\\w\\w\\w).*")
         fn1.asJson.noSpaces shouldBe
-        """{"expr":"(\\w\\w\\w).*","index":1,"replaceMissingValue":false,"replaceMissingValueWith":null,"type":"regex"}"""
+        """{
+            |"expr":"(\\w\\w\\w).*",
+            |"index":1,
+            |"replaceMissingValue":false,
+            |"replaceMissingValueWith":null,
+            |"type":"regex"
+            |}""".toOneLine
 
         val fn2: ExtractionFn = RegexExtractionFn(".*", Some(2), Some(true), Some("foo"))
         fn2.asJson.noSpaces shouldBe
@@ -94,7 +101,8 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
         whenReady(request.execute()) { response =>
           val list = response.list[GroupByCountryName]
           list shouldBe List(
-            GroupByCountryName(None, 191), // null appears after function transformation, not before. Use Having to filter such nulls out.
+            // null appears after function transformation, not before. Use Having to filter such nulls out.
+            GroupByCountryName(None, 191),
             GroupByCountryName(Some("South Africa"), 1)
           )
         }
@@ -164,11 +172,18 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
                                                        Some(GranularityType.Hour),
                                                        Some(true))
         fn2.asJson.noSpaces shouldBe
-        """{"format":"HH","timeZone":"Europe/Berlin","locale":"en-GB","granularity":"hour","asMillis":true,"type":"timeFormat"}"""
+        """{
+            |"format":"HH",
+            |"timeZone":"Europe/Berlin",
+            |"locale":"en-GB",
+            |"granularity":"hour",
+            |"asMillis":true,
+            |"type":"timeFormat"
+            |}""".toOneLine
       }
 
       "return extracted time" in new TestContext {
-        def request(extFn: ExtractionFn) =
+        private def request(extFn: ExtractionFn) =
           baseRequest(
             ExtractionDimension(
               dimension = "__time",
@@ -184,7 +199,8 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
 
         val fn2 = TimeFormatExtractionFn(
           granularity = Some(GranularityType.ThirtyMinute),
-          // need to set zone to None, when asMillis = true. With default "utc" it will also require to provide time format, but we want just millis
+          // Need to set zone to None, when asMillis = true.
+          // With default "utc" it will also require to provide time format, but we want just millis.
           timeZone = None,
           asMillis = Some(true)
         )
@@ -232,7 +248,7 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
       }
 
       "return formatted timestamp" in new TestContext {
-        def request(extFn: ExtractionFn) =
+        private def request(extFn: ExtractionFn) =
           baseRequest(
             ExtractionDimension(
               dimension = "__time",
@@ -285,7 +301,10 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
           )
         )
         fn.asJson.noSpaces shouldBe
-        """{"extractionFns":[{"expr":"ia$","type":"partial"},{"index":0,"length":4,"type":"substring"}],"type":"cascade"}"""
+        """{
+            |"extractionFns":[{"expr":"ia$","type":"partial"},{"index":0,"length":4,"type":"substring"}],
+            |"type":"cascade"
+            |}""".toOneLine
       }
 
       "return item transformed by two functions" in new TestContext {
@@ -323,7 +342,7 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
       }
 
       "return items transformed with function" in new TestContext {
-        def request(nullHandling: NullHandling) =
+        private def request(nullHandling: NullHandling) =
           baseRequest(
             ExtractionDimension(
               dimension = "countryName",

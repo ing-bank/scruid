@@ -23,6 +23,7 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
 import ing.wbaa.druid.client.{ DruidHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions.{ CountAggregation, GranularityType }
+import ing.wbaa.druid.util._
 import org.scalatest.concurrent._
 
 import scala.concurrent.duration._
@@ -143,7 +144,16 @@ class DruidClientSpec extends AnyWordSpec with Matchers with ScalaFutures {
         case exception: HttpStatusException =>
           exception.status shouldBe StatusCodes.InternalServerError
           exception.entity.isFailure shouldBe false
-          exception.entity.get.data.utf8String shouldBe "{\"error\":\"Unknown exception\",\"errorMessage\":\"Cannot construct instance of `org.apache.druid.query.spec.LegacySegmentSpec`, problem: Format requires a '/' separator: invalid interval\\n at [Source: (org.eclipse.jetty.server.HttpInputOverHTTP); line: 1, column: 186] (through reference chain: org.apache.druid.query.timeseries.TimeseriesQuery[\\\"intervals\\\"])\",\"errorClass\":\"com.fasterxml.jackson.databind.exc.ValueInstantiationException\",\"host\":null}"
+          exception.entity.get.data.utf8String shouldBe
+          """{
+              |"error":"Unknown exception",
+              |"errorMessage":"Cannot construct instance of `org.apache.druid.query.spec.LegacySegmentSpec`,
+              | problem: Format requires a '/' separator: invalid interval\n
+              | at [Source: (org.eclipse.jetty.server.HttpInputOverHTTP); line: 1, column: 186]
+              | (through reference chain: org.apache.druid.query.timeseries.TimeseriesQuery[\"intervals\"])",
+              |"errorClass":"com.fasterxml.jackson.databind.exc.ValueInstantiationException",
+              |"host":null
+              |}""".toOneLine
         case response => fail(s"expected HttpStatusException, got $response")
       }
 
