@@ -181,102 +181,7 @@ This file is divided into 3 sections:
         </parameters>
     </check>
 
-    <!-- ??? usually shouldn't be checked into the code base. -->
     <check level="error" class="org.scalastyle.scalariform.NotImplementedErrorUsage" enabled="true"/>
-
-    <check customId="runtimeaddshutdownhook" level="error" class="org.scalastyle.file.RegexChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">Runtime\.getRuntime\.addShutdownHook</parameter>
-        </parameters>
-        <customMessage><![CDATA[
-      Are you sure that you want to use Runtime.getRuntime.addShutdownHook? In most cases, you should use
-      ShutdownHookManager.addShutdownHook instead.
-      If you must use Runtime.getRuntime.addShutdownHook, wrap the code block with
-      // scalastyle:off runtimeaddshutdownhook
-      Runtime.getRuntime.addShutdownHook(...)
-      // scalastyle:on runtimeaddshutdownhook
-    ]]></customMessage>
-    </check>
-
-    <check customId="mutablesynchronizedbuffer" level="error" class="org.scalastyle.file.RegexChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">mutable\.SynchronizedBuffer</parameter>
-        </parameters>
-        <customMessage><![CDATA[
-      Are you sure that you want to use mutable.SynchronizedBuffer? In most cases, you should use
-      java.util.concurrent.ConcurrentLinkedQueue instead.
-      If you must use mutable.SynchronizedBuffer, wrap the code block with
-      // scalastyle:off mutablesynchronizedbuffer
-      mutable.SynchronizedBuffer[...]
-      // scalastyle:on mutablesynchronizedbuffer
-    ]]></customMessage>
-    </check>
-
-    <check customId="classforname" level="error" class="org.scalastyle.file.RegexChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">Class\.forName</parameter>
-        </parameters>
-        <customMessage><![CDATA[
-      Are you sure that you want to use Class.forName? In most cases, you should use Utils.classForName instead.
-      If you must use Class.forName, wrap the code block with
-      // scalastyle:off classforname
-      Class.forName(...)
-      // scalastyle:on classforname
-    ]]></customMessage>
-    </check>
-
-    <check customId="awaitresult" level="error" class="org.scalastyle.file.RegexChecker" enabled="false">
-        <parameters>
-            <parameter name="regex">Await\.result</parameter>
-        </parameters>
-        <customMessage><![CDATA[
-      Are you sure that you want to use Await.result? In most cases, you should use ThreadUtils.awaitResult instead.
-      If you must use Await.result, wrap the code block with
-      // scalastyle:off awaitresult
-      Await.result(...)
-      // scalastyle:on awaitresult
-    ]]></customMessage>
-    </check>
-
-    <check customId="awaitready" level="error" class="org.scalastyle.file.RegexChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">Await\.ready</parameter>
-        </parameters>
-        <customMessage><![CDATA[
-      Are you sure that you want to use Await.ready? In most cases, you should use ThreadUtils.awaitReady instead.
-      If you must use Await.ready, wrap the code block with
-      // scalastyle:off awaitready
-      Await.ready(...)
-      // scalastyle:on awaitready
-    ]]></customMessage>
-    </check>
-
-    <check customId="javaconversions" level="error" class="org.scalastyle.scalariform.TokenChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">JavaConversions</parameter>
-        </parameters>
-        <customMessage>Instead of importing implicits in scala.collection.JavaConversions._, import
-            scala.collection.JavaConverters._ and use .asScala / .asJava methods
-        </customMessage>
-    </check>
-
-    <check customId="commonslang2" level="error" class="org.scalastyle.scalariform.TokenChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">org\.apache\.commons\.lang\.</parameter>
-        </parameters>
-        <customMessage>Use Commons Lang 3 classes (package org.apache.commons.lang3.*) instead
-            of Commons Lang 2 (package org.apache.commons.lang.*)
-        </customMessage>
-    </check>
-
-    <check customId="extractopt" level="error" class="org.scalastyle.scalariform.TokenChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">extractOpt</parameter>
-        </parameters>
-        <customMessage>Use Utils.jsonOption(x).map(.extract[T]) instead of .extractOpt[T], as the latter
-            is slower.
-        </customMessage>
-    </check>
 
     <check level="error" class="org.scalastyle.scalariform.ImportOrderChecker" enabled="true">
         <parameters>
@@ -316,12 +221,7 @@ This file is divided into 3 sections:
         <customMessage>Omit braces in case clauses.</customMessage>
     </check>
 
-    <check customId="OverrideJavaCase" level="error" class="org.scalastyle.scalariform.TokenChecker" enabled="true">
-        <parameters>
-            <parameter name="regex">^Override$</parameter>
-        </parameters>
-        <customMessage>override modifier should be used instead of @java.lang.Override.</customMessage>
-    </check>
+    <check level="error" class="org.scalastyle.scalariform.OverrideJavaChecker" enabled="true"/>
 
     <check level="error" class="org.scalastyle.scalariform.DeprecatedJavaChecker" enabled="true"/>
 

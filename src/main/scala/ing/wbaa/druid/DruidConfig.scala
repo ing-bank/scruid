@@ -112,7 +112,6 @@ object DruidConfig {
   implicit val DefaultConfig: DruidConfig = apply()
 
   // scalastyle:off parameter.number
-  // scalastyle:off classforname
   def apply(
       hosts: Seq[QueryHost] = extractHostsFromConfig,
       secure: Boolean = druidConfig.getBoolean("secure"),
@@ -138,7 +137,6 @@ object DruidConfig {
                     scanQueryLegacyMode,
                     zoneId,
                     system)
-  // scalastyle:on classforname
   // scalastyle:on parameter.number
 
   private def extractZoneIdFromConfig: ZoneId =
