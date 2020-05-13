@@ -34,12 +34,12 @@ class PostAggregationSpec extends Matchers with AnyWordSpecLike with ScalaFuture
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(10 seconds, 100 millis)
 
-  final case class Aggregated(count: Double,
-                              added: Double,
-                              deleted: Double,
-                              result: Double,
-                              countryName: String)
-  final case class ConstantlyAggregated(constant: Double, countryName: String)
+  private case class Aggregated(count: Double,
+                                added: Double,
+                                deleted: Double,
+                                result: Double,
+                                countryName: String)
+  private case class ConstantlyAggregated(constant: Double, countryName: String)
 
   sealed trait TestContext {
     def baseRequest(pas: PostAggregation*): GroupByQuery = GroupByQuery(
