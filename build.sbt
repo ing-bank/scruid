@@ -20,8 +20,8 @@ import sbt.CrossVersion
 val circeForScala211Version = "0.11.1" // Only for Scala v2.11
 val circeLatestVersion      = "0.13.0" // for Scala v2.12+
 val mdedetrichVersion       = "0.5.0"
-val scalacticVersion        = "3.1.1"
-val scalatestVersion        = "3.1.1"
+val scalacticVersion        = "3.1.2"
+val scalatestVersion        = "3.1.2"
 val typesafeConfigVersion   = "1.3.3"
 val typesafeLoggingVersion  = "3.9.2"
 val akkaHttpVersion         = "10.1.12"
