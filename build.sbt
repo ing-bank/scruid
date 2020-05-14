@@ -102,7 +102,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "2.4.0-SNAPSHOT",
+    version := "2.4.0",
     libraryDependencies ++= Seq(
       "com.typesafe"               % "config"                   % typesafeConfigVersion,
       "com.typesafe.scala-logging" %% "scala-logging"           % typesafeLoggingVersion,
