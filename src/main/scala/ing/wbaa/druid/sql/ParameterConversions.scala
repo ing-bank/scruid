@@ -20,8 +20,9 @@ package ing.wbaa.druid.sql
 import java.sql.Timestamp
 import java.time.{ Instant, LocalDate, LocalDateTime }
 
-import ing.wbaa.druid.{ DruidConfig, SQLQueryParameter, SQLQueryParameterType }
 import scala.language.implicitConversions
+
+import ing.wbaa.druid.{ DruidConfig, SQLQueryParameter, SQLQueryParameterType }
 
 trait ParameterConversions {
   implicit def char2Param(v: Char): SQLQueryParameter =

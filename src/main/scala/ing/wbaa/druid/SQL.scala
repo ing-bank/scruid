@@ -17,8 +17,7 @@
 
 package ing.wbaa.druid
 
-import ing.wbaa.druid.sql.ParameterConversions
-import ing.wbaa.druid.sql.SQLQueryFactory
+import ing.wbaa.druid.sql.{ ParameterConversions, SQLQueryFactory }
 
 object SQL extends SQLQueryFactory with ParameterConversions {
 
