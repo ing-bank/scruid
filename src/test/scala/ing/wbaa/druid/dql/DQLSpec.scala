@@ -17,17 +17,18 @@
 
 package ing.wbaa.druid.dql
 
-import akka.stream.scaladsl.Sink
-import ing.wbaa.druid.client.DruidHttpClient
-import ing.wbaa.druid._
-import ing.wbaa.druid.definitions._
-import org.scalatest.concurrent._
-import ing.wbaa.druid.dql.DSL._
-import io.circe.generic.auto._
-import io.circe.syntax._
-
 import scala.concurrent.duration._
 import scala.language.postfixOps
+
+import akka.stream.scaladsl.Sink
+import ing.wbaa.druid._
+import ing.wbaa.druid.client.DruidHttpClient
+import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.dql.DSL._
+import ing.wbaa.druid.util._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.scalatest.concurrent._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -42,7 +43,15 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
   private val totalNumberOfEntries = 39244
 
   private val expectedRequestAsJson =
-    """{"aggregations":[{"name":"count","type":"count"}],"intervals":["2011-06-01/2017-06-01"],"filter":null,"granularity":"hour","descending":"true","postAggregations":[],"context":{"queryId":"some_custom_id","priority":"100","useCache":"false","skipEmptyBuckets":"true"}}"""
+    """{
+      |"aggregations":[{"name":"count","type":"count"}],
+      |"intervals":["2011-06-01/2017-06-01"],
+      |"filter":null,
+      |"granularity":"hour",
+      |"descending":"true",
+      |"postAggregations":[],
+      |"context":{"queryId":"some_custom_id","priority":"100","useCache":"false","skipEmptyBuckets":"true"}
+      |}""".toOneLine
 
   case class TimeseriesCount(count: Int)
   case class GroupByIsAnonymous(isAnonymous: String, count: Int)
@@ -324,7 +333,7 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
       val query: TopNQuery = DQL
         .topN(d"isAnonymous", metric = "count", threshold = 5)
         .agg(count)
-        .postAgg(javascript("halfCount", Seq(d"count"), "function(count){ return count/2; }"))
+        .postAgg(javascript("halfCount", Seq(d"count"), "function(count) { return count/2; }"))
         .interval("2011-06-01/2017-06-01")
         .build()
 
@@ -407,10 +416,10 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
           javascript(
             name = "value",
             fields = Seq(d"cityName", d"countryIsoCode"),
-            fnAggregate =
-              """
+            fnAggregate = """
                 |function(current, countryIsoCode, cityName) {
-                |  return ((countryIsoCode != null && cityName != null) ? cityName.length + countryIsoCode.length + current : current);
+                |  return ((countryIsoCode != null && cityName != null) ?
+                |    cityName.length + countryIsoCode.length + current : current);
                 |}
                 |""".stripMargin,
             fnCombine = "function(partialA, partialB) { return partialA + partialB; }",

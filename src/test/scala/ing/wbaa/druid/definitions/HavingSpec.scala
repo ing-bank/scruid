@@ -17,13 +17,14 @@
 
 package ing.wbaa.druid.definitions
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import ing.wbaa.druid.GroupByQuery
+import ing.wbaa.druid.util._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures
-
-import scala.concurrent.duration._
-import scala.language.postfixOps
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -165,7 +166,13 @@ class HavingSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
           )
         )
         having.asJson.noSpaces shouldBe
-        """{"havingSpecs":[{"aggregation":"aggr","value":123.0,"type":"greaterThan"},{"dimension":"dim","value":"value","type":"dimSelector"}],"type":"and"}"""
+        """{
+            |"havingSpecs":[
+            |{"aggregation":"aggr","value":123.0,"type":"greaterThan"},
+            |{"dimension":"dim","value":"value","type":"dimSelector"}
+            |],
+            |"type":"and"
+            |}""".toOneLine
       }
 
       "should return items after applying AND having" in new TestContext {
@@ -199,7 +206,13 @@ class HavingSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
           )
         )
         having.asJson.noSpaces shouldBe
-        """{"havingSpecs":[{"aggregation":"aggr","value":123.0,"type":"greaterThan"},{"dimension":"dim","value":"value","type":"dimSelector"}],"type":"or"}"""
+        """{
+            |"havingSpecs":[
+            |{"aggregation":"aggr","value":123.0,"type":"greaterThan"},
+            |{"dimension":"dim","value":"value","type":"dimSelector"}
+            |],
+            |"type":"or"
+            |}""".toOneLine
       }
 
       "should return items after applying OR having" in new TestContext {

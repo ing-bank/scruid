@@ -17,16 +17,17 @@
 
 package ing.wbaa.druid.definitions
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import ing.wbaa.druid.GroupByQuery
 import ing.wbaa.druid.definitions.ArithmeticFunction.{ DIV, MINUS, MULT, PLUS, QUOT }
 import ing.wbaa.druid.definitions.ArithmeticFunctions._
 import ing.wbaa.druid.definitions.FilterOperators._
+import ing.wbaa.druid.util._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures
-
-import scala.concurrent.duration._
-import scala.language.postfixOps
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -93,7 +94,16 @@ class PostAggregationSpec extends Matchers with AnyWordSpecLike with ScalaFuture
         )
 
         pa.asJson.noSpaces shouldBe
-        """{"name":"total","fn":"+","fields":[{"fieldName":"a","name":null,"type":"fieldAccess"},{"fieldName":"b","name":null,"type":"fieldAccess"}],"ordering":null,"type":"arithmetic"}"""
+        """{
+            |"name":"total",
+            |"fn":"+",
+            |"fields":[
+            |{"fieldName":"a","name":null,"type":"fieldAccess"},
+            |{"fieldName":"b","name":null,"type":"fieldAccess"}
+            |],
+            |"ordering":null,
+            |"type":"arithmetic"
+            |}""".toOneLine
       }
 
       "return items transformed with arithmetic post-aggregation" in new TestContext {
@@ -163,7 +173,12 @@ class PostAggregationSpec extends Matchers with AnyWordSpecLike with ScalaFuture
           DoubleGreatestPostAggregation("greatest",
                                         Seq(ConstantPostAggregation(10.1),
                                             ConstantPostAggregation(10.2)))
-        pa.asJson.noSpaces shouldBe """{"name":"greatest","fields":[{"value":10.1,"name":null,"type":"constant"},{"value":10.2,"name":null,"type":"constant"}],"type":"doubleGreatest"}"""
+        pa.asJson.noSpaces shouldBe
+        """{
+            |"name":"greatest",
+            |"fields":[{"value":10.1,"name":null,"type":"constant"},{"value":10.2,"name":null,"type":"constant"}],
+            |"type":"doubleGreatest"
+            |}""".toOneLine
       }
 
       "return items transformed with doubleGreatest post-aggregation" in new TestContext {
@@ -190,7 +205,12 @@ class PostAggregationSpec extends Matchers with AnyWordSpecLike with ScalaFuture
         val pa: PostAggregation =
           LongGreatestPostAggregation("greatest",
                                       Seq(ConstantPostAggregation(10), ConstantPostAggregation(12)))
-        pa.asJson.noSpaces shouldBe """{"name":"greatest","fields":[{"value":10.0,"name":null,"type":"constant"},{"value":12.0,"name":null,"type":"constant"}],"type":"longGreatest"}"""
+        pa.asJson.noSpaces shouldBe
+        """{
+            |"name":"greatest",
+            |"fields":[{"value":10.0,"name":null,"type":"constant"},{"value":12.0,"name":null,"type":"constant"}],
+            |"type":"longGreatest"
+            |}""".toOneLine
       }
 
       "return items transformed with longGreatest post-aggregation with long values" in new TestContext {
@@ -235,7 +255,12 @@ class PostAggregationSpec extends Matchers with AnyWordSpecLike with ScalaFuture
           DoubleLeastPostAggregation("least",
                                      Seq(ConstantPostAggregation(10.1),
                                          ConstantPostAggregation(10.2)))
-        pa.asJson.noSpaces shouldBe """{"name":"least","fields":[{"value":10.1,"name":null,"type":"constant"},{"value":10.2,"name":null,"type":"constant"}],"type":"doubleLeast"}"""
+        pa.asJson.noSpaces shouldBe
+        """{
+            |"name":"least",
+            |"fields":[{"value":10.1,"name":null,"type":"constant"},{"value":10.2,"name":null,"type":"constant"}],
+            |"type":"doubleLeast"
+            |}""".toOneLine
       }
 
       "return items transformed with doubleLeast post-aggregation" in new TestContext {
@@ -262,7 +287,12 @@ class PostAggregationSpec extends Matchers with AnyWordSpecLike with ScalaFuture
         val pa: PostAggregation =
           LongLeastPostAggregation("least",
                                    Seq(ConstantPostAggregation(10), ConstantPostAggregation(12)))
-        pa.asJson.noSpaces shouldBe """{"name":"least","fields":[{"value":10.0,"name":null,"type":"constant"},{"value":12.0,"name":null,"type":"constant"}],"type":"longLeast"}"""
+        pa.asJson.noSpaces shouldBe
+        """{
+            |"name":"least",
+            |"fields":[{"value":10.0,"name":null,"type":"constant"},{"value":12.0,"name":null,"type":"constant"}],
+            |"type":"longLeast"
+            |}""".toOneLine
       }
 
       "return items transformed with longLeast post-aggregation with long values" in new TestContext {
@@ -313,7 +343,12 @@ class PostAggregationSpec extends Matchers with AnyWordSpecLike with ScalaFuture
           "function(a, b) { return a + b; }"
         )
         pa.asJson.noSpaces shouldBe
-        """{"name":"least","fieldNames":["str1","str2"],"function":"function(a, b) { return a + b; }","type":"javascript"}"""
+        """{
+            |"name":"least",
+            |"fieldNames":["str1","str2"],
+            |"function":"function(a, b) { return a + b; }",
+            |"type":"javascript"
+            |}""".toOneLine
       }
     }
   }

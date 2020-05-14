@@ -14,19 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package ing.wbaa.druid
 
-import ing.wbaa.druid.sql.{ ParameterConversions, SQLQueryFactory }
-
-object SQL extends SQLQueryFactory with ParameterConversions {
-
-  implicit class StringToSQL(val sc: StringContext) extends AnyVal {
-
-    def dsql(parameters: SQLQueryParameter*)(
-        implicit context: Map[String, String] = Map.empty,
-        config: DruidConfig = DruidConfig.DefaultConfig
-    ): SQLQuery = createSQLQuery(sc, parameters, context, config)
-
+package object util {
+  implicit class MultiLineString(s: String) {
+    def toOneLine: String = s.stripMargin.replaceAll("\n", "")
   }
 }

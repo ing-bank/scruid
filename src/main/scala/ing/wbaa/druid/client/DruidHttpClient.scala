@@ -17,17 +17,17 @@
 
 package ing.wbaa.druid.client
 
+import scala.concurrent.{ ExecutionContextExecutor, Future }
+
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ContentTypes._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import ing.wbaa.druid._
-
-import scala.concurrent.{ ExecutionContextExecutor, Future }
 
 class DruidHttpClient private (connectionFlow: DruidHttpClient.ConnectionFlowType,
                                queryHost: QueryHost)(implicit system: ActorSystem)

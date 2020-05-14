@@ -19,14 +19,14 @@ package ing.wbaa.druid
 
 import java.time._
 
+import scala.collection.immutable.ListMap
+
+// DO NOT REMOVE: required for scala 2.11
+import cats.syntax.either._
 import ing.wbaa.druid.client.CirceDecoders
 import io.circe._
-
-import scala.collection.immutable.ListMap
 import io.circe.Decoder.Result
 import io.circe.generic.semiauto.deriveDecoder
-
-import cats.syntax.either._ // DO NOT REMOVE: required for scala 2.11
 
 sealed trait DruidResponse extends CirceDecoders {
 

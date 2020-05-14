@@ -1,5 +1,3 @@
-import sbt.CrossVersion
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -17,8 +15,10 @@ import sbt.CrossVersion
  * limitations under the License.
  */
 
-val circeForScala211Version = "0.11.1" // Only for Scala v2.11
-val circeLatestVersion      = "0.13.0" // for Scala v2.12+
+import sbt.CrossVersion
+
+val circeVersionForScala211 = "0.11.1" // Only for Scala v2.11
+val circeVersionLatest      = "0.13.0" // for Scala v2.12+
 val mdedetrichVersion       = "0.5.0"
 val scalacticVersion        = "3.1.2"
 val scalatestVersion        = "3.1.2"
@@ -32,8 +32,8 @@ val collectionCompatVersion = "2.1.6"
 def scalaVersionSpecificDependencies(scalaVer: String): Seq[ModuleID] = {
 
   val circeScalaSpecificVersion =
-    if (scalaVer.startsWith("2.11")) circeForScala211Version
-    else circeLatestVersion
+    if (scalaVer.startsWith("2.11")) circeVersionForScala211
+    else circeVersionLatest
 
   val circeCommonArtifacts = Seq(
     "io.circe" %% "circe-core"    % circeScalaSpecificVersion,
@@ -122,3 +122,11 @@ lazy val root = (project in file("."))
     libraryDependencies ++= scalaVersionSpecificDependencies(scalaVersion.value)
       .map(_ exclude ("org.scala-lang", "scala-library"))
   )
+
+lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
+compileScalastyle := (scalastyle in Compile toTask ("")).value
+(compile in Compile) := (compile in Compile dependsOn compileScalastyle).value
+
+lazy val testScalastyle = taskKey[Unit]("testScalastyle")
+testScalastyle := (scalastyle in Test toTask ("")).value
+(compile in Test) := (compile in Test dependsOn testScalastyle).value

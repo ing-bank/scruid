@@ -17,10 +17,10 @@
 
 package ing.wbaa.druid.dql
 
+import scala.language.implicitConversions
+
 import ing.wbaa.druid.definitions.ArithmeticFunction
 import ing.wbaa.druid.dql.expressions._
-
-import scala.language.implicitConversions
 
 object DSL
     extends FilteringExpressionOps

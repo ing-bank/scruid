@@ -17,25 +17,24 @@
 
 package ing.wbaa.druid.client
 
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
+import scala.concurrent.duration._
+import scala.reflect.runtime.universe
+import scala.util.{ Failure, Success, Try }
+
 import akka.NotUsed
 import akka.actor.{ ActorSystem, Scheduler }
-import akka.event.LoggingAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
+import akka.pattern.retry
 import akka.stream._
 import akka.stream.scaladsl._
 import com.typesafe.config.{ Config, ConfigException, ConfigFactory, ConfigValueFactory }
 import ing.wbaa.druid.{ BaseResult, DruidConfig, DruidQuery, DruidResponse, QueryHost, QueryType }
-import akka.pattern.retry
 import ing.wbaa.druid.client.DruidAdvancedHttpClient.ConnectionFlow
-
-import scala.reflect.runtime.universe
-import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future, Promise }
-import scala.util.{ Failure, Success, Try }
 
 class DruidAdvancedHttpClient private (
     connectionFlow: DruidAdvancedHttpClient.ConnectionFlow,
@@ -236,6 +235,7 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
     final val RequestInterceptorConfig   = "request-interceptor-config"
   }
 
+  // scalastyle:off var.field
   class ConfigBuilder {
 
     private var queueSize: Option[Int]                                = None
@@ -308,6 +308,8 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
         .withFallback(DruidConfig.DefaultConfig.clientConfig)
     }
   }
+  // scalastyle:on var.field
+
   object ConfigBuilder {
     def apply(): ConfigBuilder = new ConfigBuilder()
   }
@@ -467,28 +469,11 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
 
     val settings: ConnectionPoolSettings = ConnectionPoolSettings(connectionPoolConfig)
     val parallelism                      = settings.pipeliningLimit * settings.maxConnections
-    val log: LoggingAdapter              = system.log
 
     brokers.map { queryHost =>
       val flow = Flow[ConnectionIn]
         .log("scruid-load-balancer", _ => s"Sending query to ${queryHost.host}:${queryHost.port}")
-        .via {
-          if (secureConnection) {
-            Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](
-              host = queryHost.host,
-              port = queryHost.port,
-              settings = settings,
-              log = log
-            )
-          } else {
-            Http().cachedHostConnectionPool[Promise[HttpResponse]](
-              host = queryHost.host,
-              port = queryHost.port,
-              settings = settings,
-              log = log
-            )
-          }
-        }
+        .via(createConnectionFlow(queryHost, secureConnection, settings))
         .mapAsyncUnordered(parallelism) {
           // consider any response with HTTP Code different from StatusCodes.OK as a failure
           case (triedResponse, responsePromise) =>
@@ -521,4 +506,34 @@ object DruidAdvancedHttpClient extends DruidClientBuilder {
       queryHost -> flow.async
     }.toMap
   }
+
+  /**
+    * Creates cached connection flow for the specified Druid Broker
+    *
+    * @param broker the Druid Broker to perform queries
+    * @param secureConnection specify if the connection is secure or not (i.e., HTTPS or HTTP)
+    * @param settings the Akka settings for the connection pool
+    * @param system the actor system to use
+    * @return a flow which dispatches incoming requests to the pool of outgoing connections to the given Druid broker
+    */
+  private def createConnectionFlow(
+      broker: QueryHost,
+      secureConnection: Boolean,
+      settings: ConnectionPoolSettings
+  )(implicit system: ActorSystem): Flow[ConnectionIn, ConnectionOut, Http.HostConnectionPool] =
+    if (secureConnection) {
+      Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](
+        host = broker.host,
+        port = broker.port,
+        settings = settings,
+        log = system.log
+      )
+    } else {
+      Http().cachedHostConnectionPool[Promise[HttpResponse]](
+        host = broker.host,
+        port = broker.port,
+        settings = settings,
+        log = system.log
+      )
+    }
 }

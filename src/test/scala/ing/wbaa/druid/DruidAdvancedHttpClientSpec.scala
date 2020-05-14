@@ -19,17 +19,18 @@ package ing.wbaa.druid
 
 import java.util.concurrent.TimeoutException
 
-import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
-import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
-import ing.wbaa.druid.definitions._
-import org.scalatest._
-import org.scalatest.concurrent._
-
-import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContextExecutor, Future }
+import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Random
+
+import akka.http.scaladsl.model.{ HttpProtocols, StatusCodes }
+import akka.http.scaladsl.model.headers.RawHeader
+import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
+import ing.wbaa.druid.definitions._
+import ing.wbaa.druid.util._
+import org.scalatest._
+import org.scalatest.concurrent._
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -252,7 +253,16 @@ class DruidAdvancedHttpClientSpec
         case exception: HttpStatusException =>
           exception.status shouldBe StatusCodes.InternalServerError
           exception.entity.isFailure shouldBe false
-          exception.entity.get.data.utf8String shouldBe "{\"error\":\"Unknown exception\",\"errorMessage\":\"Cannot construct instance of `org.apache.druid.query.spec.LegacySegmentSpec`, problem: Format requires a '/' separator: invalid interval\\n at [Source: (org.eclipse.jetty.server.HttpInputOverHTTP); line: 1, column: 186] (through reference chain: org.apache.druid.query.timeseries.TimeseriesQuery[\\\"intervals\\\"])\",\"errorClass\":\"com.fasterxml.jackson.databind.exc.ValueInstantiationException\",\"host\":null}"
+          exception.entity.get.data.utf8String shouldBe
+          """{
+              |"error":"Unknown exception",
+              |"errorMessage":"Cannot construct instance of `org.apache.druid.query.spec.LegacySegmentSpec`,
+              | problem: Format requires a '/' separator: invalid interval\n
+              | at [Source: (org.eclipse.jetty.server.HttpInputOverHTTP); line: 1, column: 186]
+              | (through reference chain: org.apache.druid.query.timeseries.TimeseriesQuery[\"intervals\"])",
+              |"errorClass":"com.fasterxml.jackson.databind.exc.ValueInstantiationException",
+              |"host":null
+              |}""".toOneLine
         case response => fail(s"expected HttpStatusException, got $response")
       }
 

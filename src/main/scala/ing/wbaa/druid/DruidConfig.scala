@@ -21,14 +21,14 @@ import java.net.URI
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-import akka.actor.ActorSystem
-import com.typesafe.config.{ Config, ConfigException, ConfigFactory }
-import ing.wbaa.druid.client.{ DruidClient, DruidClientBuilder }
-
 import scala.annotation.switch
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 import scala.reflect.runtime.universe
+
+import akka.actor.ActorSystem
+import com.typesafe.config.{ Config, ConfigException, ConfigFactory }
+import ing.wbaa.druid.client.{ DruidClient, DruidClientBuilder }
 
 /*
  * Druid API Config Immutable
@@ -74,10 +74,11 @@ class DruidConfig(val hosts: Seq[QueryHost],
     val obj               = runtimeMirror.reflectModule(module)
     val clientConstructor = obj.instance.asInstanceOf[DruidClientBuilder]
 
-    if (hosts.size > 1 && !clientConstructor.supportsMultipleBrokers)
+    if (hosts.size > 1 && !clientConstructor.supportsMultipleBrokers) {
       throw new IllegalStateException(
         s"The specified Druid client '${clientBackend.getName}' does not support multiple query nodes"
       )
+    }
 
     clientConstructor(this)
   }
@@ -110,6 +111,7 @@ object DruidConfig {
 
   implicit val DefaultConfig: DruidConfig = apply()
 
+  // scalastyle:off parameter.number
   def apply(
       hosts: Seq[QueryHost] = extractHostsFromConfig,
       secure: Boolean = druidConfig.getBoolean("secure"),
@@ -135,6 +137,7 @@ object DruidConfig {
                     scanQueryLegacyMode,
                     zoneId,
                     system)
+  // scalastyle:on parameter.number
 
   private def extractZoneIdFromConfig: ZoneId =
     try ZoneId.of(druidConfig.getString("zone-id"))
@@ -149,16 +152,19 @@ object DruidConfig {
     *
     * @return a sequence of query node hosts
     */
+  // scalastyle:off line.size.limit
   private def extractHostsFromConfig: Seq[QueryHost] = {
     val hosts = druidConfig.getString("hosts").trim
 
-    if (hosts.isEmpty)
+    if (hosts.isEmpty) {
       throw new ConfigException.Generic("Empty configuration parameter 'hosts'")
+    }
 
     val hostWithPortsValues = hosts.split(',').map(_.trim).toIndexedSeq
 
-    if (hostWithPortsValues.exists(_.isEmpty))
+    if (hostWithPortsValues.exists(_.isEmpty)) {
       throw new ConfigException.Generic("Empty host:port value in configuration parameter 'hosts'")
+    }
 
     hostWithPortsValues.map { hostPortStr =>
       val countSchemeSeparators = URISchemeSepPattern.findAllIn(hostPortStr).size
@@ -191,5 +197,6 @@ object DruidConfig {
       QueryHost(host, port)
     }
   }
+  // scalastyle:on line.size.limit
 
 }

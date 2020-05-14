@@ -195,7 +195,9 @@ object ArithmeticFunctions {
   implicit class ArithmeticFunctionsOps(pa: PostAggregation) {
     def -(other: PostAggregation): ArithmeticPostAggregation = ArithmeticFunctions.-(pa, other)
 
+    // scalastyle:off spaces.before.plus
     def +(other: PostAggregation): ArithmeticPostAggregation = ArithmeticFunctions.+(pa, other)
+    // scalastyle:on spaces.before.plus
 
     def *(other: PostAggregation): ArithmeticPostAggregation = ArithmeticFunctions.*(pa, other)
 

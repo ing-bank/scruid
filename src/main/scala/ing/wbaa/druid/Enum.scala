@@ -17,9 +17,10 @@
 
 package ing.wbaa.druid
 
+// DO NOT REMOVE: required for scala 2.11
+import cats.syntax.either._
 import io.circe._
 import io.circe.syntax._
-import cats.syntax.either._ // DO NOT REMOVE: required for scala 2.11
 
 trait Enum {
   override lazy val toString: String = this.getClass.getSimpleName.split("\\$")(0)
@@ -58,24 +59,24 @@ trait EnumStringEncoder { this: Enum =>
 }
 
 trait UpperCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
-  def encode() = toString.toUpperCase
+  def encode(): String = toString.toUpperCase
 }
 
 trait LowerCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
-  def encode() = toString.toLowerCase
+  def encode(): String = toString.toLowerCase
 }
 
 trait CamelCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
   private def decapitalize(input: String) = s"${input.head.toLower}${input.tail}"
-  def encode()                            = decapitalize(toString)
+  def encode(): String                    = decapitalize(toString)
 }
 
 trait LispCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
-  def encode() = DelimiterSeparatedEnumEncoder("-").encode(toString)
+  def encode(): String = DelimiterSeparatedEnumEncoder("-").encode(toString)
 }
 
 trait SnakeCaseEnumStringEncoder extends EnumStringEncoder { this: Enum =>
-  def encode() = DelimiterSeparatedEnumEncoder("_").encode(toString)
+  def encode(): String = DelimiterSeparatedEnumEncoder("_").encode(toString)
 }
 
 case class DelimiterSeparatedEnumEncoder(delimiter: String) {
@@ -83,6 +84,6 @@ case class DelimiterSeparatedEnumEncoder(delimiter: String) {
   private val PASS1       = """([A-Z]+)([A-Z][a-z])""".r
   private val PASS2       = """([a-z\d])([A-Z])""".r
   private val REPLACEMENT = "$1" + delimiter + "$2"
-  def encode(input: String) =
+  def encode(input: String): String =
     PASS2.replaceAllIn(PASS1.replaceAllIn(input, REPLACEMENT), REPLACEMENT).toLowerCase(Locale.US)
 }

@@ -17,17 +17,17 @@
 
 package ing.wbaa.druid
 
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import akka.stream.scaladsl.Sink
 import ing.wbaa.druid.client.DruidHttpClient
+import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.definitions.ArithmeticFunctions._
 import ing.wbaa.druid.definitions.FilterOperators._
-import ing.wbaa.druid.definitions._
 import io.circe.generic.auto._
 import org.scalatest.concurrent._
-
-import scala.concurrent.duration._
-import scala.concurrent.Future
-import scala.language.postfixOps
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

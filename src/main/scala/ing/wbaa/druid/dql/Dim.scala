@@ -1,6 +1,6 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreement  See the NOTICE file distributed with
+ * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
@@ -17,10 +17,10 @@
 
 package ing.wbaa.druid.dql
 
+import ing.wbaa.druid.{ DimensionOrder, DimensionOrderType, Direction, OrderByColumnSpec }
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.Dim.DimType
 import ing.wbaa.druid.dql.expressions._
-import ing.wbaa.druid.{ DimensionOrder, DimensionOrderType, Direction, OrderByColumnSpec }
 
 /**
   * This class represents a single dimension in a Druid datasource, along with all operations that can be
@@ -31,6 +31,7 @@ import ing.wbaa.druid.{ DimensionOrder, DimensionOrderType, Direction, OrderByCo
   * @param outputTypeOpt The resulting output type
   * @param extractionFnOpt An extraction function to apply in this dimension
   */
+// scalastyle:off number.of.methods
 case class Dim private[dql] (name: String,
                              outputNameOpt: Option[String] = None,
                              outputTypeOpt: Option[String] = None,
@@ -158,13 +159,13 @@ case class Dim private[dql] (name: String,
   def in(value: String, values: String*): FilteringExpression =
     new In(this, value +: values)
 
-  def in(values: Iterable[String]) =
+  def in(values: Iterable[String]): In =
     new In(this, values)
 
   def in[T: Numeric](value: T, values: T*): FilteringExpression =
     new InNumeric(this, value +: values)
 
-  def in[T: Numeric](values: Iterable[T]) =
+  def in[T: Numeric](values: Iterable[T]): InNumeric[T] =
     new InNumeric(this, values)
 
   /**
@@ -308,7 +309,18 @@ case class Dim private[dql] (name: String,
     * @return a bound filtering expression, with lexicographic ordering, specifying that the value of
     *         the dimension should be less than, or equal to the given number.
     */
-  def =<(value: String): Bound =
+  // scalastyle:off method.name
+  @deprecated(s"use <=", "2.4.0")
+  def =<(value: String): Bound = <=(value)
+  // scalastyle:on method.name
+
+  /**
+    * Filter based on a strict upper bound of dimension values, using lexicographic ordering.
+    *
+    * @return a bound filtering expression, with lexicographic ordering, specifying that the value of
+    *         the dimension should be less than, or equal to the given number.
+    */
+  def <=(value: String): Bound =
     Bound(dimension = name,
           lower = None,
           upper = Option(value),
@@ -674,6 +686,7 @@ case class Dim private[dql] (name: String,
   def hyperUniqueCardinality: HyperUniqueCardinalityPostAgg =
     HyperUniqueCardinalityPostAgg(this.name)
 }
+// scalastyle:on number.of.methods
 
 object Dim {
 

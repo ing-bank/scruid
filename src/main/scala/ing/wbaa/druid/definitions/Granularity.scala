@@ -18,8 +18,8 @@
 package ing.wbaa.druid
 package definitions
 
-import io.circe._
 import ca.mrvisser.sealerate
+import io.circe._
 
 sealed trait Granularity extends Enum with SnakeCaseEnumStringEncoder
 
@@ -28,7 +28,8 @@ object Granularity {
   implicit val granularityDecoder: Decoder[Granularity] = GranularityType.decoder
 }
 
-// We can't use the CompanionObject for the Enum instances due to an issue in circe (knownDirectSubclasses, https://github.com/circe/circe/issues/639)
+// We can't use the CompanionObject for the Enum instances due to an issue in circe
+// (knownDirectSubclasses, https://github.com/circe/circe/issues/639)
 // Read more here: https://github.com/circe/circe/blob/master/docs/src/main/tut/codec.md
 object GranularityType extends EnumCodec[Granularity] {
   case object All           extends Granularity

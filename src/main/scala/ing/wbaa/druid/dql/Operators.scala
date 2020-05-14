@@ -17,11 +17,12 @@
 
 package ing.wbaa.druid.dql
 
+import scala.reflect.ClassTag
+
 import ing.wbaa.druid.definitions.{ ExtractionFn, Filter }
 import ing.wbaa.druid.dql.expressions._
 
-import scala.reflect.ClassTag
-
+// scalastyle:off number.of.methods
 trait AggregationOps {
 
   def longSum(dimName: String): LongSumAgg = new LongSumAgg(dimName)
@@ -154,8 +155,8 @@ trait AggregationOps {
                  fnCombine: String,
                  fnReset: String): JavascriptAgg =
     JavascriptAgg(fields.toSeq, fnAggregate, fnCombine, fnReset, Option(name))
-
 }
+// scalastyle:on number.of.methods
 
 trait FilteringExpressionOps {
 
