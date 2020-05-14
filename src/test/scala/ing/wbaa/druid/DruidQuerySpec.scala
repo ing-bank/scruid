@@ -23,7 +23,6 @@ import ing.wbaa.druid.definitions.ArithmeticFunctions._
 import ing.wbaa.druid.definitions.FilterOperators._
 import ing.wbaa.druid.definitions._
 import io.circe.generic.auto._
-import org.scalatest._
 import org.scalatest.concurrent._
 
 import scala.concurrent.duration._

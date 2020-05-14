@@ -15,12 +15,6 @@
  * limitations under the License.
  */
 
-resolvers += Resolver.jcenterRepo
-
-resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
-
-resolvers += "Sbt plugins" at "https://dl.bintray.com/sbt/sbt-plugin-releases"
-
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "3.0.3")

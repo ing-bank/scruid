@@ -20,8 +20,8 @@ import sbt.CrossVersion
 val circeForScala211Version = "0.11.1" // Only for Scala v2.11
 val circeLatestVersion      = "0.13.0" // for Scala v2.12+
 val mdedetrichVersion       = "0.5.0"
-val scalacticVersion        = "3.1.1"
-val scalatestVersion        = "3.1.1"
+val scalacticVersion        = "3.1.2"
+val scalatestVersion        = "3.1.2"
 val typesafeConfigVersion   = "1.3.3"
 val typesafeLoggingVersion  = "3.9.2"
 val akkaHttpVersion         = "10.1.12"
@@ -102,8 +102,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "2.3.1-SNAPSHOT",
-    resolvers += Resolver.sonatypeRepo("releases"),
+    version := "2.4.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       "com.typesafe"               % "config"                   % typesafeConfigVersion,
       "com.typesafe.scala-logging" %% "scala-logging"           % typesafeLoggingVersion,

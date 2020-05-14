@@ -20,7 +20,6 @@ package ing.wbaa.druid
 import ing.wbaa.druid.definitions._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.scalatest._
 import org.scalatest.concurrent._
 import org.scalatest.time._
 import org.scalatest.matchers.should.Matchers

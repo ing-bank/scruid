@@ -34,9 +34,9 @@ class ExtractionFnSpec extends Matchers with AnyWordSpecLike with ScalaFutures {
 
   // countyName is optional, because some extractions functions work with nulls and
   // not every fetched item has countryName.
-  final case class GroupByCountryName(countryName: Option[String], count: Int)
-  final case class GroupByTime(time: String, count: Int)
-  final case class GroupByAddedAndCountryName(added: Int, countryName: Option[String], count: Int)
+  private case class GroupByCountryName(countryName: Option[String], count: Int)
+  private case class GroupByTime(time: String, count: Int)
+  private case class GroupByAddedAndCountryName(added: Int, countryName: Option[String], count: Int)
 
   sealed trait TestContext {
     def baseRequest(dimensions: Dimension*) = GroupByQuery(

@@ -129,16 +129,17 @@ trait AggregationOps {
 
   def count: CountAgg = new CountAgg()
 
-  def javascript(fields: Iterable[Dim], fnAggregate: String, fnCombine: String, fnReset: String)(
-      implicit classTag: ClassTag[Dim]
-  ): JavascriptAgg =
+  def javascript[_ <: Dim: ClassTag](fields: Iterable[Dim],
+                                     fnAggregate: String,
+                                     fnCombine: String,
+                                     fnReset: String): JavascriptAgg =
     JavascriptAgg(fields.map(_.name).toSeq, fnAggregate, fnCombine, fnReset)
 
-  def javascript(name: String,
-                 fields: Iterable[Dim],
-                 fnAggregate: String,
-                 fnCombine: String,
-                 fnReset: String)(implicit classTag: ClassTag[Dim]): JavascriptAgg =
+  def javascript[_ <: Dim: ClassTag](name: String,
+                                     fields: Iterable[Dim],
+                                     fnAggregate: String,
+                                     fnCombine: String,
+                                     fnReset: String): JavascriptAgg =
     JavascriptAgg(fields.map(_.name).toSeq, fnAggregate, fnCombine, fnReset, Option(name))
 
   def javascript(fields: Iterable[String],
@@ -193,9 +194,9 @@ trait PostAggregationOps {
                  function: String): PostAggregationExpression =
     JavascriptPostAgg(fields.toSeq, function, Option(name))
 
-  def javascript(name: String, fields: Iterable[Dim], function: String)(
-      implicit classTag: ClassTag[Dim]
-  ): PostAggregationExpression =
+  def javascript[_ <: Dim: ClassTag](name: String,
+                                     fields: Iterable[Dim],
+                                     function: String): PostAggregationExpression =
     JavascriptPostAgg(fields.map(_.name).toSeq, function, Option(name))
 }
 

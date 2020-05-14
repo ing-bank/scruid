@@ -22,7 +22,6 @@ import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.{ DruidConfig, QueryHost, TimeSeriesQuery }
 import io.circe.generic.auto._
-import org.scalatest._
 import org.scalatest.concurrent._
 
 import scala.concurrent.duration._
