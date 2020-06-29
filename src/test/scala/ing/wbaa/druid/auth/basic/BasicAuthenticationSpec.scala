@@ -21,6 +21,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 import akka.http.scaladsl.model.StatusCodes
+import akka.stream.scaladsl.Sink
 import ing.wbaa.druid.{ DruidConfig, QueryHost, TimeSeriesQuery }
 import ing.wbaa.druid.client.{ DruidAdvancedHttpClient, HttpStatusException }
 import ing.wbaa.druid.definitions._
@@ -48,6 +49,8 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
       hosts = Seq(QueryHost("localhost", 8088))
     )
 
+    val mat = config.client.actorMaterializer
+
     "get 401 Auth Required when querying Druid without Authentication config" in {
       val request = TimeSeriesQuery(
         aggregations = List(
@@ -56,6 +59,21 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
         granularity = GranularityType.Hour,
         intervals = List("2011-06-01/2017-06-01")
       ).execute
+
+      whenReady(request.failed) { throwable =>
+        throwable shouldBe a[HttpStatusException]
+        throwable.asInstanceOf[HttpStatusException].status shouldBe StatusCodes.Unauthorized
+      }
+    }
+
+    "get 401 Auth Required when streaming Druid without Authentication config" in {
+      val request = TimeSeriesQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        granularity = GranularityType.Hour,
+        intervals = List("2011-06-01/2017-06-01")
+      ).streamAs[TimeseriesCount].runWith(Sink.seq)(mat)
 
       whenReady(request.failed) { throwable =>
         throwable shouldBe a[HttpStatusException]
@@ -75,6 +93,8 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
       hosts = Seq(QueryHost("localhost", 8088))
     )
 
+    val mat = config.client.actorMaterializer
+
     "successfully query Druid when an Authentication config is set" in {
       val request = TimeSeriesQuery(
         aggregations = List(
@@ -87,6 +107,21 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
       whenReady(request) { response =>
         response.list[TimeseriesCount].map(_.count).sum shouldBe totalNumberOfEntries
       }
+    }
+
+    "successfully stream Druid when an Authentication config is set" in {
+      val request = TimeSeriesQuery(
+        aggregations = List(
+          CountAggregation(name = "count")
+        ),
+        granularity = GranularityType.Hour,
+        intervals = List("2011-06-01/2017-06-01")
+      ).streamAs[TimeseriesCount].runWith(Sink.seq)(mat)
+
+      whenReady(request) { response =>
+        response.map(_.count).sum shouldBe totalNumberOfEntries
+      }
+
     }
   }
 
