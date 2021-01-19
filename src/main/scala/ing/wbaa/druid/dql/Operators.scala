@@ -128,6 +128,10 @@ trait AggregationOps {
   def selectorFiltered(dim: Dim, aggregator: AggregationExpression): SelectorFilteredAgg =
     SelectorFilteredAgg(dim.name, None, aggregator.build())
 
+  def anyFiltered(filter: FilteringExpression,
+                  aggregator: AggregationExpression): AnyFilteredAgg =
+    AnyFilteredAgg(filter.createFilter, aggregator.build())
+
   def count: CountAgg = new CountAgg()
 
   def javascript[_ <: Dim: ClassTag](fields: Iterable[Dim],

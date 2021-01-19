@@ -385,6 +385,23 @@ final case class SelectorFilteredAgg(dimension: String,
   override def getName: String = name.getOrElse(s"selector_filtered_$dimension")
 }
 
+final case class AnyFilteredAgg(filter: Filter,
+                                aggregator: Aggregation,
+                                name: Option[String] = None)
+  extends AggregationExpression {
+
+  override protected[dql] def build(): Aggregation =
+    AnyFilteredAggregation(
+      this.getName,
+      filter,
+      aggregator
+    )
+
+  override def alias(name: String): AnyFilteredAgg = copy(name = Option(name))
+
+  override def getName: String = name.getOrElse(s"any_filtered_${filter.`type`}")
+}
+
 final case class JavascriptAgg(
     fields: Seq[String],
     fnAggregate: String,
