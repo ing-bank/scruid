@@ -388,7 +388,7 @@ final case class SelectorFilteredAgg(dimension: String,
 final case class AnyFilteredAgg(filter: Filter,
                                 aggregator: Aggregation,
                                 name: Option[String] = None)
-  extends AggregationExpression {
+    extends AggregationExpression {
 
   override protected[dql] def build(): Aggregation =
     AnyFilteredAggregation(

@@ -203,7 +203,7 @@ object FilteredAggregation {
       (agg match {
         case x: InFilteredAggregation       => x.asJsonObject
         case x: SelectorFilteredAggregation => x.asJsonObject
-        case x: AnyFilteredAggregation => x.asJsonObject
+        case x: AnyFilteredAggregation      => x.asJsonObject
       }).add("filter", filterEncoder(agg.filter)).asJson
   }
 }
