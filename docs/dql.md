@@ -473,8 +473,9 @@ cardinality(d"dim_name_one", d"dim_name_two", d"dim_name_three".extract(Substrin
 
 #### Filtered Aggregator
 
-`inFiltered` wraps any given aggregator, but only aggregates the values for which the given dimension the *in filter* matches
+`inFiltered` wraps any given aggregator, but only aggregates the values for which the given dimension the *in filter* matches.
 Similarly, `selectorFiltered` wraps any given aggregator and filters the values using the *selector filter*.
+On the other hand, `filtered` wraps any given aggregator and filters the values using *any given filter*.
 
 
 For example, the `inFiltered` below applies over the `longSum` aggregation, only for values
@@ -495,6 +496,14 @@ d"channel".selectorFiltered(d"count".longSum, "#en.wikipedia")
 
 // Equivalent selectorFiltered as function
 selectorFiltered(d"channel", d"count".longSum, "#en.wikipedia")
+
+```
+
+The `filtered` below applies over the `longSum` aggregation, for all values except `"#en.wikipedia"` of
+`channel` dimension:
+
+```scala
+filtered(d"channel" =!= "#en.wikipedia", d"count".longSum)
 
 ```
 

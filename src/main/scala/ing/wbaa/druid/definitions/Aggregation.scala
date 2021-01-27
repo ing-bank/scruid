@@ -203,6 +203,7 @@ object FilteredAggregation {
       (agg match {
         case x: InFilteredAggregation       => x.asJsonObject
         case x: SelectorFilteredAggregation => x.asJsonObject
+        case x: AnyFilteredAggregation      => x.asJsonObject
       }).add("filter", filterEncoder(agg.filter)).asJson
   }
 }
@@ -210,6 +211,8 @@ object FilteredAggregation {
 case class InFilteredAggregation(name: String, filter: InFilter, aggregator: Aggregation)
     extends FilteredAggregation
 case class SelectorFilteredAggregation(name: String, filter: SelectFilter, aggregator: Aggregation)
+    extends FilteredAggregation
+case class AnyFilteredAggregation(name: String, filter: Filter, aggregator: Aggregation)
     extends FilteredAggregation
 
 case class JavascriptAggregation(
