@@ -128,7 +128,7 @@ class DruidAdvancedHttpClient private (
 
     Source
       .fromFuture(
-        createHttpRequest(query).map(request => request -> responsePromise)
+        createHttpRequest(query).map(request => requestInterceptor.interceptRequest(request) -> responsePromise)
       )
       .via(connectionFlow)
       .flatMapConcat {
