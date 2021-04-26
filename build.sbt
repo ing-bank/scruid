@@ -66,7 +66,7 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   bintrayOrganization := Some("ing-bank"),
   bintrayRepository := "maven-releases",
   bintrayPackage := "scruid",
-  organization in ThisBuild := "ing.wbaa.druid",
+  organization in ThisBuild := "com.ing.wbaa.druid",
   homepage in ThisBuild := Some(
     url(s"https://github.com/${bintrayOrganization.value.get}/${name.value}/#readme")
   ),
