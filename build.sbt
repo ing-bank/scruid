@@ -63,18 +63,14 @@ def unusedWarnings(scalaVer: String): Seq[String] = {
 }
 
 lazy val commonSettings: Seq[Setting[_]] = Seq(
-  bintrayOrganization := Some("ing-bank"),
-  bintrayRepository := "maven-releases",
-  bintrayPackage := "scruid",
   organization in ThisBuild := "com.ing.wbaa.druid",
   homepage in ThisBuild := Some(
-    url(s"https://github.com/${bintrayOrganization.value.get}/${name.value}/#readme")
+    url(s"https://github.com/ing-bank/${name.value}/#readme")
   ),
   licenses in ThisBuild := Seq(
     ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
   ),
   description in ThisBuild := "Scala library for composing Druid queries",
-  bintrayReleaseOnPublish in ThisBuild := false,
   scalafmtOnCompile in ThisBuild := true,
   developers in ThisBuild := List(
     Developer("fokko", "Fokko Driesprong", "@fokkodriesprong", url("https://github.com/fokko")),
@@ -84,10 +80,19 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   ),
   scmInfo in ThisBuild := Some(
     ScmInfo(
-      url(s"https://github.com/${bintrayOrganization.value.get}/${name.value}"),
-      s"git@github.com:${bintrayOrganization.value.get}/${name.value}.git"
+      url(s"https://github.com/ing-bank/${name.value}"),
+      s"git@github.com:ing-bank/${name.value}.git"
     )
   ),
+  pomIncludeRepository in ThisBuild := { _ =>
+    false
+  },
+  publishTo in ThisBuild := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+    else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  },
+  publishMavenStyle in ThisBuild := true,
   crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.11", "2.13.2"),
   scalaVersion in ThisBuild := "2.13.2",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),

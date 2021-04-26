@@ -27,8 +27,6 @@ jobs:
           key: ${{ runner.os }}-ivy2-${{ hashFiles('**/build.sbt') }}
           restore-keys: |
             ${{ runner.os }}-ivy2-
-      - name: Display running containers
-        run: docker ps
       - name: Start dockerized services
         run: ./services.sh start
       - name: Wait Druid to become available
