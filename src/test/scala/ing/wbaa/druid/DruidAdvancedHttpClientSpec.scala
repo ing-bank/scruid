@@ -96,7 +96,7 @@ class DruidAdvancedHttpClientSpec
 
     "indicate when Druid is not healthy" in {
       val config = DruidConfig(clientBackend = classOf[DruidAdvancedHttpClient],
-                               hosts = Seq(QueryHost("localhost", 8086)))
+                               hosts = Seq(QueryHost("localhost", 8186)))
       val client = config.client
 
       whenReady(client.isHealthy()) { result =>
@@ -112,11 +112,11 @@ class DruidAdvancedHttpClientSpec
       // When the status is true the corresponding Broker is healthy, otherwise is false
       val expectedHealthCheck = Map(
         QueryHost("localhost", 8082) -> true,
-        QueryHost("localhost", 8083) -> true,
-        QueryHost("localhost", 8084) -> true,
-        QueryHost("localhost", 8085) -> true,
+        QueryHost("localhost", 8183) -> true,
+        QueryHost("localhost", 8184) -> true,
+        QueryHost("localhost", 8185) -> true,
         // the following node always fails with Internal Server Error (HTTP code 500)
-        QueryHost("localhost", 8086) -> false
+        QueryHost("localhost", 8186) -> false
       )
 
       val config = DruidConfig(clientBackend = classOf[DruidAdvancedHttpClient],
@@ -139,7 +139,7 @@ class DruidAdvancedHttpClientSpec
     "throw HttpStatusException for non-200 status codes" in {
       implicit val config =
         DruidConfig(clientBackend = classOf[DruidAdvancedHttpClient],
-                    hosts = Seq(QueryHost("localhost", 8086))) // yields HTTP 500
+                    hosts = Seq(QueryHost("localhost", 8186))) // yields HTTP 500
 
       val responseFuture = queries.head.execute()
 
@@ -163,7 +163,7 @@ class DruidAdvancedHttpClientSpec
         DruidConfig(
           clientBackend = classOf[DruidAdvancedHttpClient],
           responseParsingTimeout = 1.seconds,
-          hosts = Seq(QueryHost("localhost", 8087))
+          hosts = Seq(QueryHost("localhost", 8187))
         )
 
       val responseFuture = queries.head.execute()
@@ -205,12 +205,12 @@ class DruidAdvancedHttpClientSpec
         hosts = Seq(
           // Healthy nodes
           QueryHost("localhost", 8082),
-          QueryHost("localhost", 8083),
-          QueryHost("localhost", 8084),
+          QueryHost("localhost", 8183),
+          QueryHost("localhost", 8184),
           // Node with random delays
-          QueryHost("localhost", 8085),
+          QueryHost("localhost", 8185),
           // Node with Internal Server Error (HTTP code 500)
-          QueryHost("localhost", 8086)
+          QueryHost("localhost", 8186)
         ),
         clientBackend = classOf[DruidAdvancedHttpClient],
         clientConfig = DruidAdvancedHttpClient.ConfigBuilder().withQueryRetries(10).build()

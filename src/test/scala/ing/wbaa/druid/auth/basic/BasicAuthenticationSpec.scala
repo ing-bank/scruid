@@ -45,7 +45,7 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
       clientConfig = DruidAdvancedHttpClient
         .ConfigBuilder()
         .build(),
-      hosts = Seq(QueryHost("localhost", 8088))
+      hosts = Seq(QueryHost("localhost", 8188))
     )
 
     "get 401 Auth Required when querying Druid without Authentication config" in {
@@ -72,7 +72,7 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
         .ConfigBuilder()
         .withRequestInterceptor(basicAuthenticationAddition)
         .build(),
-      hosts = Seq(QueryHost("localhost", 8088))
+      hosts = Seq(QueryHost("localhost", 8188))
     )
 
     "successfully query Druid when an Authentication config is set" in {

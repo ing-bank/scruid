@@ -48,7 +48,7 @@ class DruidClientSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
     "indicate when Druid is not healthy" in {
       val config = DruidConfig(clientBackend = classOf[DruidHttpClient],
-                               hosts = Seq(QueryHost("localhost", 8087)))
+                               hosts = Seq(QueryHost("localhost", 8187)))
       val client = config.client
 
       whenReady(client.isHealthy()) { result =>
@@ -59,7 +59,7 @@ class DruidClientSpec extends AnyWordSpec with Matchers with ScalaFutures {
     "fail to load when having multiple query nodes" in {
       val config = DruidConfig(clientBackend = classOf[DruidHttpClient],
                                hosts =
-                                 Seq(QueryHost("localhost", 8082), QueryHost("localhost", 8083)))
+                                 Seq(QueryHost("localhost", 8082), QueryHost("localhost", 8183)))
 
       assertThrows[IllegalStateException] {
         config.client
@@ -68,7 +68,7 @@ class DruidClientSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
     "throw HttpStatusException for non-200 status codes" in {
       val config = DruidConfig(clientBackend = classOf[DruidHttpClient],
-                               hosts = Seq(QueryHost("localhost", 8086))) // yields HTTP 500
+                               hosts = Seq(QueryHost("localhost", 8186))) // yields HTTP 500
       val client = config.client
       val responseFuture = client.doQuery(
         TimeSeriesQuery(
@@ -98,7 +98,7 @@ class DruidClientSpec extends AnyWordSpec with Matchers with ScalaFutures {
         DruidConfig(
           clientBackend = classOf[DruidHttpClient],
           responseParsingTimeout = 1.seconds,
-          hosts = Seq(QueryHost("localhost", 8087))
+          hosts = Seq(QueryHost("localhost", 8187))
         )
 
       val client = config.client
