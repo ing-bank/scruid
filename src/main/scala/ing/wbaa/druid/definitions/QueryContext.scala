@@ -17,14 +17,50 @@
 
 package ing.wbaa.druid.definitions
 
+import io.circe.{ Encoder, Json }
+
 object QueryContext {
 
   type QueryContextParam = String
-  type QueryContextValue = String
+
+  sealed trait QueryContextValue {
+    def toJson: Json
+  }
+
+  object QueryContextValue {
+    implicit val encoder: Encoder[QueryContextValue] = new Encoder[QueryContextValue] {
+      override def apply(a: QueryContextValue): Json = a.toJson
+    }
+  }
+
+  implicit class QueryContextValueString(v: String) extends QueryContextValue {
+    override def toJson: Json = Json.fromString(v)
+  }
+
+  implicit class QueryContextValueInt(v: Int) extends QueryContextValue {
+    override def toJson: Json = Json.fromInt(v)
+  }
+
+  implicit class QueryContextValueLong(v: Long) extends QueryContextValue {
+    override def toJson: Json = Json.fromLong(v)
+  }
+
+  implicit class QueryContextValueBoolean(v: Boolean) extends QueryContextValue {
+    override def toJson: Json = Json.fromBoolean(v)
+  }
+
+  implicit class QueryContextValueFloat(v: Float) extends QueryContextValue {
+    override def toJson: Json = Json.fromFloatOrNull(v)
+  }
+
+  implicit class QueryContextValueDouble(v: Double) extends QueryContextValue {
+    override def toJson: Json = Json.fromDoubleOrNull(v)
+  }
 
   // the following apply only to all queries
   final val Timeout                  = "timeout"
   final val Priority                 = "priority"
+  final val Lane                     = "lane"
   final val QueryId                  = "queryId"
   final val UseCache                 = "useCache"
   final val PopulateCache            = "populateCache"
@@ -33,14 +69,21 @@ object QueryContext {
   final val BySegment                = "bySegment"
   final val Finalize                 = "finalize"
   @deprecated("deprecated context parameter in Druid", since = "2.3.0")
-  final val ChunkPeriod                  = "chunkPeriod"
-  final val MaxScatterGatherBytes        = "maxScatterGatherBytes"
-  final val MaxQueuedBytes               = "maxQueuedBytes"
-  final val SerializeDateTimeAsLong      = "serializeDateTimeAsLong"
-  final val SerializeDateTimeAsLongInner = "serializeDateTimeAsLongInner"
+  final val ChunkPeriod                   = "chunkPeriod"
+  final val MaxScatterGatherBytes         = "maxScatterGatherBytes"
+  final val MaxQueuedBytes                = "maxQueuedBytes"
+  final val SerializeDateTimeAsLong       = "serializeDateTimeAsLong"
+  final val SerializeDateTimeAsLongInner  = "serializeDateTimeAsLongInner"
+  final val EnableParallelMerge           = "enableParallelMerge"
+  final val ParallelMergeParallelism      = "parallelMergeParallelism"
+  final val ParallelMergeInitialYieldRows = "parallelMergeInitialYieldRows"
+  final val ParallelMergeSmallBatchRows   = "parallelMergeSmallBatchRows"
+  final val UseFilterCNF                  = "useFilterCNF"
+  final val SecondaryPartitionPruning     = "secondaryPartitionPruning"
 
-  final val Vectorize  = "vectorize"
-  final val VectorSize = "vectorizeSize"
+  final val Vectorize               = "vectorize"
+  final val VectorSize              = "vectorizeSize"
+  final val VectorizeVirtualColumns = "vectorizeVirtualColumns"
 
   // the following apply only to time-series queries
   final val SkipEmptyBuckets = "skipEmptyBuckets"
@@ -62,8 +105,9 @@ object QueryContext {
   final val IntermediateCombineDegree   = "intermediateCombineDegree"
   final val NumParallelCombineThreads   = "numParallelCombineThreads"
 
-  final val SortByDimsFirst    = "sortByDimsFirst"
-  final val ForceLimitPushDown = "forceLimitPushDown"
+  final val SortByDimsFirst             = "sortByDimsFirst"
+  final val ApplyLimitPushDownToSegment = "applyLimitPushDownToSegment"
+  final val ForceLimitPushDown          = "forceLimitPushDown"
 
   // group-by V1 parameters
   final val MaxIntermediateRows = "maxIntermediateRows"

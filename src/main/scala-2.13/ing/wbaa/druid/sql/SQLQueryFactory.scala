@@ -18,13 +18,14 @@
 package ing.wbaa.druid.sql
 
 import ing.wbaa.druid.{DruidConfig, SQLQuery, SQLQueryParameter}
+import ing.wbaa.druid.definitions.QueryContext.{QueryContextParam, QueryContextValue}
 
 trait SQLQueryFactory {
 
   protected def createSQLQuery(
     sc: StringContext,
     parameters: Seq[SQLQueryParameter],
-    context: Map[String, String],
+    context: Map[QueryContextParam, QueryContextValue],
     config: DruidConfig
   ): SQLQuery = {
     StringContext.checkLengths(parameters, sc.parts)

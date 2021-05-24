@@ -48,9 +48,9 @@ class QueryContextSpec extends AnyWordSpec with Matchers with ScalaFutures {
         intervals = List("2011-06-01/2017-06-01"),
         context = Map(
           QueryContext.QueryId          -> "some_custom_id",
-          QueryContext.Priority         -> "100",
-          QueryContext.UseCache         -> "false",
-          QueryContext.SkipEmptyBuckets -> "true"
+          QueryContext.Priority         -> 1,
+          QueryContext.UseCache         -> false,
+          QueryContext.SkipEmptyBuckets -> true
         )
       )
 
@@ -64,7 +64,7 @@ class QueryContextSpec extends AnyWordSpec with Matchers with ScalaFutures {
           |"granularity":"hour",
           |"descending":"true",
           |"postAggregations":[],
-          |"context":{"queryId":"some_custom_id","priority":"100","useCache":"false","skipEmptyBuckets":"true"}
+          |"context":{"queryId":"some_custom_id","priority":1,"useCache":false,"skipEmptyBuckets":true}
           |}""".toOneLine
 
       val resultF = query.execute()

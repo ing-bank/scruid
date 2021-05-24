@@ -50,7 +50,7 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
       |"granularity":"hour",
       |"descending":"true",
       |"postAggregations":[],
-      |"context":{"queryId":"some_custom_id","priority":"100","useCache":"false","skipEmptyBuckets":"true"}
+      |"context":{"queryId":"some_custom_id","priority":1,"useCache":false,"skipEmptyBuckets":true}
       |}""".toOneLine
 
   case class TimeseriesCount(count: Int)
@@ -79,6 +79,7 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
         .granularity(GranularityType.Hour)
         .interval("2011-06-01/2017-06-01")
         .agg(count as "count")
+        .setQueryContextParam(QueryContext.Priority, 1)
         .build()
 
       val request = query.execute()
@@ -364,9 +365,9 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
         .withQueryContext(
           Map(
             QueryContext.QueryId          -> "some_custom_id",
-            QueryContext.Priority         -> "100",
-            QueryContext.UseCache         -> "false",
-            QueryContext.SkipEmptyBuckets -> "true"
+            QueryContext.Priority         -> 1,
+            QueryContext.UseCache         -> false,
+            QueryContext.SkipEmptyBuckets -> true
           )
         )
         .build()
@@ -389,9 +390,9 @@ class DQLSpec extends AnyWordSpec with Matchers with ScalaFutures {
         .agg(count as "count")
         .setDescending(true)
         .setQueryContextParam(QueryContext.QueryId, "some_custom_id")
-        .setQueryContextParam(QueryContext.Priority, "100")
-        .setQueryContextParam(QueryContext.UseCache, "false")
-        .setQueryContextParam(QueryContext.SkipEmptyBuckets, "true")
+        .setQueryContextParam(QueryContext.Priority, 1)
+        .setQueryContextParam(QueryContext.UseCache, false)
+        .setQueryContextParam(QueryContext.SkipEmptyBuckets, true)
         .build()
 
       val requestJson = query.asJson.noSpaces
