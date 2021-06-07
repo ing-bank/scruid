@@ -87,12 +87,10 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   pomIncludeRepository in ThisBuild := { _ =>
     false
   },
-  publishTo in ThisBuild := {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-    else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  },
   publishMavenStyle in ThisBuild := true,
+  publishTo := sonatypePublishToBundle.value,
+  sonatypeProfileName := "com.ing",
+  sonatypeCredentialHost in ThisBuild := "s01.oss.sonatype.org",
   crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.11", "2.13.2"),
   scalaVersion in ThisBuild := "2.13.2",
   scalacOptions ++= Seq(Opts.compile.deprecation, "-Xlint", "-feature"),
@@ -107,7 +105,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     name := "scruid",
-    version := "2.4.0",
+    version in ThisBuild := "2.5.0",
     libraryDependencies ++= Seq(
       "com.typesafe"               % "config"                   % typesafeConfigVersion,
       "com.typesafe.scala-logging" %% "scala-logging"           % typesafeLoggingVersion,
