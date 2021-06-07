@@ -43,7 +43,7 @@ object QueryType extends EnumCodec[QueryType] {
 
 sealed trait DruidQuery {
   val queryType: QueryType
-  val context: Map[String, String]
+  val context: Map[QueryContextParam, QueryContextValue]
 
   /**
     * Utility method that converts the query to the corresponding native Druid JSON request
@@ -329,9 +329,11 @@ object SQLQueryParameterType extends EnumCodec[SQLQueryParameterType] {
 
 case class SQLQueryParameter(`type`: SQLQueryParameterType, value: String)
 
-case class SQLQuery private[druid] (query: String,
-                                    context: Map[QueryContextParam, QueryContextValue] = Map.empty,
-                                    parameters: Seq[SQLQueryParameter] = Seq.empty)(
+case class SQLQuery private[druid] (
+    query: String,
+    context: Map[QueryContextParam, QueryContextValue] = Map.empty,
+    parameters: Seq[SQLQueryParameter] = Seq.empty
+)(
     implicit val config: DruidConfig = DruidConfig.DefaultConfig
 ) extends DruidQuery {
 

@@ -117,7 +117,7 @@ val result = Future[List[DruidSearchResult]] = response.map(_.list)
 
 Queries can be configured using Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html),
 such as `timeout`, `queryId` and `groupByStrategy`. All types of query contain the argument `context` which
-associates query parameter with they corresponding values. The parameter names can also be accessed
+associates query parameter with their corresponding values. The parameter names can also be accessed
 by `ing.wbaa.druid.definitions.QueryContext` object. Consider, for example, a timeseries query with custom `query id`
 and `priority`:
 
@@ -130,7 +130,7 @@ TimeSeriesQuery(
   intervals = List("2011-06-01/2017-06-01"),
   context = Map(
     QueryContext.QueryId -> "some_custom_id",
-    QueryContext.Priority -> "10"
+    QueryContext.Priority -> 1
   )
 )
 ```

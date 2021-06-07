@@ -1,5 +1,8 @@
 version: "2.0"
 
+networks:
+  network_scruid: {}
+
 services:
 
   scruid_druid:
@@ -8,9 +11,11 @@ services:
     ports:
       - "8081:8081"
       - "8082:8082"
-      - "8083:8082"
-      - "8084:8082"
+      - "8183:8082"
+      - "8184:8082"
       - "8888:8888"
+    networks:
+      - network_scruid
 
   delay_response:
     image: "docker.pkg.github.com/${REPOSITORY_OWNER}/clusterf-chaos-proxy:${CHAOS_PROXY_VERSION}"
@@ -22,7 +27,9 @@ services:
     environment:
       JAVA_OPTS: "-Dserver.port=8090 -Dchaos.strategy=DELAY_RESPONSE -Dchaos.strategy.delayResponse.fixedPeriod=false -Dchaos.strategy.delayResponse.random.maxSeconds=1 -Ddestination.hostProtocolAndPort=http://scruid_druid:8082"
     ports:
-      - "8085:8090"
+      - "8185:8090"
+    networks:
+      - network_scruid
 
   always_fail_500:
     image: "docker.pkg.github.com/${REPOSITORY_OWNER}/clusterf-chaos-proxy:${CHAOS_PROXY_VERSION}"
@@ -34,7 +41,9 @@ services:
     environment:
       JAVA_OPTS: "-Dserver.port=8090 -Dchaos.strategy=INTERNAL_SERVER_ERROR -Ddestination.hostProtocolAndPort=http://scruid_druid:8082"
     ports:
-      - "8086:8090"
+      - "8186:8090"
+    networks:
+      - network_scruid
 
   slow_response:
     image: "docker.pkg.github.com/${REPOSITORY_OWNER}/openresty:${OPENRESTY_VERSION}-alpine"
@@ -44,5 +53,7 @@ services:
     links:
       - scruid_druid
     ports:
-      - "8087:8080" # Slow response
-      - "8088:8081" # Basic authentication
+      - "8187:8080" # Slow response
+      - "8188:8081" # Basic authentication
+    networks:
+      - network_scruid

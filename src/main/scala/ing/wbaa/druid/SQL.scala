@@ -17,6 +17,7 @@
 
 package ing.wbaa.druid
 
+import ing.wbaa.druid.definitions.QueryContext.{ QueryContextParam, QueryContextValue }
 import ing.wbaa.druid.sql.{ ParameterConversions, SQLQueryFactory }
 
 object SQL extends SQLQueryFactory with ParameterConversions {
@@ -24,7 +25,7 @@ object SQL extends SQLQueryFactory with ParameterConversions {
   implicit class StringToSQL(val sc: StringContext) extends AnyVal {
 
     def dsql(parameters: SQLQueryParameter*)(
-        implicit context: Map[String, String] = Map.empty,
+        implicit context: Map[QueryContextParam, QueryContextValue] = Map.empty,
         config: DruidConfig = DruidConfig.DefaultConfig
     ): SQLQuery = createSQLQuery(sc, parameters, context, config)
 

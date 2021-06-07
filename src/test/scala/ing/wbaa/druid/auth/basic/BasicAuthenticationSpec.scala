@@ -46,7 +46,7 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
       clientConfig = DruidAdvancedHttpClient
         .ConfigBuilder()
         .build(),
-      hosts = Seq(QueryHost("localhost", 8088))
+      hosts = Seq(QueryHost("localhost", 8188))
     )
 
     val mat = config.client.actorMaterializer
@@ -90,7 +90,7 @@ class BasicAuthenticationSpec extends AnyWordSpec with Matchers with ScalaFuture
         .ConfigBuilder()
         .withRequestInterceptor(basicAuthenticationAddition)
         .build(),
-      hosts = Seq(QueryHost("localhost", 8088))
+      hosts = Seq(QueryHost("localhost", 8188))
     )
 
     val mat = config.client.actorMaterializer
