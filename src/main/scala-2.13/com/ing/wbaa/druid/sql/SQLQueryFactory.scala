@@ -15,18 +15,22 @@
  * limitations under the License.
  */
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
+package com.ing.wbaa.druid.sql
 
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "3.0.3")
+import com.ing.wbaa.druid.{DruidConfig, SQLQuery, SQLQueryParameter}
+import com.ing.wbaa.druid.definitions.QueryContext.{QueryContextParam, QueryContextValue}
 
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.7")
+trait SQLQueryFactory {
 
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
+  protected def createSQLQuery(
+    sc: StringContext,
+    parameters: Seq[SQLQueryParameter],
+    context: Map[QueryContextParam, QueryContextValue],
+    config: DruidConfig
+  ): SQLQuery = {
+    StringContext.checkLengths(parameters, sc.parts)
+    val query = sc.parts.map(StringContext.processEscapes).mkString("?")
+    SQLQuery(query, context, parameters)(config)
+  }
 
-addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
-
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.0")
-
-addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "2.0.0")
-
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
+}

@@ -14,10 +14,10 @@ Please view the [Releases](https://github.com/ing-bank/scruid/releases) page on 
 
 ## Installation
 
-The binaries are hosted on Bintray. We publish builds for Scala 2.11, 2.12 and 2.13.
+The binaries are hosted on Maven Central. We publish builds for Scala 2.11, 2.12 and 2.13.
 
 ```sbt
-libraryDependencies += "ing.wbaa.druid" %% "scruid" % "2.4.0"
+libraryDependencies += "com.ing.wbaa.druid" %% "scruid" % "2.5.0"
 ```
 
 ## Example queries:

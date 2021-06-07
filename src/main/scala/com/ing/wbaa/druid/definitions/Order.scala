@@ -14,19 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.ing.wbaa.druid
+package definitions
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
+import ca.mrvisser.sealerate
+import io.circe._
 
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "3.0.3")
+sealed trait Order extends Enum with LowerCaseEnumStringEncoder
 
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.7")
+object Order {
+  implicit val orderEncoder: Encoder[Order] = OrderType.encoder
+  implicit val orderDecoder: Decoder[Order] = OrderType.decoder
+}
 
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
+object OrderType extends EnumCodec[Order] {
 
-addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
+  case object Ascending extends Order
+  case object Decending extends Order
+  case object None      extends Order
 
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.0")
-
-addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "2.0.0")
-
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
+  val values: Set[Order] = sealerate.values[Order]
+}

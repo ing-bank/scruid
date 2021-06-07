@@ -15,18 +15,13 @@
  * limitations under the License.
  */
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
+package com.ing.wbaa.druid.dql.expressions
 
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "3.0.3")
+trait Named[T] {
 
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.7")
+  def alias(name: String): T
+  def as(name: String): T = alias(name)
 
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
+  def getName: String
 
-addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
-
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.0")
-
-addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "2.0.0")
-
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
+}

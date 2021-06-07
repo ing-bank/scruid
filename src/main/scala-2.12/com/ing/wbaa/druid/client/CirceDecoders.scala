@@ -15,18 +15,13 @@
  * limitations under the License.
  */
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
+package com.ing.wbaa.druid.client
 
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "3.0.3")
+trait CirceDecoders {
 
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.7")
+  protected def mapRightProjection[L, R, R1](either: Either[L, R])(f: R => R1): Either[L, R1] = either match {
+    case Right(value) => Right(f(value))
+    case _ => either.asInstanceOf[Either[L, R1]]
+  }
 
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
-
-addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
-
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.0")
-
-addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "2.0.0")
-
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
+}

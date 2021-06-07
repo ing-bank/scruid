@@ -14,19 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.ing.wbaa.druid
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
-
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "3.0.3")
-
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.7")
-
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
-
-addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
-
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.0")
-
-addSbtPlugin("net.vonbuchholtz" % "sbt-dependency-check" % "2.0.0")
-
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
+package object util {
+  implicit class MultiLineString(s: String) {
+    def toOneLine: String = s.stripMargin.replaceAll("\n", "")
+  }
+}
