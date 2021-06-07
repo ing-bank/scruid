@@ -100,7 +100,7 @@ val result: Future[List[ScanResult]] = response.map(_.list[ScanResult])
 
 ### Search query
 
-Search query is a bit different, since it does not take type parameters as its results are of type `ing.wbaa.druid.DruidSearchResult`
+Search query is a bit different, since it does not take type parameters as its results are of type `com.ing.wbaa.druid.DruidSearchResult`
 
 ```scala
 val response = SearchQuery(
@@ -118,7 +118,7 @@ val result = Future[List[DruidSearchResult]] = response.map(_.list)
 Queries can be configured using Druid [query context](https://druid.apache.org/docs/latest/querying/query-context.html),
 such as `timeout`, `queryId` and `groupByStrategy`. All types of query contain the argument `context` which
 associates query parameter with their corresponding values. The parameter names can also be accessed
-by `ing.wbaa.druid.definitions.QueryContext` object. Consider, for example, a timeseries query with custom `query id`
+by `com.ing.wbaa.druid.definitions.QueryContext` object. Consider, for example, a timeseries query with custom `query id`
 and `priority`:
 
 ```scala
@@ -165,7 +165,7 @@ query representation.
 For example the following:
 
 ```scala
-import ing.wbaa.druid.dql.DSL._
+import com.ing.wbaa.druid.dql.DSL._
 
 val query: TopNQuery = DQL
     .from("wikipedia")
@@ -227,7 +227,7 @@ All the methods above can be applied to any timeseries, group-by or top-N query 
 Instead of using the Druid native API, Scruid also supports Druid queries via [SQL](https://druid.apache.org/docs/latest/querying/sql.html).
 
 ```scala
-import ing.wbaa.druid.SQL._
+import com.ing.wbaa.druid.SQL._
 
 val query = dsql"""SELECT COUNT(*) as "count" FROM wikipedia WHERE "__time" >= TIMESTAMP '2015-09-12 00:00:00'"""
 
@@ -276,7 +276,7 @@ druid = {
   url = ${?DRUID_URL}
   health-endpoint = "/status/health"
   health-endpoint = ${?DRUID_HEALTH_ENDPOINT}
-  client-backend = "ing.wbaa.druid.client.DruidHttpClient"
+  client-backend = "com.ing.wbaa.druid.client.DruidHttpClient"
   client-backend = ${?DRUID_CLIENT_BACKEND}
 
   scan-query-legacy-mode = false
@@ -292,12 +292,12 @@ druid = {
 }
 ```
 
-Alternatively it can be programmatically overridden by defining an implicit instance of `ing.wbaa.druid.DruidConfig`:
+Alternatively it can be programmatically overridden by defining an implicit instance of `com.ing.wbaa.druid.DruidConfig`:
 
 ```scala
 import java.time.ZonedDateTime
-import ing.wbaa.druid._
-import ing.wbaa.druid.definitions._
+import com.ing.wbaa.druid._
+import com.ing.wbaa.druid.definitions._
 import scala.concurrent.duration._
 
 
