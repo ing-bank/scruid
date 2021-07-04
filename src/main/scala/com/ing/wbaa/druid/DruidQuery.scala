@@ -62,7 +62,6 @@ object DruidQuery {
         case q: SQLQuery         => q.asJsonObject.add("resultFormat", q.resultFormat.asJson).asJson
       }
   }
-
 }
 
 sealed trait DruidNativeQuery extends DruidQuery {
@@ -220,6 +219,7 @@ case class ScanQuery private (
     columns: Iterable[String],
     batchSize: Option[Int],
     limit: Option[Int],
+    offset: Option[Int],
     order: Option[Order],
     legacy: Option[Boolean],
     context: Map[QueryContextParam, QueryContextValue]
@@ -241,6 +241,7 @@ object ScanQuery {
       filter: Option[Filter] = None,
       batchSize: Option[Int] = None,
       limit: Option[Int] = None,
+      offset: Option[Int] = None,
       order: Order = OrderType.None,
       context: Map[QueryContextParam, QueryContextValue] = Map.empty
   )(implicit config: DruidConfig = DruidConfig.DefaultConfig): ScanQuery = {
@@ -264,6 +265,7 @@ object ScanQuery {
                   resultingColumns,
                   batchSize,
                   limit,
+                  offset,
                   Option(order),
                   Option(config.scanQueryLegacyMode),
                   context)
