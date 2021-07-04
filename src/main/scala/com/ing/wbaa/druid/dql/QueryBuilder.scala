@@ -383,6 +383,7 @@ final class ScanQueryBuilder private[dql] () extends QueryBuilderCommons {
 
   private var columns: List[String]     = Nil
   private var limitOpt: Option[Int]     = None
+  private var offsetOpt: Option[Int]    = None
   private var batchSizeOpt: Option[Int] = None
   private var order: Order              = OrderType.None
 
@@ -395,6 +396,11 @@ final class ScanQueryBuilder private[dql] () extends QueryBuilderCommons {
 
   def limit(lim: Int): this.type = {
     limitOpt = Option(lim)
+    this
+  }
+
+  def offset(off: Int): this.type = {
+    offsetOpt = Option(off)
     this
   }
 
@@ -420,6 +426,7 @@ final class ScanQueryBuilder private[dql] () extends QueryBuilderCommons {
       columns = this.columns,
       batchSize = this.batchSizeOpt,
       limit = this.limitOpt,
+      offset = this.offsetOpt,
       order = this.order,
       context = this.queryContextParams
     )(conf)
